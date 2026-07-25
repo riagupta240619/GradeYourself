@@ -1,9 +1,9 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Plus, X, Upload, Download, CheckCircle2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAcademicStore } from "@/lib/store/use-academic-store";
 import { parseNewSubjectsCsv, generateNewSubjectsCsvTemplate, type ParsedSubjectInput } from "@/lib/utils/upload-parser";
 import { SubjectService } from "@/services/subject-service";
+import { SemesterService, type SemesterWithTotalCredits } from "@/services/semester-service";
 
 interface AddSubjectModalProps {
   isOpen: boolean;
@@ -13,12 +13,9 @@ interface AddSubjectModalProps {
 const PALETTE = ["#6366f1", "#22c55e", "#f59e0b", "#ec4899", "#06b6d4", "#8b5cf6", "#14b8a6"];
 
 export function AddSubjectModal({ isOpen, onClose }: AddSubjectModalProps) {
-  const { semesters, addSubject, uploadNewSubjects } = useAcademicStore();
+  const [semesters, setSemesters] = useState<SemesterWithTotalCredits[]>([]);
   const [activeTab, setActiveTab] = useState<"form" | "bulk">("form");
-  
-  // Default to current semester or first semester
-  const currentSem = semesters.find((s) => s.isCurrent) || semesters[0];
-  const [targetSemId, setTargetSemId] = useState<string>(currentSem?.id || "current");
+  const [targetSemId, setTargetSemId] = useState<string>("");
 
   // Single Form State
   const [name, setName] = useState("");
@@ -37,6 +34,26 @@ export function AddSubjectModal({ isOpen, onClose }: AddSubjectModalProps) {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch semesters when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      SemesterService.getSemesters()
+        .then((data) => {
+          setSemesters(data || []);
+          if (data && data.length > 0) {
+            const currentSem = data.find((s) => s.isCurrent) || data[0];
+            setTargetSemId(currentSem.id || (currentSem as any)._id || "");
+          } else {
+            setTargetSemId("");
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to load semesters:", err);
+          setErrorMsg("Failed to load semester list from backend.");
+        });
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -67,52 +84,33 @@ export function AddSubjectModal({ isOpen, onClose }: AddSubjectModalProps) {
     setIsSubmitting(true);
     setErrorMsg(null);
 
-    const defaultScheme = {
-      id: crypto.randomUUID(),
-      name: `${name} Scheme`,
-      university: "General",
-      isTemplate: false,
-      verified: true,
-      usedBy: 1,
-      assessmentTypes: [
-        { id: "a1", name: "Assignments", weightPct: 20, maxMarks: 20 },
-        { id: "a2", name: "Midterm", weightPct: 30, maxMarks: 50 },
-        { id: "a3", name: "Final", weightPct: 50, maxMarks: 100 },
-      ],
-    };
-
-    const targetSem = semesters.find((s) => s.id === targetSemId);
-    const semesterName = targetSem?.name || "Semester 4";
-
-    const internalNum = a1Mark !== "" ? parseFloat(a1Mark) : 0;
-    const externalNum = a3Mark !== "" ? parseFloat(a3Mark) : 0;
-
     try {
-      // Call backend API
+      let activeSemId = targetSemId;
+
+      // If user has no semester created yet, create a default "Semester 1" first
+      if (!activeSemId) {
+        const createdSem = await SemesterService.createSemester({
+          name: "Semester 1",
+          isCurrent: true,
+          credits: 20,
+        });
+        activeSemId = createdSem.id || (createdSem as any)._id;
+      }
+
+      const internalNum = a1Mark !== "" ? parseFloat(a1Mark) : 0;
+      const externalNum = a3Mark !== "" ? parseFloat(a3Mark) : 0;
+
       await SubjectService.createSubject({
         name: name.trim(),
         credits,
-        semester: semesterName,
+        semesterId: activeSemId,
         internalMarks: internalNum,
         externalMarks: externalNum,
         colorTag,
         marks: {
           a1: a1Mark !== "" ? parseFloat(a1Mark) : null,
-          a2: a2Mark !== "" ? parseFloat(a2Mark) : null,
-          a3: a3Mark !== "" ? parseFloat(a3Mark) : null,
-        },
-      });
-
-      // Also update local Zustand store for offline compatibility
-      addSubject(targetSemId, {
-        name: name.trim(),
-        credits,
-        colorTag,
-        scheme: defaultScheme,
-        marks: {
-          a1: a1Mark !== "" ? parseFloat(a1Mark) : null,
-          a2: a2Mark !== "" ? parseFloat(a2Mark) : null,
-          a3: a3Mark !== "" ? parseFloat(a3Mark) : null,
+          m1: a2Mark !== "" ? parseFloat(a2Mark) : null,
+          f1: a3Mark !== "" ? parseFloat(a3Mark) : null,
         },
       });
 
@@ -144,9 +142,9 @@ export function AddSubjectModal({ isOpen, onClose }: AddSubjectModalProps) {
                 name: s.name || `Subject ${idx + 1}`,
                 credits: parseFloat(s.credits || 4),
                 colorTag: s.colorTag || PALETTE[idx % PALETTE.length],
-                marks: s.marks || { a1: null, a2: null, a3: null },
+                marks: s.marks || { a1: null, m1: null, f1: null },
                 scheme: s.scheme || {
-                  id: crypto.randomUUID(),
+                  id: "default-scheme",
                   name: `${s.name || "Subject"} Scheme`,
                   university: "General",
                   isTemplate: false,
@@ -154,8 +152,8 @@ export function AddSubjectModal({ isOpen, onClose }: AddSubjectModalProps) {
                   usedBy: 1,
                   assessmentTypes: [
                     { id: "a1", name: "Assignments", weightPct: 20, maxMarks: 20 },
-                    { id: "a2", name: "Midterm", weightPct: 30, maxMarks: 50 },
-                    { id: "a3", name: "Final", weightPct: 50, maxMarks: 100 },
+                    { id: "m1", name: "Midterm Exam", weightPct: 30, maxMarks: 50 },
+                    { id: "f1", name: "Final Exam", weightPct: 50, maxMarks: 100 },
                   ],
                 },
               }))
@@ -186,15 +184,26 @@ export function AddSubjectModal({ isOpen, onClose }: AddSubjectModalProps) {
 
     setIsSubmitting(true);
     try {
+      let activeSemId = targetSemId;
+      if (!activeSemId) {
+        const createdSem = await SemesterService.createSemester({
+          name: "Semester 1",
+          isCurrent: true,
+          credits: 20,
+        });
+        activeSemId = createdSem.id || (createdSem as any)._id;
+      }
+
       for (const subj of parsedSubjects) {
         await SubjectService.createSubject({
           name: subj.name,
           credits: subj.credits,
+          semesterId: activeSemId,
           colorTag: subj.colorTag,
           marks: subj.marks as Record<string, number | null>,
         });
       }
-      uploadNewSubjects(targetSemId, parsedSubjects);
+
       setSuccessMsg(`Successfully imported ${parsedSubjects.length} subject(s)!`);
       setTimeout(() => {
         resetForm();
@@ -256,11 +265,18 @@ export function AddSubjectModal({ isOpen, onClose }: AddSubjectModalProps) {
             className="w-full rounded-lg border bg-[var(--bg-base)] px-3 py-2 text-xs font-medium"
             style={{ borderColor: "var(--border-hairline)" }}
           >
-            {semesters.map((sem) => (
-              <option key={sem.id} value={sem.id}>
-                {sem.name} {sem.isCurrent ? "(Current)" : ""}
-              </option>
-            ))}
+            {semesters.length === 0 ? (
+              <option value="">New Semester (Will be created automatically)</option>
+            ) : (
+              semesters.map((sem) => {
+                const sId = sem.id || (sem as any)._id;
+                return (
+                  <option key={sId} value={sId}>
+                    {sem.name} {sem.isCurrent ? "(Current)" : ""}
+                  </option>
+                );
+              })
+            )}
           </select>
         </div>
 
@@ -367,7 +383,7 @@ export function AddSubjectModal({ isOpen, onClose }: AddSubjectModalProps) {
                   />
                 </div>
                 <div>
-                  <span className="text-[10px] text-[var(--text-tertiary)]">Midterm (/50)</span>
+                  <span className="text-[10px] text-[var(--text-tertiary)]">Midterm (/30)</span>
                   <input
                     type="number"
                     placeholder="Marks"
@@ -378,7 +394,7 @@ export function AddSubjectModal({ isOpen, onClose }: AddSubjectModalProps) {
                   />
                 </div>
                 <div>
-                  <span className="text-[10px] text-[var(--text-tertiary)]">Final (/100)</span>
+                  <span className="text-[10px] text-[var(--text-tertiary)]">Final (/50)</span>
                   <input
                     type="number"
                     placeholder="Marks"

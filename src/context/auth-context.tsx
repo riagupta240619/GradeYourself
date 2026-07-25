@@ -9,6 +9,8 @@ import {
   type ChangePasswordPayload,
 } from "@/services/auth-service";
 
+import { useAcademicStore } from "@/lib/store/use-academic-store";
+
 export interface AuthContextValue {
   user: AuthUser | null;
   token: string | null;
@@ -42,6 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setToken(storedToken);
         } catch {
           localStorage.removeItem("token");
+          useAcademicStore.getState().clearState();
           setToken(null);
           setUser(null);
         }
@@ -146,6 +149,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Ignore errors on logout
     } finally {
       localStorage.removeItem("token");
+      useAcademicStore.getState().clearState();
       setToken(null);
       setUser(null);
       setLoading(false);

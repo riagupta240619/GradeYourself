@@ -1,7 +1,6 @@
 import { useState, useRef, type ChangeEvent } from "react";
 import { Upload, X, FileText, Download, Plus, Trash2, CheckCircle2, AlertCircle, Image as ImageIcon, FileSpreadsheet, Loader2, Sparkles, Eye, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAcademicStore } from "@/lib/store/use-academic-store";
 import {
   parsePastResultsCsv,
   parsePastResultsFromDocOrImage,
@@ -18,7 +17,6 @@ interface UploadResultsModalProps {
 }
 
 export function UploadResultsModal({ isOpen, onClose }: UploadResultsModalProps) {
-  const { uploadPastResults } = useAcademicStore();
   const [activeTab, setActiveTab] = useState<"file" | "manual">("file");
   const [dragOver, setDragOver] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
@@ -238,7 +236,6 @@ export function UploadResultsModal({ isOpen, onClose }: UploadResultsModalProps)
         });
       }
 
-      uploadPastResults(dataToSave);
       setSuccessMsg(`Successfully imported ${dataToSave.length} past semester record(s)!`);
       setTimeout(() => {
         onClose();

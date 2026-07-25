@@ -3,11 +3,16 @@ import { GripVertical, X, Plus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { currentSemesterSubjects } from "@/lib/data/mock";
 import type { AssessmentType } from "@/types";
 
+const defaultAssessmentScheme: AssessmentType[] = [
+  { id: "a1", name: "Assignments", weightPct: 20, maxMarks: 20 },
+  { id: "m1", name: "Midterm Exam", weightPct: 30, maxMarks: 50 },
+  { id: "f1", name: "Final Exam", weightPct: 50, maxMarks: 100 },
+];
+
 export function AssessmentBuilderPage() {
-  const [rows, setRows] = useState<AssessmentType[]>(currentSemesterSubjects[0].scheme.assessmentTypes);
+  const [rows, setRows] = useState<AssessmentType[]>(defaultAssessmentScheme);
   const total = rows.reduce((sum, r) => sum + r.weightPct, 0);
 
   function update(id: string, field: "weightPct" | "maxMarks", value: number) {
@@ -25,7 +30,7 @@ export function AssessmentBuilderPage() {
   return (
     <div className="flex max-w-2xl flex-col gap-6 animate-fade-up">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Assessment Builder — Data Structures</h1>
+        <h1 className="text-2xl font-semibold">Assessment Builder</h1>
         <Badge tone={total === 100 ? "success" : "danger"}>Total: {total}% {total === 100 ? "✓" : ""}</Badge>
       </div>
 

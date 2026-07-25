@@ -182,7 +182,13 @@ const updateSubject = async (req, res, next) => {
     if (externalMarks !== undefined) subject.externalMarks = Number(externalMarks);
     if (targetGrade !== undefined) subject.targetGrade = targetGrade;
     if (colorTag !== undefined) subject.colorTag = colorTag;
-    if (marks !== undefined) subject.marks = marks;
+    if (marks !== undefined) {
+      if (typeof marks === "object" && marks !== null) {
+        subject.marks = new Map(Object.entries(marks));
+      } else {
+        subject.marks = marks;
+      }
+    }
     if (scheme !== undefined) subject.scheme = scheme;
 
     const updated = await subject.save();

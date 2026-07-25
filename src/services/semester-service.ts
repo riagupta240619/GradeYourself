@@ -10,7 +10,6 @@ export interface CreateSemesterPayload {
   isCurrent?: boolean;
   finalizedSgpa?: number | null;
   credits?: number;
-  subjects?: any[];
 }
 
 export interface UpdateSemesterPayload extends Partial<CreateSemesterPayload> {}
@@ -18,17 +17,28 @@ export interface UpdateSemesterPayload extends Partial<CreateSemesterPayload> {}
 export const SemesterService = {
   async createSemester(payload: CreateSemesterPayload): Promise<SemesterWithTotalCredits> {
     const response = await api.post<SemesterWithTotalCredits>("/semesters", payload);
-    return response.data;
+    const item = response.data;
+    return {
+      ...item,
+      id: item._id || item.id,
+    };
   },
 
   async getSemesters(): Promise<SemesterWithTotalCredits[]> {
     const response = await api.get<SemesterWithTotalCredits[]>("/semesters");
-    return response.data;
+    return response.data.map((item) => ({
+      ...item,
+      id: item._id || item.id,
+    }));
   },
 
   async updateSemester(id: string, payload: UpdateSemesterPayload): Promise<SemesterWithTotalCredits> {
     const response = await api.put<SemesterWithTotalCredits>(`/semesters/${id}`, payload);
-    return response.data;
+    const item = response.data;
+    return {
+      ...item,
+      id: item._id || item.id,
+    };
   },
 
   async deleteSemester(id: string): Promise<{ message: string; id: string }> {

@@ -37,8 +37,11 @@ function calculateSubjectScore(subject, scale = "10.0") {
     return { pct: 0, letter: "F", gradePoint: 0 };
   }
 
-  // If subject has internalMarks and externalMarks
-  if (subject.internalMarks !== undefined || subject.externalMarks !== undefined) {
+  const marks = subject.marks || {};
+  const hasMarksMap = marks && (marks.size > 0 || (typeof marks === "object" && Object.keys(marks).length > 0));
+
+  // If subject has internalMarks and externalMarks without a marks map
+  if (!hasMarksMap && (subject.internalMarks > 0 || subject.externalMarks > 0)) {
     const internal = subject.internalMarks || 0;
     const external = subject.externalMarks || 0;
     const totalMarks = internal + external;
@@ -57,7 +60,6 @@ function calculateSubjectScore(subject, scale = "10.0") {
     ],
   };
 
-  const marks = subject.marks || {};
   let totalWeightEvaluated = 0;
   let totalWeightedScore = 0;
 

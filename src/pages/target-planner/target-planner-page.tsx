@@ -1,26 +1,39 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { useAcademicStore } from "@/lib/store/use-academic-store";
 import { AddSubjectModal } from "@/components/upload/add-subject-modal";
 import { requiredMarksForTarget } from "@/lib/grading/engine";
+import { SubjectService } from "@/services/subject-service";
+import type { Subject } from "@/types";
 
 export function TargetPlannerPage() {
   const [target, setTarget] = useState(85);
   const [addSubjectModalOpen, setAddSubjectModalOpen] = useState(false);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const { semesters } = useAcademicStore();
-  const currentSem = useMemo(() => {
-    return semesters.find((s) => s.isCurrent) || semesters[semesters.length - 1] || { subjects: [] };
-  }, [semesters]);
+  const fetchSubjects = async () => {
+    setLoading(true);
+    try {
+      const data = await SubjectService.getSubjects();
+      setSubjects(data || []);
+    } catch (err) {
+      console.error("Failed to fetch subjects for target planner:", err);
+      setSubjects([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const currentSemesterSubjects = currentSem.subjects || [];
+  useEffect(() => {
+    fetchSubjects();
+  }, []);
 
   const results = useMemo(
-    () => currentSemesterSubjects.map((s) => ({ subject: s, req: requiredMarksForTarget(s, target) })),
-    [currentSemesterSubjects, target]
+    () => subjects.map((s) => ({ subject: s, req: requiredMarksForTarget(s, target) })),
+    [subjects, target]
   );
 
   const ambitious = results.some((r) => r.req.requiredAvgPct > 85 && r.req.requiredAvgPct <= 100);
@@ -55,7 +68,11 @@ export function TargetPlannerPage() {
         </CardContent>
       </Card>
 
-      {currentSemesterSubjects.length === 0 ? (
+      {loading ? (
+        <Card className="p-8 text-center text-sm text-[var(--text-secondary)]">
+          Loading subjects...
+        </Card>
+      ) : subjects.length === 0 ? (
         <Card className="p-8 text-center">
           <p className="text-sm text-[var(--text-secondary)] mb-3">No active subjects to plan for.</p>
           <Button variant="primary" size="sm" onClick={() => setAddSubjectModalOpen(true)} className="mx-auto flex items-center gap-1">
@@ -71,12 +88,12 @@ export function TargetPlannerPage() {
           <CardContent className="flex flex-col gap-2">
             {results.map(({ subject, req }) => (
               <div
-                key={subject.id}
+                key={subject.id || subject._id}
                 className="flex items-center justify-between rounded-lg border px-4 py-3 text-sm"
                 style={{ borderColor: "var(--border-hairline)" }}
               >
                 <div className="flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: subject.colorTag }} />
+                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: subject.colorTag || "#3b82f6" }} />
                   <span className="font-medium">{subject.name}</span>
                 </div>
                 {req.requiredAvgPct <= 0 ? (
@@ -95,7 +112,10 @@ export function TargetPlannerPage() {
       {/* Add Subject Modal */}
       <AddSubjectModal
         isOpen={addSubjectModalOpen}
-        onClose={() => setAddSubjectModalOpen(false)}
+        onClose={() => {
+          setAddSubjectModalOpen(false);
+          fetchSubjects();
+        }}
       />
     </div>
   );

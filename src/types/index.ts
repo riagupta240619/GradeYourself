@@ -18,22 +18,33 @@ export interface GradingScheme {
 }
 
 export interface Subject {
+  _id?: string;
   id: string;
   name: string;
-  colorTag: string;
-  semesterId: string;
+  code?: string;
+  colorTag?: string;
+  semesterId?: string;
+  semester?: string;
   scheme: GradingScheme;
   marks: Record<string, number | null>; // assessmentTypeId -> marks obtained
   credits: number;
+  calculatedPct?: number;
+  letterGrade?: string;
+  gradePoint?: number;
+  internalMarks?: number;
+  externalMarks?: number;
 }
 
 export interface Semester {
+  _id?: string;
   id: string;
   name: string;
   isCurrent: boolean;
   finalizedSgpa: number | null;
   credits?: number;
-  subjects: Subject[];
+  subjects?: Subject[];
+  calculatedSgpa?: number;
+  totalCredits?: number;
 }
 
 export interface PredictionRange {

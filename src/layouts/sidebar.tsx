@@ -13,7 +13,6 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { cn } from "@/utils/cn";
-import { semesters as defaultMockSemesters } from "@/lib/data/mock";
 import { SemesterService, type SemesterWithTotalCredits } from "@/services/semester-service";
 
 const navItems = [
@@ -34,22 +33,20 @@ export function Sidebar() {
   useEffect(() => {
     SemesterService.getSemesters()
       .then((data) => {
-        if (data && data.length > 0) {
-          setBackendSemesters(data);
-        }
+        setBackendSemesters(data || []);
       })
       .catch((err) => {
         console.error("Failed to load semesters from backend:", err);
+        setBackendSemesters([]);
       });
   }, []);
 
-  const semesterList = useMemo(() => {
-    return backendSemesters.length > 0 ? backendSemesters : defaultMockSemesters;
-  }, [backendSemesters]);
-
   const current = useMemo(() => {
-    return semesterList.find((s) => s.isCurrent) || semesterList[0] || { name: "Current Semester" };
-  }, [semesterList]);
+    if (backendSemesters.length === 0) {
+      return { name: "No Semesters" };
+    }
+    return backendSemesters.find((s) => s.isCurrent) || backendSemesters[backendSemesters.length - 1];
+  }, [backendSemesters]);
 
   return (
     <aside className="flex w-60 shrink-0 flex-col border-r p-4" style={{ borderColor: "var(--border-hairline)" }}>
@@ -62,26 +59,28 @@ export function Sidebar() {
 
       <div className="relative mb-4">
         <button
-          onClick={() => setSemesterOpen((o) => !o)}
+          onClick={() => backendSemesters.length > 0 && setSemesterOpen((o) => !o)}
           className="flex w-full items-center justify-between rounded-lg border px-3 py-2 text-sm hover:bg-[var(--bg-elevated)]"
           style={{ borderColor: "var(--border-hairline)" }}
         >
           <span className="truncate">{current.name}</span>
-          <ChevronDown size={14} className="text-[var(--text-tertiary)]" />
+          {backendSemesters.length > 0 && <ChevronDown size={14} className="text-[var(--text-tertiary)]" />}
         </button>
-        {semesterOpen && (
+        {semesterOpen && backendSemesters.length > 0 && (
           <div
             className="absolute z-10 mt-1 w-full animate-fade-up rounded-lg border bg-[var(--bg-elevated)] p-1 shadow-lg"
             style={{ borderColor: "var(--border-hairline)" }}
           >
-            {semesterList.map((s, idx) => (
+            {backendSemesters.map((s, idx) => (
               <button
-                key={s.id || `sem-${idx}`}
+                key={s.id || s._id || `sem-${idx}`}
                 className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-sm hover:bg-[var(--bg-surface)]"
                 onClick={() => setSemesterOpen(false)}
               >
                 <span className="truncate">{s.name}</span>
-                {s.finalizedSgpa && <span className="font-tabular text-xs text-[var(--text-tertiary)]">{s.finalizedSgpa}</span>}
+                {s.finalizedSgpa !== null && s.finalizedSgpa !== undefined && (
+                  <span className="font-tabular text-xs text-[var(--text-tertiary)]">{s.finalizedSgpa}</span>
+                )}
               </button>
             ))}
           </div>

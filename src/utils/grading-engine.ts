@@ -82,9 +82,10 @@ export function calculateSgpa(semester: Semester, scale: GradeScale): number {
   if (semester.finalizedSgpa !== null && semester.finalizedSgpa !== undefined) {
     return semester.finalizedSgpa;
   }
-  const totalCredits = semester.subjects.reduce((s, subj) => s + subj.credits, 0);
+  const subjects = semester.subjects || [];
+  const totalCredits = subjects.reduce((s, subj) => s + subj.credits, 0);
   if (totalCredits === 0) return 0;
-  const points = semester.subjects.reduce((sum, subj) => {
+  const points = subjects.reduce((sum, subj) => {
     const pct = subjectCurrentPct(subj);
     return sum + pctToScale(pct, scale) * subj.credits;
   }, 0);
@@ -96,7 +97,8 @@ export function calculateCgpa(semesters: Semester[], scale: GradeScale): number 
   let totalCredits = 0;
   let totalPoints = 0;
   for (const sem of semesters) {
-    const subjectCredits = sem.subjects.reduce((s, subj) => s + subj.credits, 0);
+    const subjects = sem.subjects || [];
+    const subjectCredits = subjects.reduce((s, subj) => s + subj.credits, 0);
     const credits = subjectCredits > 0 ? subjectCredits : (sem.credits ?? 20);
 
     const sgpa = sem.finalizedSgpa !== null && sem.finalizedSgpa !== undefined
