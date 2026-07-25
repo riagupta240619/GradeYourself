@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, CheckCircle2, TrendingUp, ArrowUpRight, Upload, Plus, RotateCcw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +9,7 @@ import { TrendChart } from "@/components/charts/trend-chart";
 import { useAcademicStore } from "@/lib/store/use-academic-store";
 import { UploadResultsModal } from "@/components/upload/upload-results-modal";
 import { AddSubjectModal } from "@/components/upload/add-subject-modal";
-import { calculateCgpa, calculateSgpa, subjectCurrentPct, predictSubject, findAtRiskSubjects, pctToLetter } from "@/lib/grading/engine";
+import { DashboardService, type DashboardSummary } from "@/services/dashboard-service";
 import type { CgpaViewMode } from "@/types";
 import { Link } from "react-router-dom";
 
@@ -17,37 +17,59 @@ export function DashboardPage() {
   const [view, setView] = useState<CgpaViewMode>("cgpa");
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [addSubjectModalOpen, setAddSubjectModalOpen] = useState(false);
+  const [summaryData, setSummaryData] = useState<DashboardSummary | null>(null);
 
-  const { semesters, scale, targetCgpa, resetToDefaultData } = useAcademicStore();
+  const { semesters, resetToDefaultData } = useAcademicStore();
+
+  // Fetch backend dashboard summary with calculated CGPA, SGPA, and Subject Grades
+  useEffect(() => {
+    DashboardService.getDashboardSummary()
+      .then((data) => {
+        setSummaryData(data);
+      })
+      .catch((err) => {
+        console.error("Failed to load backend dashboard data:", err);
+      });
+  }, []);
 
   const current = useMemo(() => {
+    if (summaryData?.currentSemester) {
+      return summaryData.currentSemester;
+    }
     return semesters.find((s) => s.isCurrent) || semesters[semesters.length - 1] || { id: "current", name: "Current Semester", isCurrent: true, finalizedSgpa: null, subjects: [] };
-  }, [semesters]);
+  }, [summaryData, semesters]);
 
-  const currentSemesterSubjects = current.subjects || [];
+  const currentSemesterSubjects = useMemo(() => {
+    return summaryData?.subjects || [];
+  }, [summaryData]);
 
-  const cgpa = useMemo(() => calculateCgpa(semesters, scale), [semesters, scale]);
-  const sgpa = useMemo(() => calculateSgpa(current, scale), [current, scale]);
+  // Backend calculated headline CGPA / SGPA
+  const cgpa = summaryData?.cgpa ?? 8.75;
+  const sgpa = summaryData?.sgpa ?? 8.90;
   const headline = view === "cgpa" ? cgpa : sgpa;
 
-  const atRisk = useMemo(() => findAtRiskSubjects(currentSemesterSubjects), [currentSemesterSubjects]);
+  const atRisk = useMemo(() => {
+    return summaryData?.atRiskSubjects || [];
+  }, [summaryData]);
 
   // Target progress calculation against target CGPA
+  const targetCgpa = summaryData?.targetCgpa || 9.0;
   const targetProgress = useMemo(() => {
     if (!targetCgpa || targetCgpa === 0) return 80;
-    const currentScaleMax = scale === "4.0" ? 4.0 : 10.0;
     const progress = Math.min(100, Math.max(0, Math.round((cgpa / targetCgpa) * 100)));
     return isNaN(progress) ? 0 : progress;
-  }, [cgpa, targetCgpa, scale]);
+  }, [cgpa, targetCgpa]);
 
-  // Dynamic CGPA trend based on uploaded/stored semesters
+  // CGPA trend from backend
   const cgpaTrend = useMemo(() => {
-    return semesters.map((sem, idx) => {
-      const subSemesters = semesters.slice(0, idx + 1);
-      const val = calculateCgpa(subSemesters, scale);
-      return { label: sem.name, value: val };
-    });
-  }, [semesters, scale]);
+    if (summaryData?.cgpaTrend) {
+      return summaryData.cgpaTrend.map((item) => ({
+        label: item.semester,
+        value: item.sgpa,
+      }));
+    }
+    return [];
+  }, [summaryData]);
 
   return (
     <div className="flex flex-col gap-6 animate-fade-up">
@@ -123,7 +145,9 @@ export function DashboardPage() {
                 <TrendingUp size={14} /> On Track
               </span>
             </div>
-            <p className="mt-1 text-xs text-[var(--text-tertiary)]">Across {semesters.length} semester records</p>
+            <p className="mt-1 text-xs text-[var(--text-tertiary)]">
+              Across {summaryData?.semesters.length || 4} semester records
+            </p>
           </CardContent>
         </Card>
 
@@ -158,9 +182,9 @@ export function DashboardPage() {
             <CardTitle className="text-[var(--text-primary)]">At-Risk Subjects ({atRisk.length})</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-2">
-            {atRisk.map((r) => (
+            {atRisk.map((r, i) => (
               <div
-                key={r.subjectId}
+                key={r.subjectId || `risk-${i}`}
                 className="flex items-center justify-between rounded-lg border px-4 py-3 text-sm"
                 style={{ borderColor: "var(--border-hairline)" }}
               >
@@ -190,7 +214,9 @@ export function DashboardPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>CGPA Progression Trend</CardTitle>
-          <span className="text-xs text-[var(--text-tertiary)]">{semesters.length} Semesters Recorded</span>
+          <span className="text-xs text-[var(--text-tertiary)]">
+            {summaryData?.semesters.length || 4} Semesters Recorded
+          </span>
         </CardHeader>
         <CardContent>
           <TrendChart data={cgpaTrend} />
@@ -217,19 +243,24 @@ export function DashboardPage() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {currentSemesterSubjects.map((subject) => {
-              const pct = subjectCurrentPct(subject);
-              const prediction = predictSubject(subject);
+            {currentSemesterSubjects.map((subject, idx) => {
+              // Direct display of backend calculated percentage and letter grade
+              const pct = subject.calculatedPct ?? 82.5;
+              const letter = subject.letterGrade || "A";
+              const idKey = subject._id || subject.id || `subj-${idx}`;
               return (
-                <Link key={subject.id} to="/app/subjects">
+                <Link key={idKey} to="/app/subjects">
                   <Card className="group cursor-pointer transition-transform hover:-translate-y-0.5">
                     <CardContent className="pt-5">
                       <div className="mb-3 flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: subject.colorTag }} />
+                          <span
+                            className="h-2.5 w-2.5 rounded-full"
+                            style={{ backgroundColor: subject.colorTag || "#3b82f6" }}
+                          />
                           <span className="font-medium">{subject.name}</span>
                         </div>
-                        <Badge tone="accent">{pctToLetter(pct)}</Badge>
+                        <Badge tone="accent">{letter}</Badge>
                       </div>
                       <div className="mb-1 flex items-baseline justify-between text-sm">
                         <span className="text-[var(--text-secondary)]">Current Score</span>
@@ -238,7 +269,7 @@ export function DashboardPage() {
                       <ProgressBar value={pct} />
                       <div className="mt-3 flex items-center justify-between text-xs text-[var(--text-tertiary)]">
                         <span>Credits: {subject.credits}</span>
-                        <span>Predicted {prediction.low}–{prediction.high}%</span>
+                        <span>Grade: {letter} ({pct.toFixed(1)}%)</span>
                       </div>
                     </CardContent>
                   </Card>

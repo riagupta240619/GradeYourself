@@ -9,6 +9,7 @@ import {
   generatePastResultsCsvTemplate,
   type ParsedPastSemester,
 } from "@/lib/utils/upload-parser";
+import { SemesterService } from "@/services/semester-service";
 import Tesseract from "tesseract.js";
 
 interface UploadResultsModalProps {
@@ -219,18 +220,34 @@ export function UploadResultsModal({ isOpen, onClose }: UploadResultsModalProps)
     }
   }
 
-  function handleSave() {
+  async function handleSave() {
     const dataToSave = activeTab === "file" ? parsedData : manualRows;
     if (dataToSave.length === 0) {
       setErrorMsg("Please select a file or enter at least one past semester result.");
       return;
     }
 
-    uploadPastResults(dataToSave);
-    setSuccessMsg(`Successfully imported ${dataToSave.length} past semester record(s)!`);
-    setTimeout(() => {
-      onClose();
-    }, 1000);
+    setIsProcessing(true);
+    try {
+      for (const sem of dataToSave) {
+        await SemesterService.createSemester({
+          name: sem.name,
+          finalizedSgpa: sem.finalizedSgpa,
+          credits: sem.credits || 20,
+          isCurrent: false,
+        });
+      }
+
+      uploadPastResults(dataToSave);
+      setSuccessMsg(`Successfully imported ${dataToSave.length} past semester record(s)!`);
+      setTimeout(() => {
+        onClose();
+      }, 1000);
+    } catch (err: any) {
+      setErrorMsg(err.response?.data?.message || "Failed to save semesters to backend");
+    } finally {
+      setIsProcessing(false);
+    }
   }
 
   const detectedNumbers = extractDetectedNumbersFromText(rawOcrText);
@@ -594,7 +611,7 @@ export function UploadResultsModal({ isOpen, onClose }: UploadResultsModalProps)
             onClick={handleSave}
             disabled={isProcessing || (activeTab === "file" && parsedData.length === 0) || (activeTab === "manual" && manualRows.length === 0)}
           >
-            Save Past Results
+            {isProcessing ? "Saving..." : "Save Past Results"}
           </Button>
         </div>
       </div>

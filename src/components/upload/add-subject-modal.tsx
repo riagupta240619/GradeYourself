@@ -1,8 +1,9 @@
-import { useState, useRef, type ChangeEvent } from "react";
-import { Plus, X, Upload, FileText, Download, CheckCircle2, AlertCircle } from "lucide-react";
+import { useState, useRef } from "react";
+import { Plus, X, Upload, Download, CheckCircle2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAcademicStore } from "@/lib/store/use-academic-store";
 import { parseNewSubjectsCsv, generateNewSubjectsCsvTemplate, type ParsedSubjectInput } from "@/lib/utils/upload-parser";
+import { SubjectService } from "@/services/subject-service";
 
 interface AddSubjectModalProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ export function AddSubjectModal({ isOpen, onClose }: AddSubjectModalProps) {
   const [a1Mark, setA1Mark] = useState<string>("");
   const [a2Mark, setA2Mark] = useState<string>("");
   const [a3Mark, setA3Mark] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Bulk Upload State
   const [fileName, setFileName] = useState<string | null>(null);
@@ -48,13 +50,22 @@ export function AddSubjectModal({ isOpen, onClose }: AddSubjectModalProps) {
     setFileName(null);
     setErrorMsg(null);
     setSuccessMsg(null);
+    setIsSubmitting(false);
   }
 
-  function handleSingleAdd() {
+  async function handleSingleAdd() {
     if (!name.trim()) {
       setErrorMsg("Subject name is required.");
       return;
     }
+
+    if (credits < 1 || credits > 10) {
+      setErrorMsg("Credits must be between 1 and 10.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrorMsg(null);
 
     const defaultScheme = {
       id: crypto.randomUUID(),
@@ -70,23 +81,51 @@ export function AddSubjectModal({ isOpen, onClose }: AddSubjectModalProps) {
       ],
     };
 
-    addSubject(targetSemId, {
-      name: name.trim(),
-      credits,
-      colorTag,
-      scheme: defaultScheme,
-      marks: {
-        a1: a1Mark !== "" ? parseFloat(a1Mark) : null,
-        a2: a2Mark !== "" ? parseFloat(a2Mark) : null,
-        a3: a3Mark !== "" ? parseFloat(a3Mark) : null,
-      },
-    });
+    const targetSem = semesters.find((s) => s.id === targetSemId);
+    const semesterName = targetSem?.name || "Semester 4";
 
-    setSuccessMsg(`Subject "${name}" added successfully!`);
-    setTimeout(() => {
-      resetForm();
-      onClose();
-    }, 1000);
+    const internalNum = a1Mark !== "" ? parseFloat(a1Mark) : 0;
+    const externalNum = a3Mark !== "" ? parseFloat(a3Mark) : 0;
+
+    try {
+      // Call backend API
+      await SubjectService.createSubject({
+        name: name.trim(),
+        credits,
+        semester: semesterName,
+        internalMarks: internalNum,
+        externalMarks: externalNum,
+        colorTag,
+        marks: {
+          a1: a1Mark !== "" ? parseFloat(a1Mark) : null,
+          a2: a2Mark !== "" ? parseFloat(a2Mark) : null,
+          a3: a3Mark !== "" ? parseFloat(a3Mark) : null,
+        },
+      });
+
+      // Also update local Zustand store for offline compatibility
+      addSubject(targetSemId, {
+        name: name.trim(),
+        credits,
+        colorTag,
+        scheme: defaultScheme,
+        marks: {
+          a1: a1Mark !== "" ? parseFloat(a1Mark) : null,
+          a2: a2Mark !== "" ? parseFloat(a2Mark) : null,
+          a3: a3Mark !== "" ? parseFloat(a3Mark) : null,
+        },
+      });
+
+      setSuccessMsg(`Subject "${name}" added successfully!`);
+      setTimeout(() => {
+        resetForm();
+        onClose();
+      }, 800);
+    } catch (err: any) {
+      setErrorMsg(err.response?.data?.message || "Failed to add subject");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   function handleFileRead(file: File) {
@@ -139,18 +178,33 @@ export function AddSubjectModal({ isOpen, onClose }: AddSubjectModalProps) {
     reader.readAsText(file);
   }
 
-  function handleBulkSave() {
+  async function handleBulkSave() {
     if (parsedSubjects.length === 0) {
       setErrorMsg("Please upload or parse a file containing subjects.");
       return;
     }
 
-    uploadNewSubjects(targetSemId, parsedSubjects);
-    setSuccessMsg(`Successfully imported ${parsedSubjects.length} subject(s)!`);
-    setTimeout(() => {
-      resetForm();
-      onClose();
-    }, 1000);
+    setIsSubmitting(true);
+    try {
+      for (const subj of parsedSubjects) {
+        await SubjectService.createSubject({
+          name: subj.name,
+          credits: subj.credits,
+          colorTag: subj.colorTag,
+          marks: subj.marks as Record<string, number | null>,
+        });
+      }
+      uploadNewSubjects(targetSemId, parsedSubjects);
+      setSuccessMsg(`Successfully imported ${parsedSubjects.length} subject(s)!`);
+      setTimeout(() => {
+        resetForm();
+        onClose();
+      }, 800);
+    } catch (err: any) {
+      setErrorMsg(err.response?.data?.message || "Failed to bulk upload subjects");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   function handleDownloadTemplate() {
@@ -265,7 +319,7 @@ export function AddSubjectModal({ isOpen, onClose }: AddSubjectModalProps) {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
-                  Credits
+                  Credits (1-10) *
                 </label>
                 <input
                   type="number"
@@ -431,12 +485,12 @@ export function AddSubjectModal({ isOpen, onClose }: AddSubjectModalProps) {
             Cancel
           </Button>
           {activeTab === "form" ? (
-            <Button variant="primary" size="sm" onClick={handleSingleAdd}>
-              Add Subject
+            <Button variant="primary" size="sm" onClick={handleSingleAdd} disabled={isSubmitting}>
+              {isSubmitting ? "Adding..." : "Add Subject"}
             </Button>
           ) : (
-            <Button variant="primary" size="sm" onClick={handleBulkSave} disabled={parsedSubjects.length === 0}>
-              Import {parsedSubjects.length} Subjects
+            <Button variant="primary" size="sm" onClick={handleBulkSave} disabled={parsedSubjects.length === 0 || isSubmitting}>
+              {isSubmitting ? "Importing..." : `Import ${parsedSubjects.length} Subjects`}
             </Button>
           )}
         </div>

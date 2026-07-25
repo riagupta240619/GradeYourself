@@ -1,21 +1,42 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { ChevronLeft, Wand2, Check, Plus, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAcademicStore } from "@/lib/store/use-academic-store";
 import { AddSubjectModal } from "@/components/upload/add-subject-modal";
 import { subjectCurrentPct, predictSubject, pctToLetter } from "@/lib/grading/engine";
+import { SubjectService } from "@/services/subject-service";
+import type { Subject } from "@/types";
 import { Link } from "react-router-dom";
 
 export function SubjectDetailsPage() {
   const { semesters, updateSubjectMarks, deleteSubject } = useAcademicStore();
   const [addSubjectModalOpen, setAddSubjectModalOpen] = useState(false);
+  const [backendSubjects, setBackendSubjects] = useState<Subject[]>([]);
+
+  // Fetch subjects from backend API
+  const fetchSubjects = async () => {
+    try {
+      const data = await SubjectService.getSubjects();
+      if (data && data.length > 0) {
+        setBackendSubjects(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch subjects from backend:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchSubjects();
+  }, []);
 
   const currentSem = useMemo(() => {
     return semesters.find((s) => s.isCurrent) || semesters[semesters.length - 1] || { subjects: [] };
   }, [semesters]);
 
-  const subjects = currentSem.subjects || [];
+  const subjects = useMemo(() => {
+    return backendSubjects.length > 0 ? backendSubjects : currentSem.subjects || [];
+  }, [backendSubjects, currentSem]);
 
   const [selectedId, setSelectedId] = useState<string | null>(subjects[0]?.id || null);
 
@@ -26,17 +47,36 @@ export function SubjectDetailsPage() {
 
   const [savedFlash, setSavedFlash] = useState<string | null>(null);
 
-  function handleMarkChange(assessmentId: string, raw: string) {
+  async function handleMarkChange(assessmentId: string, raw: string) {
     if (!subject) return;
     const value = raw === "" ? null : Number(raw);
+    const newMarks = { ...(subject.marks || {}), [assessmentId]: value };
+
+    try {
+      if (subject.id && !subject.id.startsWith("sub-")) {
+        await SubjectService.updateSubject(subject.id, { marks: newMarks });
+        fetchSubjects();
+      }
+    } catch (err) {
+      console.error("Failed to update mark on backend:", err);
+    }
+
     updateSubjectMarks(subject.id, assessmentId, value);
     setSavedFlash(assessmentId);
     setTimeout(() => setSavedFlash(null), 900);
   }
 
-  function handleDeleteSubject() {
+  async function handleDeleteSubject() {
     if (!subject) return;
     if (confirm(`Are you sure you want to delete "${subject.name}"?`)) {
+      try {
+        if (subject.id && !subject.id.startsWith("sub-")) {
+          await SubjectService.deleteSubject(subject.id);
+          fetchSubjects();
+        }
+      } catch (err) {
+        console.error("Failed to delete subject on backend:", err);
+      }
       deleteSubject(subject.id);
       setSelectedId(null);
     }
@@ -58,7 +98,10 @@ export function SubjectDetailsPage() {
 
         <AddSubjectModal
           isOpen={addSubjectModalOpen}
-          onClose={() => setAddSubjectModalOpen(false)}
+          onClose={() => {
+            setAddSubjectModalOpen(false);
+            fetchSubjects();
+          }}
         />
       </div>
     );
@@ -170,7 +213,10 @@ export function SubjectDetailsPage() {
       {/* Add / Upload Subject Modal */}
       <AddSubjectModal
         isOpen={addSubjectModalOpen}
-        onClose={() => setAddSubjectModalOpen(false)}
+        onClose={() => {
+          setAddSubjectModalOpen(false);
+          fetchSubjects();
+        }}
       />
     </div>
   );
