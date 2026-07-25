@@ -79,8 +79,8 @@ export function SettingsPage() {
       return;
     }
 
-    if (!newPassword || newPassword.length < 6) {
-      setPasswordMsg({ type: "error", text: "New password must be at least 6 characters long." });
+    if (!newPassword || newPassword.length < 8) {
+      setPasswordMsg({ type: "error", text: "New password must be at least 8 characters long and contain uppercase, lowercase, and a number." });
       return;
     }
 

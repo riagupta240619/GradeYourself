@@ -1,22 +1,54 @@
+"use strict";
+
 const User = require("../models/user-model");
 const generateToken = require("../utils/generate-token");
+const { validatePassword } = require("../utils/password-validator");
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/**
+ * Helper to validate basic string input and enforce length limit.
+ */
+function sanitizeString(input, maxLength = 150) {
+  if (typeof input !== "string") return "";
+  return input.trim().slice(0, maxLength);
+}
 
 /**
  * @route   POST /api/auth/register
- * @desc    Register a new user
+ * @desc    Register a new user with password policy & email validation
  * @access  Public
  */
 const registerUser = async (req, res, next) => {
   try {
     const { name, email, password, college, course, semesterSystem } = req.body;
 
-    if (!name || !email || !password) {
+    if (!name || typeof name !== "string" || name.trim() === "") {
       res.status(400);
-      throw new Error("Please provide name, email, and password");
+      throw new Error("Name is required");
     }
 
+    if (name.trim().length > 100) {
+      res.status(400);
+      throw new Error("Name cannot exceed 100 characters");
+    }
+
+    if (!email || typeof email !== "string" || !EMAIL_REGEX.test(email.trim())) {
+      res.status(400);
+      throw new Error("Please provide a valid email address");
+    }
+
+    // Password validation using central policy (8-128 chars, uppercase, lowercase, number)
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      res.status(400);
+      throw new Error(passwordError);
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+
     // Check if user already exists
-    const userExists = await User.findOne({ email: email.toLowerCase() });
+    const userExists = await User.findOne({ email: cleanEmail });
     if (userExists) {
       res.status(400);
       throw new Error("User already exists with this email");
@@ -24,12 +56,12 @@ const registerUser = async (req, res, next) => {
 
     // Create user (password is automatically hashed via pre-save hook)
     const user = await User.create({
-      name,
-      email,
+      name: sanitizeString(name, 100),
+      email: cleanEmail,
       password,
-      college: college || "",
-      course: course || "",
-      semesterSystem: semesterSystem || "",
+      college: sanitizeString(college),
+      course: sanitizeString(course),
+      semesterSystem: sanitizeString(semesterSystem),
     });
 
     if (user) {
@@ -57,20 +89,22 @@ const registerUser = async (req, res, next) => {
 
 /**
  * @route   POST /api/auth/login
- * @desc    Authenticate user & get token
+ * @desc    Authenticate user & get token (generic error messages)
  * @access  Public
  */
 const loginUser = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    if (!email || !password) {
+    if (!email || typeof email !== "string" || !password || typeof password !== "string") {
       res.status(400);
       throw new Error("Please provide email and password");
     }
 
+    const cleanEmail = email.trim().toLowerCase();
+
     // Find user by email
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const user = await User.findOne({ email: cleanEmail });
 
     // Verify password using bcrypt.compare()
     if (user && (await user.matchPassword(password))) {
@@ -132,11 +166,11 @@ const updateSetupProfile = async (req, res, next) => {
 
     const { college, course, semesterSystem, branch, academicSession } = req.body;
 
-    if (college !== undefined) user.college = college;
-    if (course !== undefined) user.course = course;
-    if (semesterSystem !== undefined) user.semesterSystem = semesterSystem;
-    if (branch !== undefined) user.branch = branch;
-    if (academicSession !== undefined) user.academicSession = academicSession;
+    if (college !== undefined) user.college = sanitizeString(college);
+    if (course !== undefined) user.course = sanitizeString(course);
+    if (semesterSystem !== undefined) user.semesterSystem = sanitizeString(semesterSystem);
+    if (branch !== undefined) user.branch = sanitizeString(branch);
+    if (academicSession !== undefined) user.academicSession = sanitizeString(academicSession);
 
     user.profileCompleted = true;
 
@@ -174,11 +208,18 @@ const updateUserProfile = async (req, res, next) => {
 
     const { name, college, branch, course, semesterSystem } = req.body;
 
-    if (name !== undefined) user.name = name.trim();
-    if (college !== undefined) user.college = college.trim();
-    if (branch !== undefined) user.branch = branch.trim();
-    if (course !== undefined) user.course = course.trim();
-    if (semesterSystem !== undefined) user.semesterSystem = semesterSystem.trim();
+    if (name !== undefined) {
+      if (typeof name !== "string" || name.trim() === "") {
+        res.status(400);
+        throw new Error("Name cannot be empty");
+      }
+      user.name = sanitizeString(name, 100);
+    }
+
+    if (college !== undefined) user.college = sanitizeString(college);
+    if (branch !== undefined) user.branch = sanitizeString(branch);
+    if (course !== undefined) user.course = sanitizeString(course);
+    if (semesterSystem !== undefined) user.semesterSystem = sanitizeString(semesterSystem);
 
     const updatedUser = await user.save();
 
@@ -200,21 +241,23 @@ const updateUserProfile = async (req, res, next) => {
 
 /**
  * @route   PUT /api/auth/change-password
- * @desc    Change user password requiring current password & hashing with bcrypt
+ * @desc    Change user password requiring current password & central password policy
  * @access  Private (Protected by verifyToken)
  */
 const changeUserPassword = async (req, res, next) => {
   try {
     const { currentPassword, newPassword } = req.body;
 
-    if (!currentPassword || !newPassword) {
+    if (!currentPassword || typeof currentPassword !== "string") {
       res.status(400);
-      throw new Error("Please provide current password and new password");
+      throw new Error("Current password is required");
     }
 
-    if (newPassword.length < 6) {
+    // Central password policy check
+    const passwordError = validatePassword(newPassword);
+    if (passwordError) {
       res.status(400);
-      throw new Error("New password must be at least 6 characters long");
+      throw new Error(passwordError);
     }
 
     const user = await User.findById(req.user._id);

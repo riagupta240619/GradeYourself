@@ -9,7 +9,7 @@
  * orchestrators without leaking any secret values to logs.
  */
 
-const REQUIRED = [
+const REQUIRED_ALWAYS = [
   {
     key: "JWT_SECRET",
     hint: "Generate with: node -e \"console.log(require('crypto').randomBytes(64).toString('hex'))\"",
@@ -17,6 +17,13 @@ const REQUIRED = [
   {
     key: "MONGO_URI",
     hint: "Example (local): mongodb://127.0.0.1:27017/gradeyourself",
+  },
+];
+
+const REQUIRED_PRODUCTION = [
+  {
+    key: "FRONTEND_URL",
+    hint: "Example: https://app.example.com (required in production for CORS origin validation)",
   },
 ];
 
@@ -28,10 +35,19 @@ const REQUIRED = [
 function validateEnv() {
   const missing = [];
 
-  for (const { key, hint } of REQUIRED) {
+  for (const { key, hint } of REQUIRED_ALWAYS) {
     const value = process.env[key];
     if (!value || value.trim() === "") {
       missing.push({ key, hint });
+    }
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    for (const { key, hint } of REQUIRED_PRODUCTION) {
+      const value = process.env[key];
+      if (!value || value.trim() === "") {
+        missing.push({ key, hint });
+      }
     }
   }
 

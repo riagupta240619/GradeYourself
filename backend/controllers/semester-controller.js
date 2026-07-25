@@ -3,7 +3,7 @@
 const Semester = require("../models/semester-model");
 const SubjectModel = require("../models/subject-model");
 const User = require("../models/user-model");
-const { calculateSgpa, calculateSubjectScore } = require("../utils/grading-engine");
+const { calculateSgpa } = require("../utils/grading-engine");
 
 /**
  * Resolve the user's grading scale from their profile.
@@ -66,9 +66,20 @@ const addSemester = async (req, res, next) => {
   try {
     const { name, isCurrent, finalizedSgpa, credits } = req.body;
 
-    if (!name || name.trim() === "") {
+    if (!name || typeof name !== "string" || name.trim() === "") {
       res.status(400);
       throw new Error("Semester name is required");
+    }
+
+    const numCredits = Number(credits);
+    const cleanCredits = !isNaN(numCredits) && numCredits >= 1 && numCredits <= 100 ? numCredits : 20;
+
+    let cleanFinalizedSgpa = null;
+    if (finalizedSgpa !== undefined && finalizedSgpa !== null && finalizedSgpa !== "") {
+      const parsedSgpa = Number(finalizedSgpa);
+      if (!isNaN(parsedSgpa) && parsedSgpa >= 0 && parsedSgpa <= 10) {
+        cleanFinalizedSgpa = Math.round(parsedSgpa * 100) / 100;
+      }
     }
 
     // Enforce at most one current semester per user
@@ -78,10 +89,10 @@ const addSemester = async (req, res, next) => {
 
     const semester = await Semester.create({
       user: req.user._id,
-      name: name.trim(),
-      isCurrent: isCurrent || false,
-      finalizedSgpa: finalizedSgpa !== undefined ? finalizedSgpa : null,
-      credits: Number(credits) || 20,
+      name: name.trim().slice(0, 100),
+      isCurrent: Boolean(isCurrent),
+      finalizedSgpa: cleanFinalizedSgpa,
+      credits: cleanCredits,
     });
 
     const user = await User.findById(req.user._id);
@@ -142,9 +153,31 @@ const updateSemester = async (req, res, next) => {
       semester.isCurrent = false;
     }
 
-    if (name !== undefined) semester.name = name.trim();
-    if (finalizedSgpa !== undefined) semester.finalizedSgpa = finalizedSgpa;
-    if (credits !== undefined) semester.credits = Number(credits);
+    if (name !== undefined) {
+      if (typeof name !== "string" || name.trim() === "") {
+        res.status(400);
+        throw new Error("Semester name cannot be empty");
+      }
+      semester.name = name.trim().slice(0, 100);
+    }
+
+    if (finalizedSgpa !== undefined) {
+      if (finalizedSgpa === null || finalizedSgpa === "") {
+        semester.finalizedSgpa = null;
+      } else {
+        const parsedSgpa = Number(finalizedSgpa);
+        if (!isNaN(parsedSgpa) && parsedSgpa >= 0 && parsedSgpa <= 10) {
+          semester.finalizedSgpa = Math.round(parsedSgpa * 100) / 100;
+        }
+      }
+    }
+
+    if (credits !== undefined) {
+      const numCredits = Number(credits);
+      if (!isNaN(numCredits) && numCredits >= 1 && numCredits <= 100) {
+        semester.credits = numCredits;
+      }
+    }
 
     const updated = await semester.save();
     const user = await User.findById(req.user._id);

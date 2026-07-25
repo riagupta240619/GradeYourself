@@ -25,6 +25,26 @@ function formatSubject(subject, scale) {
   };
 }
 
+/**
+ * Helper to safely sanitize marks map and reject NaN, Infinity, or non-numeric junk.
+ */
+function sanitizeMarksMap(rawMarks) {
+  if (!rawMarks || typeof rawMarks !== "object") return new Map();
+  const entries = rawMarks instanceof Map ? Array.from(rawMarks.entries()) : Object.entries(rawMarks);
+  const cleanMap = new Map();
+  for (const [k, v] of entries) {
+    if (v === null || v === undefined || v === "") {
+      cleanMap.set(String(k), null);
+    } else {
+      const num = Number(v);
+      if (!isNaN(num) && isFinite(num) && num >= 0 && num <= 1000) {
+        cleanMap.set(String(k), num);
+      }
+    }
+  }
+  return cleanMap;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // CREATE
 // ─────────────────────────────────────────────────────────────────────────────
@@ -39,7 +59,7 @@ const addSubject = async (req, res, next) => {
   try {
     const { name, code, credits, semesterId, internalMarks, externalMarks, targetGrade, colorTag, marks, scheme } = req.body;
 
-    if (!name || name.trim() === "") {
+    if (!name || typeof name !== "string" || name.trim() === "") {
       res.status(400);
       throw new Error("Subject name is required");
     }
@@ -50,7 +70,7 @@ const addSubject = async (req, res, next) => {
       throw new Error("Credits must be a valid number between 1 and 10");
     }
 
-    if (!semesterId) {
+    if (!semesterId || typeof semesterId !== "string") {
       res.status(400);
       throw new Error("semesterId is required");
     }
@@ -62,17 +82,19 @@ const addSubject = async (req, res, next) => {
       throw new Error("Semester not found");
     }
 
+    const cleanMarks = sanitizeMarksMap(marks);
+
     const subject = await SubjectModel.create({
       user: req.user._id,
       semester: semester._id,
-      name: name.trim(),
-      code: code || "",
+      name: name.trim().slice(0, 150),
+      code: typeof code === "string" ? code.trim().slice(0, 50) : "",
       credits: numCredits,
-      internalMarks: Number(internalMarks) || 0,
-      externalMarks: Number(externalMarks) || 0,
-      targetGrade: targetGrade || "A",
-      colorTag: colorTag || "#3b82f6",
-      marks: marks || {},
+      internalMarks: !isNaN(Number(internalMarks)) ? Math.max(0, Math.min(100, Number(internalMarks))) : 0,
+      externalMarks: !isNaN(Number(externalMarks)) ? Math.max(0, Math.min(100, Number(externalMarks))) : 0,
+      targetGrade: typeof targetGrade === "string" ? targetGrade.slice(0, 5) : "A",
+      colorTag: typeof colorTag === "string" ? colorTag.slice(0, 20) : "#3b82f6",
+      marks: cleanMarks,
       scheme: scheme || undefined,
     });
 
@@ -100,7 +122,7 @@ const getSubjects = async (req, res, next) => {
 
     // Optional filter: /api/subjects?semesterId=xxx
     const query = { user: req.user._id };
-    if (req.query.semesterId) {
+    if (req.query.semesterId && typeof req.query.semesterId === "string") {
       query.semester = req.query.semesterId;
     }
 
@@ -155,8 +177,17 @@ const updateSubject = async (req, res, next) => {
 
     const { name, code, credits, semesterId, internalMarks, externalMarks, targetGrade, colorTag, marks, scheme } = req.body;
 
-    if (name !== undefined) subject.name = name;
-    if (code !== undefined) subject.code = code;
+    if (name !== undefined) {
+      if (typeof name !== "string" || name.trim() === "") {
+        res.status(400);
+        throw new Error("Subject name cannot be empty");
+      }
+      subject.name = name.trim().slice(0, 150);
+    }
+
+    if (code !== undefined) {
+      subject.code = typeof code === "string" ? code.trim().slice(0, 50) : "";
+    }
 
     if (credits !== undefined) {
       const numCredits = Number(credits);
@@ -167,8 +198,6 @@ const updateSubject = async (req, res, next) => {
       subject.credits = numCredits;
     }
 
-    // If the caller wants to move the subject to a different semester,
-    // verify the target semester also belongs to this user.
     if (semesterId !== undefined) {
       const targetSemester = await Semester.findOne({ _id: semesterId, user: req.user._id });
       if (!targetSemester) {
@@ -178,17 +207,28 @@ const updateSubject = async (req, res, next) => {
       subject.semester = targetSemester._id;
     }
 
-    if (internalMarks !== undefined) subject.internalMarks = Number(internalMarks);
-    if (externalMarks !== undefined) subject.externalMarks = Number(externalMarks);
-    if (targetGrade !== undefined) subject.targetGrade = targetGrade;
-    if (colorTag !== undefined) subject.colorTag = colorTag;
-    if (marks !== undefined) {
-      if (typeof marks === "object" && marks !== null) {
-        subject.marks = new Map(Object.entries(marks));
-      } else {
-        subject.marks = marks;
-      }
+    if (internalMarks !== undefined) {
+      const num = Number(internalMarks);
+      if (!isNaN(num)) subject.internalMarks = Math.max(0, Math.min(100, num));
     }
+
+    if (externalMarks !== undefined) {
+      const num = Number(externalMarks);
+      if (!isNaN(num)) subject.externalMarks = Math.max(0, Math.min(100, num));
+    }
+
+    if (targetGrade !== undefined && typeof targetGrade === "string") {
+      subject.targetGrade = targetGrade.slice(0, 5);
+    }
+
+    if (colorTag !== undefined && typeof colorTag === "string") {
+      subject.colorTag = colorTag.slice(0, 20);
+    }
+
+    if (marks !== undefined) {
+      subject.marks = sanitizeMarksMap(marks);
+    }
+
     if (scheme !== undefined) subject.scheme = scheme;
 
     const updated = await subject.save();
