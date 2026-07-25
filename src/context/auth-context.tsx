@@ -13,7 +13,6 @@ import { useAcademicStore } from "@/lib/store/use-academic-store";
 
 export interface AuthContextValue {
   user: AuthUser | null;
-  token: string | null;
   loading: boolean;
   error: string | null;
   login: (payload: LoginPayload) => Promise<AuthUser>;
@@ -29,27 +28,21 @@ export const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem("token"));
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Restore authenticated session on initial load
+  // Restore authenticated session on initial application load via GET /api/auth/me (HttpOnly cookie)
   useEffect(() => {
     async function initAuth() {
-      const storedToken = localStorage.getItem("token");
-      if (storedToken) {
-        try {
-          const profile = await AuthService.getProfile();
-          setUser(profile);
-          setToken(storedToken);
-        } catch {
-          localStorage.removeItem("token");
-          useAcademicStore.getState().clearState();
-          setToken(null);
-          setUser(null);
-        }
+      try {
+        const profile = await AuthService.getProfile();
+        setUser(profile);
+      } catch {
+        useAcademicStore.getState().clearState();
+        setUser(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
     initAuth();
   }, []);
@@ -59,10 +52,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null);
     try {
       const res = await AuthService.login(payload);
-      if (res.token) {
-        localStorage.setItem("token", res.token);
-        setToken(res.token);
-      }
       setUser(res);
       return res;
     } catch (err: any) {
@@ -79,10 +68,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null);
     try {
       const res = await AuthService.register(payload);
-      if (res.token) {
-        localStorage.setItem("token", res.token);
-        setToken(res.token);
-      }
       setUser(res);
       return res;
     } catch (err: any) {
@@ -131,6 +116,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null);
     try {
       const res = await AuthService.changePassword(payload);
+      // Password changed successfully: clear client session state as backend cleared auth cookie
+      useAcademicStore.getState().clearState();
+      setUser(null);
       return res;
     } catch (err: any) {
       const msg = err.response?.data?.message || "Failed to change password";
@@ -148,9 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       // Ignore errors on logout
     } finally {
-      localStorage.removeItem("token");
       useAcademicStore.getState().clearState();
-      setToken(null);
       setUser(null);
       setLoading(false);
     }
@@ -162,7 +148,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         user,
-        token,
         loading,
         error,
         login,

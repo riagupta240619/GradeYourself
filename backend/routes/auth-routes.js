@@ -9,9 +9,11 @@ const {
   updateUserProfile,
   changeUserPassword,
 } = require("../controllers/auth-controller");
+const { getCsrfToken } = require("../middleware/csrf-middleware");
 const { verifyToken } = require("../middleware/auth-middleware");
 
 // Public Auth Routes
+router.get("/csrf", getCsrfToken);
 router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.post("/logout", logoutUser);

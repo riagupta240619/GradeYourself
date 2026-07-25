@@ -3,6 +3,14 @@
 const User = require("../models/user-model");
 const generateToken = require("../utils/generate-token");
 const { validatePassword } = require("../utils/password-validator");
+const {
+  AUTH_COOKIE_NAME,
+  CSRF_COOKIE_NAME,
+  getAuthCookieOptions,
+  getClearAuthCookieOptions,
+  getCsrfCookieOptions,
+  getClearCsrfCookieOptions,
+} = require("../utils/cookie-config");
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -16,7 +24,7 @@ function sanitizeString(input, maxLength = 150) {
 
 /**
  * @route   POST /api/auth/register
- * @desc    Register a new user with password policy & email validation
+ * @desc    Register a new user, set HttpOnly auth_token cookie, and return safe user data
  * @access  Public
  */
 const registerUser = async (req, res, next) => {
@@ -66,6 +74,10 @@ const registerUser = async (req, res, next) => {
 
     if (user) {
       const token = generateToken(user._id);
+
+      // Set HttpOnly Authentication Cookie
+      res.cookie(AUTH_COOKIE_NAME, token, getAuthCookieOptions());
+
       res.status(201).json({
         _id: user._id,
         name: user.name,
@@ -76,7 +88,6 @@ const registerUser = async (req, res, next) => {
         branch: user.branch,
         academicSession: user.academicSession,
         profileCompleted: user.profileCompleted,
-        token,
       });
     } else {
       res.status(400);
@@ -89,7 +100,7 @@ const registerUser = async (req, res, next) => {
 
 /**
  * @route   POST /api/auth/login
- * @desc    Authenticate user & get token (generic error messages)
+ * @desc    Authenticate user, set HttpOnly auth_token cookie, and return safe user data
  * @access  Public
  */
 const loginUser = async (req, res, next) => {
@@ -109,6 +120,10 @@ const loginUser = async (req, res, next) => {
     // Verify password using bcrypt.compare()
     if (user && (await user.matchPassword(password))) {
       const token = generateToken(user._id);
+
+      // Set HttpOnly Authentication Cookie
+      res.cookie(AUTH_COOKIE_NAME, token, getAuthCookieOptions());
+
       res.status(200).json({
         _id: user._id,
         name: user.name,
@@ -119,7 +134,6 @@ const loginUser = async (req, res, next) => {
         branch: user.branch,
         academicSession: user.academicSession,
         profileCompleted: user.profileCompleted,
-        token,
       });
     } else {
       res.status(401);
@@ -132,10 +146,13 @@ const loginUser = async (req, res, next) => {
 
 /**
  * @route   POST /api/auth/logout
- * @desc    Logout user / clear token session
+ * @desc    Logout user and clear HttpOnly auth_token & CSRF cookies
  * @access  Public
  */
 const logoutUser = async (req, res) => {
+  res.clearCookie(AUTH_COOKIE_NAME, getClearAuthCookieOptions());
+  res.clearCookie(CSRF_COOKIE_NAME, getClearCsrfCookieOptions());
+
   res.status(200).json({
     message: "Logged out successfully",
   });
@@ -241,7 +258,7 @@ const updateUserProfile = async (req, res, next) => {
 
 /**
  * @route   PUT /api/auth/change-password
- * @desc    Change user password requiring current password & central password policy
+ * @desc    Change user password, clear current auth_token cookie to force re-login
  * @access  Private (Protected by verifyToken)
  */
 const changeUserPassword = async (req, res, next) => {
@@ -278,8 +295,11 @@ const changeUserPassword = async (req, res, next) => {
     user.password = newPassword;
     await user.save();
 
+    // Clear auth cookie so user must log back in with new password
+    res.clearCookie(AUTH_COOKIE_NAME, getClearAuthCookieOptions());
+
     res.status(200).json({
-      message: "Password changed successfully",
+      message: "Password changed successfully. Please log in again with your new password.",
     });
   } catch (error) {
     next(error);

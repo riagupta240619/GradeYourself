@@ -3,6 +3,7 @@
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
+const cookieParser = require("cookie-parser");
 const healthRoutes = require("./routes/health-routes");
 const authRoutes = require("./routes/auth-routes");
 const dashboardRoutes = require("./routes/dashboard-routes");
@@ -11,6 +12,7 @@ const semesterRoutes = require("./routes/semester-routes");
 const analyticsRoutes = require("./routes/analytics-routes");
 const { notFound, errorHandler } = require("./middleware/error-middleware");
 const { authLimiter, apiLimiter } = require("./middleware/rate-limiter");
+const { verifyCsrf } = require("./middleware/csrf-middleware");
 
 const app = express();
 
@@ -26,7 +28,7 @@ app.use(
   })
 );
 
-// ── 2. CORS — Explicit Origin Validation (No Wildcard) ─────────────────────────
+// ── 2. CORS — Explicit Origin Validation with Credentials (No Wildcard) ────────
 const allowedOrigins = (process.env.FRONTEND_URL || "")
   .split(",")
   .map((url) => url.trim())
@@ -51,13 +53,15 @@ const corsOptions = {
       callback(new Error(`CORS policy violation: Origin '${origin}' is not allowed`));
     }
   },
+  credentials: true, // Allows HttpOnly & CSRF cookies to be sent cross-origin
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token", "X-XSRF-Token"],
 };
 
 app.use(cors(corsOptions));
 
-// ── 3. Request Body Size Limit ────────────────────────────────────────────────
+// ── 3. Cookie Parsing & Request Body Limits ───────────────────────────────────
+app.use(cookieParser());
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 
@@ -70,7 +74,11 @@ app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/register", authLimiter);
 app.use("/api/auth/change-password", authLimiter);
 
-// ── 5. API Routes ─────────────────────────────────────────────────────────────
+// ── 5. CSRF Protection Middleware ──────────────────────────────────────────────
+// Validates double-submit CSRF token header for all state-changing HTTP requests
+app.use("/api", verifyCsrf);
+
+// ── 6. API Routes ─────────────────────────────────────────────────────────────
 app.use("/api", healthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/dashboard", dashboardRoutes);
@@ -78,7 +86,7 @@ app.use("/api/subjects", subjectRoutes);
 app.use("/api/semesters", semesterRoutes);
 app.use("/api/analytics", analyticsRoutes);
 
-// ── 6. Error Handling Middlewares ─────────────────────────────────────────────
+// ── 7. Error Handling Middlewares ─────────────────────────────────────────────
 app.use(notFound);
 app.use(errorHandler);
 

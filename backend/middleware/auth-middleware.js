@@ -2,45 +2,42 @@
 
 const jwt = require("jsonwebtoken");
 const User = require("../models/user-model");
+const { AUTH_COOKIE_NAME } = require("../utils/cookie-config");
 
 /**
  * JWT Authentication Middleware
  *
- * Verifies the Bearer token from the Authorization header and attaches the
- * authenticated user (without password) to req.user.
- *
- * JWT_SECRET is guaranteed to be present by the startup env validation in
- * config/env-validate.js. There is deliberately no fallback value here.
+ * Primary: Reads JWT from HttpOnly cookie (auth_token).
+ * Secondary: Reads JWT from Authorization: Bearer header (for non-browser API clients).
  *
  * Security properties:
- *  - Requires Authorization: Bearer <token> header
- *  - Rejects missing, malformed, expired, and invalid tokens with 401
+ *  - Rejects missing, malformed, expired, and invalid tokens with HTTP 401
  *  - Never exposes JWT internals, stack traces, or secret values to the client
  *  - Password field is excluded from req.user via Mongoose select("-password")
  */
 const verifyToken = async (req, res, next) => {
-  const authHeader = req.headers.authorization;
+  let token = null;
 
-  // ── 1. Require Authorization header with Bearer scheme ────────────────────
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+  // ── 1. Read token from HttpOnly Cookie (Primary Browser Transport) ────────
+  if (req.cookies && req.cookies[AUTH_COOKIE_NAME]) {
+    token = req.cookies[AUTH_COOKIE_NAME];
+  }
+
+  // ── 2. Fallback: Read token from Authorization Bearer header ──────────────
+  if (!token && req.headers.authorization && req.headers.authorization.startsWith("Bearer ")) {
+    token = req.headers.authorization.split(" ")[1];
+  }
+
+  if (!token || typeof token !== "string" || token.trim() === "") {
     res.status(401);
     return next(new Error("Unauthorized: No authentication token provided"));
   }
 
-  const token = authHeader.split(" ")[1];
-
-  // Guard against an empty token string after "Bearer "
-  if (!token) {
-    res.status(401);
-    return next(new Error("Unauthorized: No authentication token provided"));
-  }
-
-  // ── 2. Verify signature and expiration ────────────────────────────────────
+  // ── 3. Verify signature and expiration ────────────────────────────────────
   let decoded;
   try {
     decoded = jwt.verify(token, process.env.JWT_SECRET);
   } catch (jwtError) {
-    // Log the technical reason in development only — never the secret
     if (process.env.NODE_ENV !== "production") {
       console.warn("[Auth] JWT verification failed:", jwtError.message);
     }
@@ -48,7 +45,7 @@ const verifyToken = async (req, res, next) => {
     return next(new Error("Unauthorized: Invalid or expired authentication token"));
   }
 
-  // ── 3. Load the corresponding user from DB ────────────────────────────────
+  // ── 4. Load corresponding user from DB ────────────────────────────────────
   if (!decoded.id) {
     res.status(401);
     return next(new Error("Unauthorized: Invalid authentication token"));
@@ -71,5 +68,5 @@ const verifyToken = async (req, res, next) => {
 
 module.exports = {
   verifyToken,
-  protect: verifyToken, // Alias retained for backward compatibility
+  protect: verifyToken,
 };

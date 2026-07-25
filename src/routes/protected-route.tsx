@@ -2,10 +2,10 @@ import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
 
 export function ProtectedRoute() {
-  const { user, token, loading } = useAuth();
+  const { user, loading } = useAuth();
   const location = useLocation();
 
-  // Show a neutral loading screen while checking session from localStorage
+  // Show a neutral loading screen while checking session via HttpOnly cookie
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center" style={{ backgroundColor: "var(--bg-base)" }}>
@@ -17,8 +17,8 @@ export function ProtectedRoute() {
     );
   }
 
-  // Redirect to login if user or token is absent
-  if (!token || !user) {
+  // Redirect to login if user session is absent
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
 
