@@ -30,6 +30,12 @@ function errorHandler(err, req, res, _next) {
     message = details ? `Validation failed: ${details}` : "Validation failed";
   }
 
+  // Handle Mongoose Duplicate Key Error (e.g. unique email index violation E11000)
+  if (err.code === 11000) {
+    statusCode = 400;
+    message = "An account with this email already exists.";
+  }
+
   // In production, mask unexpected 500 internal server error details
   if (process.env.NODE_ENV === "production" && statusCode === 500) {
     message = "An unexpected internal server error occurred";
