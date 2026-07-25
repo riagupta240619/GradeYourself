@@ -1,4 +1,7 @@
+"use strict";
+
 const Semester = require("../models/semester-model");
+const SubjectModel = require("../models/subject-model");
 const User = require("../models/user-model");
 const {
   calculateCgpa,
@@ -7,206 +10,83 @@ const {
   findAtRiskSubjects,
 } = require("../utils/grading-engine");
 
-// Initial seed data generator for new users
-const defaultInitialSemesters = [
-  {
-    name: "Semester 1",
-    isCurrent: false,
-    finalizedSgpa: 8.4,
-    credits: 20,
-    subjects: [
-      {
-        name: "Calculus & Linear Algebra",
-        code: "MATH101",
-        credits: 4,
-        targetGrade: "A",
-        marks: { a1: 18, m1: 26, f1: 45 },
-        scheme: {
-          assessmentTypes: [
-            { id: "a1", name: "Assignments", maxMarks: 20, weightPct: 20 },
-            { id: "m1", name: "Midterm Exam", maxMarks: 30, weightPct: 30 },
-            { id: "f1", name: "Final Exam", maxMarks: 50, weightPct: 50 },
-          ],
-        },
-      },
-    ],
-  },
-  {
-    name: "Semester 2",
-    isCurrent: false,
-    finalizedSgpa: 8.6,
-    credits: 20,
-    subjects: [
-      {
-        name: "Physics for Engineers",
-        code: "PHYS102",
-        credits: 4,
-        targetGrade: "A",
-        marks: { a1: 19, m1: 27, f1: 46 },
-        scheme: {
-          assessmentTypes: [
-            { id: "a1", name: "Assignments", maxMarks: 20, weightPct: 20 },
-            { id: "m1", name: "Midterm Exam", maxMarks: 30, weightPct: 30 },
-            { id: "f1", name: "Final Exam", maxMarks: 50, weightPct: 50 },
-          ],
-        },
-      },
-    ],
-  },
-  {
-    name: "Semester 3",
-    isCurrent: false,
-    finalizedSgpa: 8.8,
-    credits: 22,
-    subjects: [
-      {
-        name: "Data Structures & Algorithms",
-        code: "CS201",
-        credits: 4,
-        targetGrade: "A",
-        marks: { a1: 17, m1: 25, f1: 44 },
-        scheme: {
-          assessmentTypes: [
-            { id: "a1", name: "Assignments", maxMarks: 20, weightPct: 20 },
-            { id: "m1", name: "Midterm Exam", maxMarks: 30, weightPct: 30 },
-            { id: "f1", name: "Final Exam", maxMarks: 50, weightPct: 50 },
-          ],
-        },
-      },
-    ],
-  },
-  {
-    name: "Semester 4 (Current)",
-    isCurrent: true,
-    finalizedSgpa: null,
-    credits: 22,
-    subjects: [
-      {
-        name: "Data Structures & Algorithms",
-        code: "CS201",
-        credits: 4,
-        targetGrade: "A+",
-        marks: { a1: 18, m1: 27 },
-        scheme: {
-          assessmentTypes: [
-            { id: "a1", name: "Assignments", maxMarks: 20, weightPct: 20 },
-            { id: "m1", name: "Midterm Exam", maxMarks: 30, weightPct: 30 },
-            { id: "f1", name: "Final Exam", maxMarks: 50, weightPct: 50 },
-          ],
-        },
-      },
-      {
-        name: "Database Management Systems",
-        code: "CS202",
-        credits: 4,
-        targetGrade: "A",
-        marks: { a1: 16, m1: 22 },
-        scheme: {
-          assessmentTypes: [
-            { id: "a1", name: "Assignments", maxMarks: 20, weightPct: 20 },
-            { id: "m1", name: "Midterm Exam", maxMarks: 30, weightPct: 30 },
-            { id: "f1", name: "Final Exam", maxMarks: 50, weightPct: 50 },
-          ],
-        },
-      },
-      {
-        name: "Computer Networks",
-        code: "CS203",
-        credits: 3,
-        targetGrade: "B+",
-        marks: { a1: 10, m1: 12 },
-        scheme: {
-          assessmentTypes: [
-            { id: "a1", name: "Assignments", maxMarks: 20, weightPct: 20 },
-            { id: "m1", name: "Midterm Exam", maxMarks: 30, weightPct: 30 },
-            { id: "f1", name: "Final Exam", maxMarks: 50, weightPct: 50 },
-          ],
-        },
-      },
-      {
-        name: "Operating Systems",
-        code: "CS204",
-        credits: 4,
-        targetGrade: "A",
-        marks: { a1: 19, m1: 28 },
-        scheme: {
-          assessmentTypes: [
-            { id: "a1", name: "Assignments", maxMarks: 20, weightPct: 20 },
-            { id: "m1", name: "Midterm Exam", maxMarks: 30, weightPct: 30 },
-            { id: "f1", name: "Final Exam", maxMarks: 50, weightPct: 50 },
-          ],
-        },
-      },
-      {
-        name: "Discrete Mathematics",
-        code: "MATH202",
-        credits: 3,
-        targetGrade: "A",
-        marks: { a1: 15, m1: 21 },
-        scheme: {
-          assessmentTypes: [
-            { id: "a1", name: "Assignments", maxMarks: 20, weightPct: 20 },
-            { id: "m1", name: "Midterm Exam", maxMarks: 30, weightPct: 30 },
-            { id: "f1", name: "Final Exam", maxMarks: 50, weightPct: 50 },
-          ],
-        },
-      },
-    ],
-  },
-];
+/**
+ * Resolve the user's grading scale from their profile.
+ */
+function resolveScale(user) {
+  return user?.semesterSystem?.includes("4.0") ? "4.0" : "10.0";
+}
 
 /**
- * Ensure user has initial semester data in MongoDB
+ * Build a semester-compatible object for the grading engine.
+ *
+ * The grading engine's calculateSgpa() accepts { finalizedSgpa, subjects[] }.
+ * This helper produces that shape by fetching the real subjects from the
+ * authoritative Subject collection.
  */
-async function ensureUserSemesters(userId) {
-  let userSemesters = await Semester.find({ user: userId });
-  if (userSemesters.length === 0) {
-    const created = [];
-    for (const semData of defaultInitialSemesters) {
-      const sem = await Semester.create({
-        user: userId,
-        ...semData,
-      });
-      created.push(sem);
-    }
-    return created;
-  }
-  return userSemesters;
+async function semesterWithSubjects(semester) {
+  const subjects = await SubjectModel.find({ semester: semester._id });
+  return { ...semester.toObject(), subjects };
 }
 
 /**
  * @route   GET /api/dashboard/summary
- * @desc    Get dashboard summary metrics, user profile, semester data, CGPA, and subjects
+ * @desc    Get the full dashboard: CGPA, SGPA, subjects, at-risk list, trend.
+ *          Returns empty-state values when the user has no academic data yet.
  * @access  Private
  */
 const getDashboardSummary = async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id).select("-password");
-    const userSemesters = await ensureUserSemesters(req.user._id);
+    const scale = resolveScale(user);
 
-    // Determine scale from user profile (e.g. 4.0 GPA vs 10.0 CGPA)
-    const scale = user?.semesterSystem?.includes("4.0") ? "4.0" : "10.0";
+    // Fetch semesters — NO auto-seeding; new users get an empty state.
+    const rawSemesters = await Semester.find({ user: req.user._id }).sort({ createdAt: 1 });
 
-    // Compute backend CGPA & SGPA
-    const calculatedCgpa = calculateCgpa(userSemesters, scale);
+    if (rawSemesters.length === 0) {
+      // Return a well-formed empty state so the frontend can render an empty view
+      return res.status(200).json({
+        user,
+        cgpa: null,
+        sgpa: null,
+        totalCredits: 0,
+        targetCgpa: scale === "4.0" ? 3.8 : 9.0,
+        currentSemester: null,
+        semesters: [],
+        subjects: [],
+        cgpaTrend: [],
+        atRiskSubjects: [],
+      });
+    }
 
-    const currentSemester = userSemesters.find((s) => s.isCurrent) || userSemesters[userSemesters.length - 1];
-    const calculatedSgpa = calculateSgpa(currentSemester, scale);
+    // Enrich each semester with its subjects from the Subject collection
+    const semestersWithSubjects = await Promise.all(rawSemesters.map(semesterWithSubjects));
 
-    // Calculate total credits
-    const totalCredits = userSemesters.reduce((sum, sem) => {
-      const semCredits = sem.credits || (sem.subjects && sem.subjects.length > 0 ? sem.subjects.reduce((a, b) => a + (b.credits || 0), 0) : 20);
+    // CGPA across all semesters
+    const calculatedCgpa = calculateCgpa(semestersWithSubjects, scale);
+
+    // Current (or most recent) semester
+    const currentSemRaw = rawSemesters.find((s) => s.isCurrent) || rawSemesters[rawSemesters.length - 1];
+    const currentSemEnriched = semestersWithSubjects.find((s) => String(s._id) === String(currentSemRaw._id));
+    const calculatedSgpa = calculateSgpa(currentSemEnriched, scale);
+
+    // Total credits across all semesters
+    const totalCredits = semestersWithSubjects.reduce((sum, sem) => {
+      const semCredits =
+        sem.subjects && sem.subjects.length > 0
+          ? sem.subjects.reduce((a, b) => a + (b.credits || 0), 0)
+          : sem.credits || 20;
       return sum + semCredits;
     }, 0);
 
-    // CGPA trend calculation
-    const cgpaTrend = userSemesters.map((sem) => ({
+    // CGPA trend (one data point per semester)
+    const cgpaTrend = semestersWithSubjects.map((sem) => ({
       semester: sem.name.replace(/\s*\(current\)/i, ""),
       sgpa: calculateSgpa(sem, scale),
     }));
 
-    // Current subjects with computed scores & letter grades
-    const currentSubjects = (currentSemester?.subjects || []).map((subj) => {
+    // Current subjects with calculated scores
+    const currentSubjects = (currentSemEnriched?.subjects || []).map((subj) => {
       const score = calculateSubjectScore(subj, scale);
       return {
         ...subj.toObject(),
@@ -216,8 +96,8 @@ const getDashboardSummary = async (req, res, next) => {
       };
     });
 
-    // At-risk subjects calculation
-    const atRiskSubjects = findAtRiskSubjects(currentSemester?.subjects || [], scale);
+    // At-risk subjects
+    const atRiskSubjects = findAtRiskSubjects(currentSemEnriched?.subjects || [], scale);
 
     res.status(200).json({
       user,
@@ -225,8 +105,8 @@ const getDashboardSummary = async (req, res, next) => {
       sgpa: calculatedSgpa,
       totalCredits,
       targetCgpa: scale === "4.0" ? 3.8 : 9.0,
-      currentSemester,
-      semesters: userSemesters,
+      currentSemester: currentSemRaw,
+      semesters: rawSemesters,
       subjects: currentSubjects,
       cgpaTrend,
       atRiskSubjects,
@@ -238,21 +118,28 @@ const getDashboardSummary = async (req, res, next) => {
 
 /**
  * @route   GET /api/dashboard/semesters
- * @desc    Get user semesters list
+ * @desc    Get user semester list.
  * @access  Private
  */
 const getSemesters = async (req, res, next) => {
   try {
-    const userSemesters = await ensureUserSemesters(req.user._id);
     const user = await User.findById(req.user._id);
-    const scale = user?.semesterSystem?.includes("4.0") ? "4.0" : "10.0";
+    const scale = resolveScale(user);
 
-    const formattedSemesters = userSemesters.map((sem) => ({
-      ...sem.toObject(),
-      calculatedSgpa: calculateSgpa(sem, scale),
-    }));
+    const rawSemesters = await Semester.find({ user: req.user._id }).sort({ createdAt: 1 });
 
-    res.status(200).json(formattedSemesters);
+    const formatted = await Promise.all(
+      rawSemesters.map(async (sem) => {
+        const subjects = await SubjectModel.find({ semester: sem._id });
+        const fakeSem = { ...sem.toObject(), subjects };
+        return {
+          ...sem.toObject(),
+          calculatedSgpa: calculateSgpa(fakeSem, scale),
+        };
+      })
+    );
+
+    res.status(200).json(formatted);
   } catch (error) {
     next(error);
   }
@@ -260,17 +147,24 @@ const getSemesters = async (req, res, next) => {
 
 /**
  * @route   GET /api/dashboard/subjects
- * @desc    Get subjects for the active semester with backend calculated grades
+ * @desc    Get subjects for the active semester with backend calculated grades.
  * @access  Private
  */
 const getSubjects = async (req, res, next) => {
   try {
-    const userSemesters = await ensureUserSemesters(req.user._id);
     const user = await User.findById(req.user._id);
-    const scale = user?.semesterSystem?.includes("4.0") ? "4.0" : "10.0";
+    const scale = resolveScale(user);
 
-    const active = userSemesters.find((s) => s.isCurrent) || userSemesters[userSemesters.length - 1];
-    const subjects = (active?.subjects || []).map((subj) => {
+    // Find the current semester (or most recent)
+    const currentSem = await Semester.findOne({ user: req.user._id, isCurrent: true }) ||
+      await Semester.findOne({ user: req.user._id }).sort({ createdAt: -1 });
+
+    if (!currentSem) {
+      return res.status(200).json([]);
+    }
+
+    const subjects = await SubjectModel.find({ semester: currentSem._id, user: req.user._id });
+    const formatted = subjects.map((subj) => {
       const score = calculateSubjectScore(subj, scale);
       return {
         ...subj.toObject(),
@@ -280,7 +174,7 @@ const getSubjects = async (req, res, next) => {
       };
     });
 
-    res.status(200).json(subjects);
+    res.status(200).json(formatted);
   } catch (error) {
     next(error);
   }
@@ -288,17 +182,27 @@ const getSubjects = async (req, res, next) => {
 
 /**
  * @route   GET /api/dashboard/cgpa
- * @desc    Get CGPA breakdown
+ * @desc    Get CGPA breakdown.
  * @access  Private
  */
 const getCgpaSummary = async (req, res, next) => {
   try {
-    const userSemesters = await ensureUserSemesters(req.user._id);
     const user = await User.findById(req.user._id);
-    const scale = user?.semesterSystem?.includes("4.0") ? "4.0" : "10.0";
+    const scale = resolveScale(user);
 
-    const cgpa = calculateCgpa(userSemesters, scale);
-    const totalCredits = userSemesters.reduce((sum, sem) => sum + (sem.credits || 20), 0);
+    const rawSemesters = await Semester.find({ user: req.user._id });
+
+    if (rawSemesters.length === 0) {
+      return res.status(200).json({ cgpa: null, totalCredits: 0 });
+    }
+
+    const semestersWithSubjects = await Promise.all(rawSemesters.map(semesterWithSubjects));
+    const cgpa = calculateCgpa(semestersWithSubjects, scale);
+    const totalCredits = semestersWithSubjects.reduce((sum, sem) => {
+      return sum + (sem.subjects.length > 0
+        ? sem.subjects.reduce((a, b) => a + (b.credits || 0), 0)
+        : sem.credits || 20);
+    }, 0);
 
     res.status(200).json({ cgpa, totalCredits });
   } catch (error) {

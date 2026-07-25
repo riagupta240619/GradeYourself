@@ -1,15 +1,22 @@
+"use strict";
+
 const SubjectModel = require("../models/subject-model");
+const Semester = require("../models/semester-model");
 const User = require("../models/user-model");
 const { calculateSubjectScore } = require("../utils/grading-engine");
 
 /**
- * Format subject with backend calculated score & grade metrics
+ * Resolve the user's grading scale from their profile.
  */
-async function formatSubject(subject, userId) {
-  const user = await User.findById(userId);
-  const scale = user?.semesterSystem?.includes("4.0") ? "4.0" : "10.0";
-  const score = calculateSubjectScore(subject, scale);
+function resolveScale(user) {
+  return user?.semesterSystem?.includes("4.0") ? "4.0" : "10.0";
+}
 
+/**
+ * Format subject with backend-calculated score, letter grade, and grade points.
+ */
+function formatSubject(subject, scale) {
+  const score = calculateSubjectScore(subject, scale);
   return {
     ...subject.toObject(),
     calculatedPct: score.pct,
@@ -18,14 +25,19 @@ async function formatSubject(subject, userId) {
   };
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// CREATE
+// ─────────────────────────────────────────────────────────────────────────────
+
 /**
  * @route   POST /api/subjects
- * @desc    Create / Add a new subject with credit & mark validations
+ * @desc    Create a subject inside a semester owned by the authenticated user.
+ *          The semester's user ownership is verified before creation.
  * @access  Private
  */
 const addSubject = async (req, res, next) => {
   try {
-    const { name, code, credits, semester, internalMarks, externalMarks, targetGrade, colorTag, marks, scheme } = req.body;
+    const { name, code, credits, semesterId, internalMarks, externalMarks, targetGrade, colorTag, marks, scheme } = req.body;
 
     if (!name || name.trim() === "") {
       res.status(400);
@@ -38,12 +50,24 @@ const addSubject = async (req, res, next) => {
       throw new Error("Credits must be a valid number between 1 and 10");
     }
 
+    if (!semesterId) {
+      res.status(400);
+      throw new Error("semesterId is required");
+    }
+
+    // ── Verify semester exists and belongs to this user ───────────────────────
+    const semester = await Semester.findOne({ _id: semesterId, user: req.user._id });
+    if (!semester) {
+      res.status(404);
+      throw new Error("Semester not found");
+    }
+
     const subject = await SubjectModel.create({
       user: req.user._id,
+      semester: semester._id,
       name: name.trim(),
       code: code || "",
       credits: numCredits,
-      semester: semester || "Semester 4",
       internalMarks: Number(internalMarks) || 0,
       externalMarks: Number(externalMarks) || 0,
       targetGrade: targetGrade || "A",
@@ -52,35 +76,38 @@ const addSubject = async (req, res, next) => {
       scheme: scheme || undefined,
     });
 
-    const formatted = await formatSubject(subject, req.user._id);
-    res.status(201).json(formatted);
+    const user = await User.findById(req.user._id);
+    const scale = resolveScale(user);
+    res.status(201).json(formatSubject(subject, scale));
   } catch (error) {
     next(error);
   }
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// READ
+// ─────────────────────────────────────────────────────────────────────────────
+
 /**
  * @route   GET /api/subjects
- * @desc    Get all subjects for authenticated user with calculated grades
+ * @desc    Get all subjects for the authenticated user (optionally filtered by semesterId).
  * @access  Private
  */
 const getSubjects = async (req, res, next) => {
   try {
-    const subjects = await SubjectModel.find({ user: req.user._id }).sort({ createdAt: -1 });
     const user = await User.findById(req.user._id);
-    const scale = user?.semesterSystem?.includes("4.0") ? "4.0" : "10.0";
+    const scale = resolveScale(user);
 
-    const formattedSubjects = subjects.map((subj) => {
-      const score = calculateSubjectScore(subj, scale);
-      return {
-        ...subj.toObject(),
-        calculatedPct: score.pct,
-        letterGrade: score.letter,
-        gradePoint: score.gradePoint,
-      };
-    });
+    // Optional filter: /api/subjects?semesterId=xxx
+    const query = { user: req.user._id };
+    if (req.query.semesterId) {
+      query.semester = req.query.semesterId;
+    }
 
-    res.status(200).json(formattedSubjects);
+    const subjects = await SubjectModel.find(query).sort({ createdAt: -1 });
+
+    const formatted = subjects.map((subj) => formatSubject(subj, scale));
+    res.status(200).json(formatted);
   } catch (error) {
     next(error);
   }
@@ -88,7 +115,7 @@ const getSubjects = async (req, res, next) => {
 
 /**
  * @route   GET /api/subjects/:id
- * @desc    Get single subject by ID
+ * @desc    Get a single subject owned by the authenticated user.
  * @access  Private
  */
 const getSubjectById = async (req, res, next) => {
@@ -98,16 +125,24 @@ const getSubjectById = async (req, res, next) => {
       res.status(404);
       throw new Error("Subject not found");
     }
-    const formatted = await formatSubject(subject, req.user._id);
-    res.status(200).json(formatted);
+
+    const user = await User.findById(req.user._id);
+    const scale = resolveScale(user);
+    res.status(200).json(formatSubject(subject, scale));
   } catch (error) {
     next(error);
   }
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// UPDATE
+// ─────────────────────────────────────────────────────────────────────────────
+
 /**
  * @route   PUT /api/subjects/:id
- * @desc    Update subject details or marks
+ * @desc    Update subject details or marks.
+ *          Ownership is verified via { _id, user } — never trusts client-supplied userId.
+ *          If semesterId is being changed, the target semester must also belong to this user.
  * @access  Private
  */
 const updateSubject = async (req, res, next) => {
@@ -118,10 +153,11 @@ const updateSubject = async (req, res, next) => {
       throw new Error("Subject not found");
     }
 
-    const { name, code, credits, semester, internalMarks, externalMarks, targetGrade, colorTag, marks, scheme } = req.body;
+    const { name, code, credits, semesterId, internalMarks, externalMarks, targetGrade, colorTag, marks, scheme } = req.body;
 
     if (name !== undefined) subject.name = name;
     if (code !== undefined) subject.code = code;
+
     if (credits !== undefined) {
       const numCredits = Number(credits);
       if (isNaN(numCredits) || numCredits < 1 || numCredits > 10) {
@@ -130,7 +166,18 @@ const updateSubject = async (req, res, next) => {
       }
       subject.credits = numCredits;
     }
-    if (semester !== undefined) subject.semester = semester;
+
+    // If the caller wants to move the subject to a different semester,
+    // verify the target semester also belongs to this user.
+    if (semesterId !== undefined) {
+      const targetSemester = await Semester.findOne({ _id: semesterId, user: req.user._id });
+      if (!targetSemester) {
+        res.status(404);
+        throw new Error("Target semester not found");
+      }
+      subject.semester = targetSemester._id;
+    }
+
     if (internalMarks !== undefined) subject.internalMarks = Number(internalMarks);
     if (externalMarks !== undefined) subject.externalMarks = Number(externalMarks);
     if (targetGrade !== undefined) subject.targetGrade = targetGrade;
@@ -138,17 +185,22 @@ const updateSubject = async (req, res, next) => {
     if (marks !== undefined) subject.marks = marks;
     if (scheme !== undefined) subject.scheme = scheme;
 
-    const updatedSubject = await subject.save();
-    const formatted = await formatSubject(updatedSubject, req.user._id);
-    res.status(200).json(formatted);
+    const updated = await subject.save();
+    const user = await User.findById(req.user._id);
+    const scale = resolveScale(user);
+    res.status(200).json(formatSubject(updated, scale));
   } catch (error) {
     next(error);
   }
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// DELETE
+// ─────────────────────────────────────────────────────────────────────────────
+
 /**
  * @route   DELETE /api/subjects/:id
- * @desc    Delete subject by ID
+ * @desc    Delete a subject owned by the authenticated user.
  * @access  Private
  */
 const deleteSubject = async (req, res, next) => {
