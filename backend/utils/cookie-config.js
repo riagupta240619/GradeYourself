@@ -18,7 +18,9 @@ function getSameSiteOption() {
   if (custom && ["lax", "strict", "none"].includes(custom)) {
     return custom;
   }
-  return process.env.NODE_ENV === "production" ? "strict" : "lax";
+  // Cross-origin production deployments (e.g. Vercel SPA -> Render Express API) require SameSite=none and Secure=true
+  // so browsers transmit cookies across cross-site XHR/fetch requests.
+  return process.env.NODE_ENV === "production" ? "none" : "lax";
 }
 
 /**

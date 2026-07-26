@@ -42,24 +42,38 @@ export const api = axios.create({
 });
 
 /**
- * Promise cache to ensure single initial CSRF bootstrap call
+ * In-memory fallback for CSRF token if cross-domain document.cookie is partitioned by client browser policy
  */
-let csrfBootstrapPromise: Promise<void> | null = null;
+let inMemoryCsrfToken: string | null = null;
+let csrfBootstrapPromise: Promise<string | null> | null = null;
 
-export async function ensureCsrfToken(): Promise<void> {
-  if (getCookie("XSRF-TOKEN")) return;
+export async function ensureCsrfToken(): Promise<string | null> {
+  const existingCookie = getCookie("XSRF-TOKEN");
+  if (existingCookie) {
+    inMemoryCsrfToken = existingCookie;
+    return existingCookie;
+  }
+
   if (!csrfBootstrapPromise) {
     csrfBootstrapPromise = api
-      .get("/auth/csrf")
-      .then(() => {})
+      .get<{ csrfToken: string }>("/auth/csrf")
+      .then((res) => {
+        const token = res.data?.csrfToken || null;
+        if (token) {
+          inMemoryCsrfToken = token;
+        }
+        return token;
+      })
       .catch((err) => {
         console.warn("[CSRF Bootstrap Warning]:", err.message);
+        return null;
       })
       .finally(() => {
         csrfBootstrapPromise = null;
       });
   }
-  return csrfBootstrapPromise;
+  await csrfBootstrapPromise;
+  return getCookie("XSRF-TOKEN") || inMemoryCsrfToken;
 }
 
 // Request interceptor: Attach Double-Submit CSRF token header for state-changing requests
@@ -69,14 +83,11 @@ api.interceptors.request.use(
 
     // Attach CSRF token on state-changing requests
     if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
-      // Ensure CSRF token cookie is initialized if missing (e.g. initial login/register)
-      if (!getCookie("XSRF-TOKEN") && !config.url?.includes("/auth/csrf")) {
-        await ensureCsrfToken();
-      }
-
-      const csrfToken = getCookie("XSRF-TOKEN");
-      if (csrfToken && config.headers) {
-        config.headers["X-CSRF-Token"] = csrfToken;
+      if (!config.url?.includes("/auth/csrf")) {
+        const token = await ensureCsrfToken();
+        if (token && config.headers) {
+          config.headers["X-CSRF-Token"] = token;
+        }
       }
     }
     return config;
