@@ -53,6 +53,14 @@ const verifyCsrf = (req, res, next) => {
     req.headers["x-xsrf-token"] ||
     (req.body && req.body._csrf);
 
+  console.log("[CSRF Diagnostic Log]", {
+    origin: req.headers.origin,
+    hasCookiesObject: Boolean(req.cookies),
+    cookieNames: req.cookies ? Object.keys(req.cookies) : [],
+    hasCookieToken: Boolean(cookieToken),
+    hasHeaderToken: Boolean(headerToken),
+  });
+
   if (!cookieToken || !headerToken) {
     res.status(403);
     return next(new Error("Invalid CSRF token: Missing token in header or cookie"));
