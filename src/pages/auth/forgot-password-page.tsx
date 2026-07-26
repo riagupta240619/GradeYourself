@@ -1,43 +1,76 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { MailCheck, GraduationCap, Mail, ArrowRight, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { MailCheck } from "lucide-react";
 
 export function ForgotPasswordPage() {
   const [sent, setSent] = useState(false);
+  const [email, setEmail] = useState("");
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4" style={{ backgroundColor: "var(--bg-base)" }}>
-      <Card className="w-full max-w-sm animate-fade-up">
-        <CardContent className="pt-8 text-center">
-          {!sent ? (
-            <>
-              <h1 className="mb-1 text-xl font-semibold">Reset your password</h1>
-              <p className="mb-5 text-sm text-[var(--text-secondary)]">Enter your email and we'll send a reset link.</p>
-              <form
-                className="flex flex-col gap-3 text-left"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  setSent(true);
-                }}
-              >
-                <input type="email" required placeholder="you@university.edu" className="w-full rounded-lg border bg-transparent px-3 py-2 text-sm" style={{ borderColor: "var(--border-hairline)" }} />
-                <Button type="submit">Send reset link</Button>
-              </form>
-            </>
-          ) : (
-            <>
-              <MailCheck size={28} className="mx-auto mb-3 text-[var(--color-success)]" />
-              <h1 className="mb-1 text-xl font-semibold">Check your inbox</h1>
-              <p className="text-sm text-[var(--text-secondary)]">We've sent a reset link if that email is registered.</p>
-            </>
-          )}
-          <p className="mt-5 text-sm text-[var(--text-secondary)]">
-            <Link to="/login" className="text-[var(--color-accent)]">Back to sign in</Link>
-          </p>
-        </CardContent>
-      </Card>
+    <div className="relative flex min-h-screen w-full items-center justify-center bg-[#09090b] text-white px-4 overflow-hidden">
+      <div className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 h-96 w-96 rounded-full bg-purple-600/20 blur-3xl opacity-60" />
+
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3 }}
+        className="w-full max-w-md rounded-2xl border border-white/10 bg-zinc-900/80 p-8 shadow-2xl backdrop-blur-2xl text-center"
+      >
+        <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-purple-600/20 text-purple-400">
+          <GraduationCap size={22} />
+        </div>
+
+        {!sent ? (
+          <>
+            <h1 className="text-2xl font-bold tracking-tight">Reset your password</h1>
+            <p className="mt-1 mb-6 text-xs text-zinc-400">Enter your account email and we'll send a password recovery link.</p>
+            <form
+              className="flex flex-col gap-4 text-left"
+              onSubmit={(e) => {
+                e.preventDefault();
+                setSent(true);
+              }}
+            >
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-zinc-300">Email Address</label>
+                <div className="relative">
+                  <Mail size={16} className="absolute left-3.5 top-3 text-zinc-500" />
+                  <input
+                    type="email"
+                    required
+                    placeholder="student@university.edu"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full rounded-xl border border-white/10 bg-zinc-950/60 pl-10 pr-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                  />
+                </div>
+              </div>
+
+              <Button type="submit" size="lg" variant="primary" className="mt-2 w-full gap-2">
+                Send Reset Link <ArrowRight size={16} />
+              </Button>
+            </form>
+          </>
+        ) : (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="py-4">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+              <MailCheck size={28} />
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight">Check your inbox</h1>
+            <p className="mt-2 text-xs text-zinc-400 leading-relaxed">
+              We've sent a password reset link to <span className="font-semibold text-white">{email}</span>. Please follow the instructions in the email.
+            </p>
+          </motion.div>
+        )}
+
+        <div className="mt-6 border-t border-white/10 pt-4 text-xs">
+          <Link to="/login" className="inline-flex items-center gap-1.5 font-semibold text-purple-400 hover:text-purple-300 transition-colors">
+            <ArrowLeft size={14} /> Back to Sign In
+          </Link>
+        </div>
+      </motion.div>
     </div>
   );
 }

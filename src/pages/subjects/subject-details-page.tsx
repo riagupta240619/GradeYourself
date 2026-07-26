@@ -1,12 +1,15 @@
 import { useState, useMemo, useEffect } from "react";
-import { ChevronLeft, Wand2, Check, Plus, Trash2 } from "lucide-react";
+import { motion } from "framer-motion";
+import { ChevronLeft, Wand2, Check, Plus, Trash2, BookOpen, Award, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { AddSubjectModal } from "@/components/upload/add-subject-modal";
 import { subjectCurrentPct, predictSubject, pctToLetter } from "@/lib/grading/engine";
 import { SubjectService } from "@/services/subject-service";
 import type { Subject } from "@/types";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 
 export function SubjectDetailsPage() {
   const [addSubjectModalOpen, setAddSubjectModalOpen] = useState(false);
@@ -63,6 +66,7 @@ export function SubjectDetailsPage() {
     try {
       await SubjectService.updateSubject(targetId, { marks: newMarks });
       setSavedFlash(assessmentId);
+      toast.success("Marks saved!");
       setTimeout(() => setSavedFlash(null), 900);
       fetchSubjects();
     } catch (err) {
@@ -79,6 +83,7 @@ export function SubjectDetailsPage() {
       try {
         await SubjectService.deleteSubject(targetId);
         setSelectedId(null);
+        toast.info(`Deleted ${subject.name}`);
         fetchSubjects();
       } catch (err) {
         console.error("Failed to delete subject on backend:", err);
@@ -88,12 +93,12 @@ export function SubjectDetailsPage() {
 
   if (loading && subjects.length === 0) {
     return (
-      <div className="flex flex-col gap-6 animate-fade-up">
-        <Link to="/app/dashboard" className="flex w-fit items-center gap-1 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
-          <ChevronLeft size={15} /> Back to Dashboard
+      <div className="flex max-w-4xl flex-col gap-6">
+        <Link to="/app/dashboard" className="flex w-fit items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition-colors">
+          <ChevronLeft size={16} /> Back to Dashboard
         </Link>
-        <Card className="p-8 text-center text-sm text-[var(--text-secondary)]">
-          Loading subjects...
+        <Card className="p-8 text-center text-xs text-zinc-400">
+          Loading course details...
         </Card>
       </div>
     );
@@ -101,14 +106,14 @@ export function SubjectDetailsPage() {
 
   if (!subject) {
     return (
-      <div className="flex flex-col gap-6 animate-fade-up">
-        <Link to="/app/dashboard" className="flex w-fit items-center gap-1 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
-          <ChevronLeft size={15} /> Back to Dashboard
+      <div className="flex max-w-4xl flex-col gap-6">
+        <Link to="/app/dashboard" className="flex w-fit items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition-colors">
+          <ChevronLeft size={16} /> Back to Dashboard
         </Link>
-        <Card className="p-8 text-center">
-          <h2 className="text-xl font-semibold mb-2">No subjects found</h2>
-          <p className="text-sm text-[var(--text-secondary)] mb-4">Add your new subjects or upload them to view details.</p>
-          <Button variant="primary" size="sm" onClick={() => setAddSubjectModalOpen(true)} className="mx-auto flex items-center gap-1">
+        <Card className="p-10 text-center">
+          <h2 className="text-xl font-bold mb-2">No Active Courses Found</h2>
+          <p className="text-xs text-zinc-400 mb-5">Add your subjects or upload your syllabus to start tracking course performance.</p>
+          <Button variant="primary" size="sm" onClick={() => setAddSubjectModalOpen(true)} className="mx-auto flex items-center gap-1.5">
             <Plus size={15} /> Add New Subject
           </Button>
         </Card>
@@ -128,12 +133,13 @@ export function SubjectDetailsPage() {
   const prediction = predictSubject(subject);
 
   return (
-    <div className="flex flex-col gap-6 animate-fade-up">
+    <div className="flex max-w-4xl flex-col gap-8 pb-10">
+      {/* Top Header Actions */}
       <div className="flex items-center justify-between">
-        <Link to="/app/dashboard" className="flex w-fit items-center gap-1 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
-          <ChevronLeft size={15} /> Back to Dashboard
+        <Link to="/app/dashboard" className="flex w-fit items-center gap-1.5 text-xs font-semibold text-zinc-400 hover:text-white transition-colors">
+          <ChevronLeft size={16} /> Back to Dashboard
         </Link>
-        <Button variant="outline" size="sm" onClick={() => setAddSubjectModalOpen(true)} className="flex items-center gap-1">
+        <Button variant="outline" size="sm" onClick={() => setAddSubjectModalOpen(true)} className="gap-1.5">
           <Plus size={14} /> Add Subject
         </Button>
       </div>
@@ -147,82 +153,97 @@ export function SubjectDetailsPage() {
             <button
               key={sId}
               onClick={() => setSelectedId(sId)}
-              className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors ${
-                active ? "border-[var(--color-accent)] bg-[var(--color-accent)]/10 text-[var(--color-accent)] font-medium" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+              className={`flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold transition-all ${
+                active
+                  ? "border-purple-500 bg-purple-500/20 text-purple-300 shadow-[0_0_15px_rgba(124,58,237,0.3)]"
+                  : "border-white/10 bg-zinc-900/80 text-zinc-400 hover:text-white hover:border-white/20"
               }`}
-              style={{ borderColor: active ? undefined : "var(--border-hairline)" }}
             >
-              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: s.colorTag || "#3b82f6" }} />
+              <span className="h-2.5 w-2.5 rounded-full shadow-sm" style={{ backgroundColor: s.colorTag || "#3b82f6" }} />
               {s.name}
             </button>
           );
         })}
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold flex items-center gap-2">
-            <span className="h-3 w-3 rounded-full" style={{ backgroundColor: subject.colorTag || "#3b82f6" }} />
-            {subject.name}
-            <span className="text-xs font-normal text-[var(--text-tertiary)] bg-[var(--bg-elevated)] px-2 py-0.5 rounded">
-              {subject.credits} Credits
-            </span>
-          </h1>
-          <p className="mt-1 text-sm text-[var(--text-secondary)]">
-            Current: <span className="font-tabular font-medium text-[var(--text-primary)]">{pct.toFixed(1)}%</span> ({pctToLetter(pct)}) &nbsp;·&nbsp;
-            Predicted: <span className="font-tabular font-medium">{prediction.low}–{prediction.high}%</span>
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={handleDeleteSubject} className="text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10">
-            <Trash2 size={15} /> Delete
-          </Button>
-          <Link to="/app/simulator">
-            <Button variant="outline" size="sm">
-              <Wand2 size={15} /> Open Simulator
-            </Button>
-          </Link>
-        </div>
-      </div>
+      {/* Main Course Header Card */}
+      <Card className="glow-purple border-purple-500/30 bg-gradient-to-br from-zinc-900 via-zinc-900 to-purple-950/20">
+        <CardContent className="pt-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-3">
+                <span className="h-4 w-4 rounded-full shadow-sm" style={{ backgroundColor: subject.colorTag || "#3b82f6" }} />
+                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">{subject.name}</h1>
+                <Badge tone="accent">{subject.credits} Credits</Badge>
+              </div>
 
+              <div className="mt-3 flex flex-wrap items-center gap-4 text-xs">
+                <span className="text-zinc-400">
+                  Current Score: <span className="font-mono font-bold text-white text-sm">{pct.toFixed(1)}%</span> ({pctToLetter(pct)})
+                </span>
+                <span className="text-zinc-500">•</span>
+                <span className="text-zinc-400">
+                  Predicted Range: <span className="font-mono font-semibold text-purple-400">{prediction.low}–{prediction.high}%</span>
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5">
+              <Button variant="danger" size="sm" onClick={handleDeleteSubject} className="gap-1.5">
+                <Trash2 size={15} /> Delete Course
+              </Button>
+              <Link to="/app/simulator">
+                <Button variant="primary" size="sm" className="gap-1.5">
+                  <Wand2 size={15} /> Open Simulator
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Assessment Breakdown Table */}
       <Card>
-        <CardHeader>
-          <CardTitle>Assessment Breakdown & Marks Entry</CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div className="flex items-center gap-2">
+            <BookOpen size={18} className="text-purple-400" />
+            <CardTitle>Assessment Breakdown & Marks Entry</CardTitle>
+          </div>
+          <span className="text-xs text-zinc-500 font-semibold">Live Weightage Math</span>
         </CardHeader>
-        <CardContent className="p-0">
-          <table className="w-full text-sm">
+        <CardContent className="p-0 overflow-x-auto">
+          <table className="w-full text-xs text-left">
             <thead>
-              <tr className="border-y text-left text-[var(--text-tertiary)]" style={{ borderColor: "var(--border-hairline)" }}>
-                <th className="px-5 py-2 font-normal">Assessment</th>
-                <th className="px-5 py-2 font-normal">Weight</th>
-                <th className="px-5 py-2 font-normal">Marks Obtained</th>
-                <th className="px-5 py-2 font-normal">Weighted Score</th>
+              <tr className="border-y border-white/10 bg-zinc-950/60 text-zinc-400 font-semibold uppercase tracking-wider">
+                <th className="px-6 py-3">Assessment Type</th>
+                <th className="px-6 py-3">Weightage</th>
+                <th className="px-6 py-3">Marks Obtained</th>
+                <th className="px-6 py-3">Weighted Contribution</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-white/5">
               {(subject.scheme?.assessmentTypes || []).map((type) => {
                 const raw = subject.marks ? subject.marks[type.id] : null;
                 const contribution = raw !== null && raw !== undefined ? ((raw / type.maxMarks) * type.weightPct).toFixed(1) : "—";
                 return (
-                  <tr key={type.id} className="border-b last:border-0 hover:bg-[var(--bg-elevated)]/30" style={{ borderColor: "var(--border-hairline)" }}>
-                    <td className="px-5 py-3 font-medium">{type.name}</td>
-                    <td className="px-5 py-3 font-tabular text-[var(--text-secondary)]">{type.weightPct}%</td>
-                    <td className="px-5 py-3">
-                      <div className="flex items-center gap-1.5">
+                  <tr key={type.id} className="hover:bg-purple-500/5 transition-colors">
+                    <td className="px-6 py-4 font-bold text-white">{type.name}</td>
+                    <td className="px-6 py-4 font-mono font-semibold text-purple-400">{type.weightPct}%</td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
                         <input
                           type="number"
-                          className="w-20 rounded-md border bg-[var(--bg-base)] px-2.5 py-1 font-tabular focus:border-[var(--color-accent)]"
-                          style={{ borderColor: "var(--border-hairline)" }}
+                          className="w-24 rounded-xl border border-white/10 bg-zinc-950 px-3 py-1.5 font-mono text-sm font-bold text-white placeholder-zinc-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                           placeholder="—"
                           value={raw ?? ""}
                           max={type.maxMarks}
                           onChange={(e) => handleMarkChange(type.id, e.target.value)}
                         />
-                        <span className="text-[var(--text-tertiary)]">/ {type.maxMarks}</span>
-                        {savedFlash === type.id && <Check size={14} className="text-[var(--color-success)]" />}
+                        <span className="text-zinc-500 font-mono">/ {type.maxMarks}</span>
+                        {savedFlash === type.id && <Check size={16} className="text-emerald-400 animate-pulse" />}
                       </div>
                     </td>
-                    <td className="px-5 py-3 font-tabular text-[var(--text-secondary)]">{contribution}%</td>
+                    <td className="px-6 py-4 font-mono font-bold text-emerald-400 text-sm">{contribution}%</td>
                   </tr>
                 );
               })}

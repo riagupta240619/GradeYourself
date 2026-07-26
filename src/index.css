@@ -1,42 +1,67 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", "Geist", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
-  --color-accent: #6366f1;
-  --color-accent-hover: #757ef2;
+  --color-accent: #7c3aed;
+  --color-accent-hover: #6d28d9;
+  --color-secondary: #3b82f6;
   --color-success: #22c55e;
   --color-warning: #f59e0b;
   --color-danger: #ef4444;
 
-  --animate-fade-up: fade-up 0.25s ease-out;
-  --animate-count: count 0.4s ease-out;
+  --animate-fade-up: fade-up 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-scale-in: scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-glow: glow 3s infinite alternate;
 
   @keyframes fade-up {
-    from { opacity: 0; transform: translateY(8px); }
+    from { opacity: 0; transform: translateY(12px); }
     to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes scale-in {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes glow {
+    from { opacity: 0.4; }
+    to { opacity: 0.8; }
   }
 }
 
 :root {
-  --bg-base: #fafafa;
-  --bg-surface: #ffffff;
-  --bg-elevated: #ffffff;
-  --border-hairline: #e4e4e7;
-  --text-primary: #18181b;
-  --text-secondary: #71717a;
-  --text-tertiary: #a1a1aa;
+  --bg-base: #09090b;
+  --bg-surface: #18181b;
+  --bg-elevated: #27272a;
+  --border-hairline: rgba(255, 255, 255, 0.08);
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1aa;
+  --text-tertiary: #71717a;
+  --color-accent: #7c3aed;
 }
 
 .dark {
-  --bg-base: #0a0a0b;
-  --bg-surface: #141416;
-  --bg-elevated: #1c1c1f;
-  --border-hairline: #27272a;
-  --text-primary: #fafafa;
+  --bg-base: #09090b;
+  --bg-surface: #18181b;
+  --bg-elevated: #27272a;
+  --border-hairline: rgba(255, 255, 255, 0.08);
+  --text-primary: #ffffff;
   --text-secondary: #a1a1aa;
-  --text-tertiary: #52525b;
+  --text-tertiary: #71717a;
+  --color-accent: #7c3aed;
+}
+
+.light {
+  --bg-base: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-elevated: #f1f5f9;
+  --border-hairline: #e2e8f0;
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --text-tertiary: #94a3b8;
+  --color-accent: #7c3aed;
 }
 
 * {
@@ -52,21 +77,76 @@ body {
   color: var(--text-primary);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  overflow-x: hidden;
+}
+
+/* Glassmorphism & Custom Glows */
+.glass-card {
+  background: rgba(24, 24, 27, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel {
+  background: rgba(9, 9, 11, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glow-purple {
+  box-shadow: 0 0 30px -5px rgba(124, 58, 237, 0.25);
+}
+
+.glow-blue {
+  box-shadow: 0 0 30px -5px rgba(59, 130, 246, 0.25);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #ffffff 0%, #a1a1aa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gradient-purple-text {
+  background: linear-gradient(135deg, #c084fc 0%, #7c3aed 50%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .font-tabular {
   font-variant-numeric: tabular-nums;
-  font-family: var(--font-mono);
+}
+
+/* Modern Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
 }
 
 ::selection {
-  background-color: var(--color-accent);
-  color: white;
+  background-color: rgba(124, 58, 237, 0.4);
+  color: #ffffff;
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid #7c3aed;
   outline-offset: 2px;
 }
 

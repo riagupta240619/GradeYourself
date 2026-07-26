@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
-import { ArrowUp, ArrowDown, Trophy, AlertTriangle, PieChart as PieIcon } from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowUp, ArrowDown, Trophy, AlertTriangle, PieChart as PieIcon, BarChart3, TrendingUp, BookOpen } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendChart } from "@/components/charts/trend-chart";
 import { Badge } from "@/components/ui/badge";
@@ -46,10 +47,10 @@ export function AnalyticsPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col gap-6 animate-fade-up">
-        <h1 className="text-2xl font-semibold">Analytics & Performance History</h1>
-        <Card className="p-8 text-center text-sm text-[var(--text-secondary)]">
-          Loading analytics...
+      <div className="flex max-w-4xl flex-col gap-6">
+        <h1 className="text-2xl font-bold tracking-tight">Analytics & Performance History</h1>
+        <Card className="p-8 text-center text-xs text-zinc-400">
+          Loading performance analytics...
         </Card>
       </div>
     );
@@ -58,19 +59,28 @@ export function AnalyticsPage() {
   const hasData = (analytics?.totalSubjectsEvaluated || 0) > 0 || trendData.length > 0;
 
   return (
-    <div className="flex flex-col gap-6 animate-fade-up">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Analytics & Performance History</h1>
-        <div className="flex rounded-lg border p-0.5 text-sm" style={{ borderColor: "var(--border-hairline)" }}>
+    <div className="flex max-w-4xl flex-col gap-8 pb-10">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-300 mb-2">
+            <BarChart3 size={12} className="text-purple-400" /> Academic Analytics
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Performance Analytics</h1>
+          <p className="text-xs sm:text-sm text-zinc-400 mt-1">Detailed evaluation of CGPA trends, course distributions, and performance outliers.</p>
+        </div>
+
+        <div className="flex rounded-xl border border-white/10 bg-zinc-900/90 p-1 text-xs font-semibold">
           {[
-            { key: "trend", label: "Trend" },
+            { key: "trend", label: "Progression Trend" },
             { key: "history", label: "Past Results" },
           ].map((t) => (
             <button
               key={t.key}
               onClick={() => setTab(t.key as "trend" | "history")}
-              className={`rounded-md px-3 py-1.5 font-medium transition-colors ${
-                tab === t.key ? "bg-[var(--color-accent)] text-white" : "text-[var(--text-secondary)]"
+              className={`rounded-lg px-3.5 py-1.5 transition-all ${
+                tab === t.key
+                  ? "bg-purple-600 text-white shadow-[0_0_12px_rgba(124,58,237,0.4)] font-bold"
+                  : "text-zinc-400 hover:text-white"
               }`}
             >
               {t.label}
@@ -80,54 +90,54 @@ export function AnalyticsPage() {
       </div>
 
       {!hasData ? (
-        <Card className="p-8 text-center">
-          <h2 className="text-xl font-semibold mb-2">No analytics data available</h2>
-          <p className="text-sm text-[var(--text-secondary)]">
-            Add semesters, subjects, and assessment marks to view performance analytics and progression trends.
+        <Card className="p-10 text-center">
+          <h2 className="text-lg font-bold mb-2">No Performance Analytics Recorded</h2>
+          <p className="text-xs text-zinc-400">
+            Add semester results and subjects to unlock detailed progression graphs and subject breakdowns.
           </p>
         </Card>
       ) : (
         <>
           {/* Highest & Lowest Performing Subject Stat Cards */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Card className="border-l-4 border-l-[var(--color-success)]">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <Card className="border-l-4 border-l-emerald-500 bg-gradient-to-br from-zinc-900 via-zinc-900 to-emerald-950/20">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-[var(--text-secondary)] flex items-center gap-1.5">
-                  <Trophy size={16} className="text-[var(--color-success)]" /> Highest Performing Subject
+                <CardTitle className="flex items-center gap-2 text-emerald-400">
+                  <Trophy size={16} /> Highest Performing Course
                 </CardTitle>
-                {highest && <Badge tone="accent">{highest.letterGrade}</Badge>}
+                {highest && <Badge tone="success">{highest.letterGrade}</Badge>}
               </CardHeader>
               <CardContent>
                 {highest ? (
                   <>
-                    <div className="text-xl font-bold">{highest.name} ({highest.code})</div>
-                    <p className="text-xs text-[var(--text-secondary)] mt-1">
-                      Score: <span className="font-tabular font-bold text-[var(--color-success)]">{highest.pct.toFixed(1)}%</span> &nbsp;·&nbsp; {highest.credits} Credits
+                    <div className="text-xl font-extrabold text-white">{highest.name} <span className="text-zinc-500 font-normal">({highest.code})</span></div>
+                    <p className="text-xs text-zinc-400 mt-2">
+                      Final Score: <span className="font-mono font-bold text-emerald-400 text-sm">{highest.pct.toFixed(1)}%</span> &nbsp;•&nbsp; {highest.credits} Credits
                     </p>
                   </>
                 ) : (
-                  <p className="text-xs text-[var(--text-tertiary)]">No subject scores evaluated yet.</p>
+                  <p className="text-xs text-zinc-500">No course data evaluated yet.</p>
                 )}
               </CardContent>
             </Card>
 
-            <Card className="border-l-4 border-l-[var(--color-warning)]">
+            <Card className="border-l-4 border-l-amber-500 bg-gradient-to-br from-zinc-900 via-zinc-900 to-amber-950/20">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-[var(--text-secondary)] flex items-center gap-1.5">
-                  <AlertTriangle size={16} className="text-[var(--color-warning)]" /> Lowest Performing Subject
+                <CardTitle className="flex items-center gap-2 text-amber-400">
+                  <AlertTriangle size={16} /> Lowest Performing Course
                 </CardTitle>
-                {lowest && <Badge tone="accent">{lowest.letterGrade}</Badge>}
+                {lowest && <Badge tone="warning">{lowest.letterGrade}</Badge>}
               </CardHeader>
               <CardContent>
                 {lowest ? (
                   <>
-                    <div className="text-xl font-bold">{lowest.name} ({lowest.code})</div>
-                    <p className="text-xs text-[var(--text-secondary)] mt-1">
-                      Score: <span className="font-tabular font-bold text-[var(--color-warning)]">{lowest.pct.toFixed(1)}%</span> &nbsp;·&nbsp; {lowest.credits} Credits
+                    <div className="text-xl font-extrabold text-white">{lowest.name} <span className="text-zinc-500 font-normal">({lowest.code})</span></div>
+                    <p className="text-xs text-zinc-400 mt-2">
+                      Final Score: <span className="font-mono font-bold text-amber-400 text-sm">{lowest.pct.toFixed(1)}%</span> &nbsp;•&nbsp; {lowest.credits} Credits
                     </p>
                   </>
                 ) : (
-                  <p className="text-xs text-[var(--text-tertiary)]">No subject scores evaluated yet.</p>
+                  <p className="text-xs text-zinc-500">No course data evaluated yet.</p>
                 )}
               </CardContent>
             </Card>
@@ -137,14 +147,17 @@ export function AnalyticsPage() {
             <>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle>CGPA Progression Trend</CardTitle>
-                  <span className="text-xs text-[var(--text-tertiary)]">{chartData.length} Semesters Recorded</span>
+                  <div className="flex items-center gap-2">
+                    <TrendingUp size={18} className="text-purple-400" />
+                    <CardTitle>CGPA Progression Trend</CardTitle>
+                  </div>
+                  <span className="text-xs text-zinc-500 font-semibold">{chartData.length} Semesters Tracked</span>
                 </CardHeader>
                 <CardContent>
                   {chartData.length > 0 ? (
                     <TrendChart data={chartData} />
                   ) : (
-                    <p className="text-xs text-[var(--text-tertiary)] text-center py-6">No trend points available.</p>
+                    <p className="text-xs text-zinc-500 text-center py-8">No historical data available.</p>
                   )}
                 </CardContent>
               </Card>
@@ -154,20 +167,19 @@ export function AnalyticsPage() {
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="flex items-center gap-2">
-                      <PieIcon size={18} className="text-[var(--color-accent)]" /> Credit Distribution by Subject Field
+                      <PieIcon size={18} className="text-purple-400" /> Credit Distribution by Field
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       {analytics.creditDistribution.map((item, idx) => (
                         <div
                           key={idx}
-                          className="rounded-lg border p-4 bg-[var(--bg-elevated)]/30"
-                          style={{ borderColor: "var(--border-hairline)" }}
+                          className="rounded-xl border border-white/10 bg-zinc-950/60 p-4"
                         >
-                          <p className="text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">{item.category}</p>
-                          <p className="text-2xl font-bold font-tabular text-[var(--color-accent)] mt-1">{item.credits} Credits</p>
-                          <p className="text-xs text-[var(--text-secondary)] mt-0.5">{item.count} Subject(s)</p>
+                          <p className="text-xs font-bold uppercase tracking-wider text-zinc-400">{item.category}</p>
+                          <p className="text-2xl font-extrabold font-mono text-purple-400 mt-1">{item.credits} Credits</p>
+                          <p className="text-xs text-zinc-500 mt-1">{item.count} Course(s)</p>
                         </div>
                       ))}
                     </div>
@@ -178,24 +190,24 @@ export function AnalyticsPage() {
               {trendData.length > 0 && (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Semester SGPA Comparison</CardTitle>
+                    <CardTitle>Recent Semester Comparisons</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-2 gap-4">
                       {trendData.slice(-2).map((item, idx) => (
-                        <div key={idx} className="rounded-lg border p-4" style={{ borderColor: "var(--border-hairline)" }}>
-                          <p className="text-sm text-[var(--text-secondary)]">{item.semester}</p>
-                          <p className="text-2xl font-semibold font-tabular">{(item.sgpa || 0).toFixed(2)}</p>
+                        <div key={idx} className="rounded-xl border border-white/10 bg-zinc-950/60 p-4">
+                          <p className="text-xs text-zinc-400 font-semibold">{item.semester}</p>
+                          <p className="text-3xl font-extrabold font-mono text-white mt-1">{(item.sgpa || 0).toFixed(2)}</p>
                         </div>
                       ))}
                     </div>
                     {highest && lowest && (
-                      <div className="mt-4 flex flex-col gap-1.5 text-sm">
-                        <p className="flex items-center gap-1.5 text-[var(--color-success)]">
-                          <ArrowUp size={14} /> Highest performance in {highest.name} ({highest.pct.toFixed(1)}%)
+                      <div className="mt-5 flex flex-col gap-2 text-xs border-t border-white/10 pt-4">
+                        <p className="flex items-center gap-2 text-emerald-400 font-semibold">
+                          <ArrowUp size={14} /> Highest performance achieved in {highest.name} ({highest.pct.toFixed(1)}%)
                         </p>
-                        <p className="flex items-center gap-1.5 text-[var(--color-warning)]">
-                          <ArrowDown size={14} /> Attention recommended for {lowest.name} ({lowest.pct.toFixed(1)}%)
+                        <p className="flex items-center gap-2 text-amber-400 font-semibold">
+                          <ArrowDown size={14} /> Focus recommended for {lowest.name} ({lowest.pct.toFixed(1)}%)
                         </p>
                       </div>
                     )}
@@ -206,18 +218,17 @@ export function AnalyticsPage() {
           ) : (
             <Card>
               <CardHeader>
-                <CardTitle>Past Semester Results</CardTitle>
+                <CardTitle>Historical Semester Transcript Results</CardTitle>
               </CardHeader>
-              <CardContent className="flex flex-col gap-2">
+              <CardContent className="flex flex-col gap-3">
                 {trendData.map((s, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center justify-between rounded-lg border px-4 py-3"
-                    style={{ borderColor: "var(--border-hairline)" }}
+                    className="flex items-center justify-between rounded-xl border border-white/10 bg-zinc-950/60 px-5 py-3.5"
                   >
                     <div>
-                      <p className="font-medium">{s.semester}</p>
-                      <p className="text-xs text-[var(--text-tertiary)]">Recorded</p>
+                      <p className="font-bold text-white text-sm">{s.semester}</p>
+                      <p className="text-xs text-zinc-500">Official Record Verified</p>
                     </div>
                     <Badge tone="accent">SGPA {(s.sgpa || 0).toFixed(2)}</Badge>
                   </div>

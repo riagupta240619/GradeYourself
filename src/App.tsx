@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { BrowserRouter } from "react-router-dom";
+import { Toaster } from "sonner";
 import { ThemeProvider } from "@/context/theme-context";
 import { AuthProvider } from "@/context/auth-context";
 import { AppRoutes } from "@/routes/app-routes";
@@ -20,6 +21,7 @@ export default function App() {
     <ThemeProvider>
       <AuthProvider>
         <BrowserRouter>
+          <Toaster theme="dark" position="top-right" richColors />
           <AppRoutes />
         </BrowserRouter>
       </AuthProvider>
