@@ -20,6 +20,7 @@ export interface AuthContextValue {
   updateSetup: (payload: SetupPayload) => Promise<AuthUser>;
   updateProfile: (payload: UpdateProfilePayload) => Promise<AuthUser>;
   changePassword: (payload: ChangePasswordPayload) => Promise<{ message: string }>;
+  deleteAccount: (password: string) => Promise<{ message: string }>;
   logout: () => Promise<void>;
   clearError: () => void;
 }
@@ -129,6 +130,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const deleteAccount = async (password: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await AuthService.deleteAccount(password);
+      useAcademicStore.getState().clearState();
+      setUser(null);
+      return res;
+    } catch (err: any) {
+      const msg = err.response?.data?.message || "Failed to delete account";
+      setError(msg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const logout = async () => {
     setLoading(true);
     try {
@@ -155,6 +173,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         updateSetup,
         updateProfile,
         changePassword,
+        deleteAccount,
         logout,
         clearError,
       }}

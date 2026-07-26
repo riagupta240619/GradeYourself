@@ -13,56 +13,117 @@ import {
   X,
   Loader2,
   Sparkles,
+  HelpCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/hooks/use-auth";
 
 const steps = [
-  { id: 1, title: "University", desc: "College & Program" },
-  { id: 2, title: "Grading Scale", desc: "CGPA / GPA System" },
-  { id: 3, title: "Academic Session", desc: "Session & Semester" },
-  { id: 4, title: "Initial Subjects", desc: "Current Courses" },
+  { id: 1, title: "Academic Info", desc: "College & Program" },
+  { id: 2, title: "Academic Status", desc: "CGPA & History" },
+  { id: 3, title: "Import Method", desc: "PDF or Manual" },
+];
+
+const PRESET_COLLEGES = [
+  "Stanford University",
+  "Massachusetts Institute of Technology (MIT)",
+  "Harvard University",
+  "Chitkara University",
+  "Indian Institute of Technology (IIT Delhi)",
+  "University of California, Berkeley",
+  "University of Oxford",
+  "Other Institution",
+];
+
+const PRESET_COURSES = [
+  "B.Tech / B.E. (Bachelor of Technology)",
+  "B.S. / B.Sc. (Bachelor of Science)",
+  "B.C.A. (Bachelor of Computer Applications)",
+  "M.Tech / M.E. (Master of Technology)",
+  "M.S. / M.Sc. (Master of Science)",
+  "M.B.A. (Master of Business Administration)",
+  "M.C.A. (Master of Computer Applications)",
+  "Other Degree",
+];
+
+const PRESET_BRANCHES = [
+  "Computer Science & Engineering",
+  "Information Technology",
+  "Data Science & Artificial Intelligence",
+  "Electrical & Electronics Engineering",
+  "Mechanical Engineering",
+  "Civil Engineering",
+  "Electronics & Communication",
+  "Other Department",
+];
+
+const PRESET_SEMESTERS = [
+  "Semester 1",
+  "Semester 2",
+  "Semester 3",
+  "Semester 4",
+  "Semester 5",
+  "Semester 6",
+  "Semester 7",
+  "Semester 8",
+];
+
+const PRESET_SESSIONS = [
+  "2025 - 2026",
+  "2024 - 2025",
+  "2023 - 2027",
+  "2022 - 2026",
+  "2021 - 2025",
 ];
 
 export function OnboardingPage() {
   const { user, updateSetup, loading, error: authError } = useAuth();
   const navigate = useNavigate();
 
+  // Wizard Navigation State
   const [step, setStep] = useState(0);
-  const [selectedOption, setSelectedOption] = useState<"upload" | "manual" | null>(null);
   const [mode, setMode] = useState<"choose" | "upload" | "review">("choose");
-  const [scale, setScale] = useState("10.0 CGPA");
+
+  // Step 1: Academic Profile Fields
+  const [college, setCollege] = useState(user?.college || "Chitkara University");
+  const [course, setCourse] = useState(user?.course || "B.Tech / B.E. (Bachelor of Technology)");
+  const [branch, setBranch] = useState(user?.branch || "Computer Science & Engineering");
+  const [semesterSystem, setSemesterSystem] = useState(user?.semesterSystem || "Semester 4");
+  const [academicSession, setAcademicSession] = useState(user?.academicSession || "2025 - 2026");
+
+  // Step 2: Academic Status Fields
+  const [completedPrevious, setCompletedPrevious] = useState<"yes" | "no" | null>(null);
+  const [cgpaInput, setCgpaInput] = useState("");
+  const [cgpaError, setCgpaError] = useState<string | null>(null);
+
+  // Step 3: Import Method State
+  const [selectedImportMethod, setSelectedImportMethod] = useState<"upload" | "manual" | null>(null);
 
   // File Upload State
   const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isProcessingPdf, setIsProcessingPdf] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Academic Setup Fields
-  const [college, setCollege] = useState(user?.college || "");
-  const [course, setCourse] = useState(user?.course || "");
-  const [branch, setBranch] = useState(user?.branch || "");
-  const [academicSession, setAcademicSession] = useState(user?.academicSession || "");
-  const [semesterSystem, setSemesterSystem] = useState(user?.semesterSystem || "Semester 4");
-
-  // Skip Setup if profile is already completed
+  // Skip setup if user already completed profile
   useEffect(() => {
     if (user?.profileCompleted) {
       navigate("/app/dashboard", { replace: true });
     }
   }, [user, navigate]);
 
-  async function handleFinish() {
+  // Finish Onboarding and save profile
+  async function handleFinishOnboarding() {
     try {
       await updateSetup({
-        college: college || "Default University",
-        course: course || "Computer Science & Engineering",
-        semesterSystem: scale || semesterSystem || "10.0 CGPA",
-        branch: branch || "B.Tech",
-        academicSession: academicSession || "2025-2026",
+        college: college.trim() || "University",
+        course: course.trim() || "B.Tech",
+        semesterSystem: semesterSystem || "Semester 1",
+        branch: branch.trim() || "Computer Science",
+        academicSession: academicSession.trim() || "2025 - 2026",
       });
       navigate("/app/dashboard");
     } catch {
@@ -70,29 +131,56 @@ export function OnboardingPage() {
     }
   }
 
-  function handleContinueStepZero() {
-    if (!selectedOption) return;
-    if (selectedOption === "manual") {
-      setStep(1);
-      setMode("choose");
-    } else if (selectedOption === "upload") {
-      setMode("upload");
+  // Handle CGPA Input Validation
+  const handleCgpaChange = (val: string) => {
+    setCgpaInput(val);
+    if (!val.trim()) {
+      setCgpaError(null);
+      return;
     }
-  }
-
-  function next() {
-    if (step === steps.length - 1) {
-      handleFinish();
+    const num = parseFloat(val);
+    if (isNaN(num) || num < 0 || num > 10) {
+      setCgpaError("CGPA must be a number between 0.00 and 10.00");
     } else {
-      setStep((s) => s + 1);
-      setMode("choose");
+      setCgpaError(null);
+    }
+  };
+
+  // Step 1 Validation
+  const isStep1Valid = Boolean(
+    college.trim() && course.trim() && branch.trim() && semesterSystem && academicSession
+  );
+
+  // Step 2 Validation
+  const isStep2Valid = Boolean(
+    completedPrevious !== null && (!cgpaError)
+  );
+
+  // Step 3 Validation
+  const isStep3Valid = Boolean(selectedImportMethod !== null);
+
+  // Navigation Logic
+  function handleNextStep() {
+    if (step === 0) {
+      if (!isStep1Valid) return;
+      setStep(1);
+    } else if (step === 1) {
+      if (!isStep2Valid) return;
+      setStep(2);
+    } else if (step === 2) {
+      if (!isStep3Valid) return;
+      if (selectedImportMethod === "manual") {
+        handleFinishOnboarding();
+      } else if (selectedImportMethod === "upload") {
+        setMode("upload");
+      }
     }
   }
 
-  function back() {
-    if (step === 0 && mode === "upload") {
+  function handleBackStep() {
+    if (mode === "upload") {
       setMode("choose");
-    } else if (step === 0 && mode === "review") {
+    } else if (mode === "review") {
       setMode("upload");
     } else if (step > 0) {
       setStep((s) => s - 1);
@@ -100,16 +188,41 @@ export function OnboardingPage() {
     }
   }
 
-  // File Upload Handlers
+  // File Upload Handlers (Supports PDF, JPG, JPEG, PNG up to 10MB)
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
   const validateAndSetFile = (file: File) => {
     setUploadError(null);
-    const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
-    if (!isPdf) {
-      setUploadError("Invalid file type. Please upload a valid PDF document (.pdf).");
+    const ext = file.name.toLowerCase().split(".").pop() || "";
+    const isPdf = file.type === "application/pdf" || ext === "pdf";
+    const isImg = file.type.startsWith("image/") || ["jpg", "jpeg", "png"].includes(ext);
+
+    if (!isPdf && !isImg) {
+      setUploadError("Unsupported file type. Please upload a PDF, JPG, JPEG, or PNG document.");
       setUploadFile(null);
+      setImagePreviewUrl(null);
       return false;
     }
+
+    if (file.size > MAX_FILE_SIZE) {
+      setUploadError("File size exceeds the 10MB limit. Please upload a smaller file.");
+      setUploadFile(null);
+      setImagePreviewUrl(null);
+      return false;
+    }
+
     setUploadFile(file);
+
+    if (isImg) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreviewUrl(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setImagePreviewUrl(null);
+    }
+
     return true;
   };
 
@@ -138,22 +251,22 @@ export function OnboardingPage() {
 
   return (
     <div className="relative flex min-h-screen w-full items-center justify-center bg-[#09090b] text-white p-4 sm:p-6 overflow-hidden">
-      {/* Background Radial Glow */}
+      {/* Radial Glow */}
       <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-[500px] w-[700px] rounded-full bg-purple-600/15 blur-[120px] opacity-70" />
 
       <div className="w-full max-w-xl">
-        {/* Logo Header */}
+        {/* Header Logo */}
         <div className="mb-6 flex items-center justify-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-purple-600 to-blue-600 font-bold text-white shadow-lg">
             <GraduationCap size={22} />
           </div>
           <span className="text-xl font-bold tracking-tight">
-            GradeWise <span className="gradient-purple-text">Setup Wizard</span>
+            GradeWise <span className="gradient-purple-text">Academic Onboarding</span>
           </span>
         </div>
 
-        {/* Multi-step Timeline Bar */}
-        <div className="mb-8 grid grid-cols-4 gap-2">
+        {/* Timeline Bar */}
+        <div className="mb-8 grid grid-cols-3 gap-2">
           {steps.map((s, i) => (
             <div key={s.id} className="flex flex-col items-center">
               <div
@@ -168,12 +281,12 @@ export function OnboardingPage() {
           ))}
         </div>
 
-        {/* Main Wizard Card */}
+        {/* Main Onboarding Card */}
         <Card className="rounded-2xl border border-white/10 bg-zinc-900/90 shadow-2xl backdrop-blur-2xl p-6 sm:p-8">
-          {(authError || uploadError) && (
-            <div className="mb-5 rounded-xl bg-rose-500/10 border border-rose-500/20 p-3.5 text-xs text-rose-400 text-center font-semibold flex items-center justify-center gap-2">
-              <AlertTriangle size={15} />
-              <span>{uploadError || authError}</span>
+          {(authError || uploadError || cgpaError) && (
+            <div className="mb-5 rounded-xl bg-rose-500/10 border border-rose-500/20 p-3.5 text-xs text-rose-400 font-semibold flex items-center gap-2">
+              <AlertTriangle size={16} />
+              <span>{uploadError || cgpaError || authError}</span>
             </div>
           )}
 
@@ -185,11 +298,205 @@ export function OnboardingPage() {
               exit={{ opacity: 0, x: -15 }}
               transition={{ duration: 0.2 }}
             >
-              {/* Step 1: College & Mode Selection */}
+              {/* STEP 1: ACADEMIC PROFILE */}
               {step === 0 && mode === "choose" && (
                 <>
-                  <h1 className="text-xl font-bold tracking-tight mb-1">How does your university grade you?</h1>
-                  <p className="text-xs text-zinc-400 mb-6">Choose how you want to import your academic grading scheme.</p>
+                  <h1 className="text-xl font-bold tracking-tight mb-1">Academic Profile Setup</h1>
+                  <p className="text-xs text-zinc-400 mb-6">Enter your university and degree details to personalize your academic dashboard.</p>
+
+                  <div className="flex flex-col gap-4">
+                    {/* College Input / Select */}
+                    <div>
+                      <label className="mb-1.5 block text-xs font-medium text-zinc-300">University / Institution Name *</label>
+                      <input
+                        list="college-suggestions"
+                        value={college}
+                        onChange={(e) => setCollege(e.target.value)}
+                        placeholder="e.g. Stanford University or Chitkara University"
+                        className="w-full rounded-xl border border-white/10 bg-zinc-950/60 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                      />
+                      <datalist id="college-suggestions">
+                        {PRESET_COLLEGES.map((c) => (
+                          <option key={c} value={c} />
+                        ))}
+                      </datalist>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Course / Degree */}
+                      <div>
+                        <label className="mb-1.5 block text-xs font-medium text-zinc-300">Course / Degree *</label>
+                        <input
+                          list="course-suggestions"
+                          value={course}
+                          onChange={(e) => setCourse(e.target.value)}
+                          placeholder="e.g. B.Tech / B.S."
+                          className="w-full rounded-xl border border-white/10 bg-zinc-950/60 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                        />
+                        <datalist id="course-suggestions">
+                          {PRESET_COURSES.map((c) => (
+                            <option key={c} value={c} />
+                          ))}
+                        </datalist>
+                      </div>
+
+                      {/* Branch / Department */}
+                      <div>
+                        <label className="mb-1.5 block text-xs font-medium text-zinc-300">Branch / Department *</label>
+                        <input
+                          list="branch-suggestions"
+                          value={branch}
+                          onChange={(e) => setBranch(e.target.value)}
+                          placeholder="e.g. Computer Science"
+                          className="w-full rounded-xl border border-white/10 bg-zinc-950/60 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                        />
+                        <datalist id="branch-suggestions">
+                          {PRESET_BRANCHES.map((b) => (
+                            <option key={b} value={b} />
+                          ))}
+                        </datalist>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Current Semester */}
+                      <div>
+                        <label className="mb-1.5 block text-xs font-medium text-zinc-300">Current Semester *</label>
+                        <select
+                          value={semesterSystem}
+                          onChange={(e) => setSemesterSystem(e.target.value)}
+                          className="w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all cursor-pointer"
+                        >
+                          {PRESET_SEMESTERS.map((s) => (
+                            <option key={s} value={s} className="bg-zinc-900 text-white">{s}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Academic Session */}
+                      <div>
+                        <label className="mb-1.5 block text-xs font-medium text-zinc-300">Academic Session / Batch *</label>
+                        <input
+                          list="session-suggestions"
+                          value={academicSession}
+                          onChange={(e) => setAcademicSession(e.target.value)}
+                          placeholder="e.g. 2025 - 2026"
+                          className="w-full rounded-xl border border-white/10 bg-zinc-950/60 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                        />
+                        <datalist id="session-suggestions">
+                          {PRESET_SESSIONS.map((s) => (
+                            <option key={s} value={s} />
+                          ))}
+                        </datalist>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* STEP 2: ACADEMIC STATUS */}
+              {step === 1 && mode === "choose" && (
+                <>
+                  <h1 className="text-xl font-bold tracking-tight mb-1">Current Academic Status</h1>
+                  <p className="text-xs text-zinc-400 mb-6">Specify whether you have completed previous semesters.</p>
+
+                  <div className="flex flex-col gap-5">
+                    <div>
+                      <label className="mb-3 block text-sm font-semibold text-white">
+                        Have you already completed previous semesters?
+                      </label>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {/* Option YES */}
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => setCompletedPrevious("yes")}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              setCompletedPrevious("yes");
+                            }
+                          }}
+                          className={`relative flex items-center justify-between rounded-2xl border p-5 cursor-pointer transition-all outline-none focus-visible:ring-2 focus-visible:ring-purple-500 ${
+                            completedPrevious === "yes"
+                              ? "border-purple-500 bg-purple-500/15 shadow-[0_0_20px_rgba(124,58,237,0.25)] ring-2 ring-purple-500/40"
+                              : "border-white/10 bg-zinc-950/60 hover:border-purple-500/40 hover:bg-purple-500/5"
+                          }`}
+                        >
+                          <span className="text-sm font-bold text-white">Yes, I have completed past semesters</span>
+                          {completedPrevious === "yes" && <CheckCircle2 size={18} className="text-purple-400 shrink-0" />}
+                        </div>
+
+                        {/* Option NO */}
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => {
+                            setCompletedPrevious("no");
+                            setCgpaInput("");
+                            setCgpaError(null);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              setCompletedPrevious("no");
+                              setCgpaInput("");
+                              setCgpaError(null);
+                            }
+                          }}
+                          className={`relative flex items-center justify-between rounded-2xl border p-5 cursor-pointer transition-all outline-none focus-visible:ring-2 focus-visible:ring-purple-500 ${
+                            completedPrevious === "no"
+                              ? "border-purple-500 bg-purple-500/15 shadow-[0_0_20px_rgba(124,58,237,0.25)] ring-2 ring-purple-500/40"
+                              : "border-white/10 bg-zinc-950/60 hover:border-purple-500/40 hover:bg-purple-500/5"
+                          }`}
+                        >
+                          <span className="text-sm font-bold text-white">No, this is my 1st semester</span>
+                          {completedPrevious === "no" && <CheckCircle2 size={18} className="text-purple-400 shrink-0" />}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* CGPA Input (Shown if Yes) */}
+                    {completedPrevious === "yes" && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="rounded-2xl border border-purple-500/30 bg-purple-500/10 p-5 mt-2"
+                      >
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label className="text-xs font-semibold uppercase tracking-wider text-purple-300">
+                            Current Cumulative CGPA (Optional)
+                          </label>
+                          <span className="text-[11px] font-mono text-purple-400">Scale: 0.00 – 10.00</span>
+                        </div>
+
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          max="10"
+                          value={cgpaInput}
+                          onChange={(e) => handleCgpaChange(e.target.value)}
+                          placeholder="e.g. 8.45"
+                          className="w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-2.5 text-base font-mono font-bold text-white placeholder-zinc-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                        />
+
+                        <p className="mt-2 text-xs text-zinc-400 flex items-center gap-1.5">
+                          <HelpCircle size={14} className="text-purple-400 shrink-0" />
+                          <span>Entering your current CGPA improves target planning and prediction accuracy.</span>
+                        </p>
+                      </motion.div>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {/* STEP 3: IMPORT METHOD */}
+              {step === 2 && mode === "choose" && (
+                <>
+                  <h1 className="text-xl font-bold tracking-tight mb-1">Import Method</h1>
+                  <p className="text-xs text-zinc-400 mb-6">How would you like to add your academic data?</p>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                     {/* Option 1: Upload PDF */}
@@ -197,35 +504,35 @@ export function OnboardingPage() {
                       role="button"
                       tabIndex={0}
                       onClick={() => {
-                        setSelectedOption("upload");
+                        setSelectedImportMethod("upload");
                         setUploadError(null);
                       }}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" || e.key === " ") {
                           e.preventDefault();
-                          setSelectedOption("upload");
+                          setSelectedImportMethod("upload");
                           setUploadError(null);
                         }
                       }}
                       className={`relative group flex flex-col items-center gap-3 rounded-2xl border p-6 text-center transition-all cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-purple-500 ${
-                        selectedOption === "upload"
+                        selectedImportMethod === "upload"
                           ? "border-purple-500 bg-purple-500/15 shadow-[0_0_25px_rgba(124,58,237,0.3)] ring-2 ring-purple-500/40"
                           : "border-white/10 bg-zinc-950/60 hover:border-purple-500/40 hover:bg-purple-500/5"
                       }`}
                     >
-                      {selectedOption === "upload" && (
+                      {selectedImportMethod === "upload" && (
                         <div className="absolute top-3 right-3 flex h-6 w-6 items-center justify-center rounded-full bg-purple-500 text-white shadow-sm">
                           <CheckCircle2 size={16} />
                         </div>
                       )}
                       <div className={`flex h-12 w-12 items-center justify-center rounded-xl transition-transform group-hover:scale-110 ${
-                        selectedOption === "upload" ? "bg-purple-500 text-white" : "bg-purple-500/20 text-purple-400"
+                        selectedImportMethod === "upload" ? "bg-purple-500 text-white" : "bg-purple-500/20 text-purple-400"
                       }`}>
                         <Upload size={24} />
                       </div>
                       <div>
-                        <span className="text-sm font-semibold text-white block">Upload Syllabus PDF</span>
-                        <span className="text-xs text-zinc-400">AI automatically extracts weights</span>
+                        <span className="text-sm font-semibold text-white block">Upload Academic Document</span>
+                        <span className="text-xs text-zinc-400">AI automatically extracts weights from PDF or images</span>
                       </div>
                     </div>
 
@@ -234,78 +541,46 @@ export function OnboardingPage() {
                       role="button"
                       tabIndex={0}
                       onClick={() => {
-                        setSelectedOption("manual");
+                        setSelectedImportMethod("manual");
                         setUploadError(null);
                       }}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" || e.key === " ") {
                           e.preventDefault();
-                          setSelectedOption("manual");
+                          setSelectedImportMethod("manual");
                           setUploadError(null);
                         }
                       }}
                       className={`relative group flex flex-col items-center gap-3 rounded-2xl border p-6 text-center transition-all cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
-                        selectedOption === "manual"
+                        selectedImportMethod === "manual"
                           ? "border-blue-500 bg-blue-500/15 shadow-[0_0_25px_rgba(59,130,246,0.3)] ring-2 ring-blue-500/40"
                           : "border-white/10 bg-zinc-950/60 hover:border-blue-500/40 hover:bg-blue-500/5"
                       }`}
                     >
-                      {selectedOption === "manual" && (
+                      {selectedImportMethod === "manual" && (
                         <div className="absolute top-3 right-3 flex h-6 w-6 items-center justify-center rounded-full bg-blue-500 text-white shadow-sm">
                           <CheckCircle2 size={16} />
                         </div>
                       )}
                       <div className={`flex h-12 w-12 items-center justify-center rounded-xl transition-transform group-hover:scale-110 ${
-                        selectedOption === "manual" ? "bg-blue-500 text-white" : "bg-blue-500/20 text-blue-400"
+                        selectedImportMethod === "manual" ? "bg-blue-500 text-white" : "bg-blue-500/20 text-blue-400"
                       }`}>
                         <PenLine size={24} />
                       </div>
                       <div>
-                        <span className="text-sm font-semibold text-white block">Manual Setup</span>
-                        <span className="text-xs text-zinc-400">Enter custom weights yourself</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-4 border-t border-white/10 pt-5">
-                    <div>
-                      <label className="mb-1.5 block text-xs font-medium text-zinc-300">University / Institution Name</label>
-                      <input
-                        value={college}
-                        onChange={(e) => setCollege(e.target.value)}
-                        placeholder="e.g. Stanford University"
-                        className="w-full rounded-xl border border-white/10 bg-zinc-950/60 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="mb-1.5 block text-xs font-medium text-zinc-300">Course Program</label>
-                        <input
-                          value={course}
-                          onChange={(e) => setCourse(e.target.value)}
-                          placeholder="e.g. B.Tech / B.S."
-                          className="w-full rounded-xl border border-white/10 bg-zinc-950/60 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
-                        />
-                      </div>
-                      <div>
-                        <label className="mb-1.5 block text-xs font-medium text-zinc-300">Branch / Major</label>
-                        <input
-                          value={branch}
-                          onChange={(e) => setBranch(e.target.value)}
-                          placeholder="e.g. Computer Science"
-                          className="w-full rounded-xl border border-white/10 bg-zinc-950/60 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
-                        />
+                        <span className="text-sm font-semibold text-white block">Enter Manually</span>
+                        <span className="text-xs text-zinc-400">Quick profile setup, add subjects anytime</span>
                       </div>
                     </div>
                   </div>
                 </>
               )}
 
-              {/* Step 1: Upload PDF Screen */}
-              {step === 0 && mode === "upload" && (
+              {/* UPLOAD FLOW SCREEN */}
+              {step === 2 && mode === "upload" && (
                 <>
-                  <h1 className="text-xl font-bold tracking-tight mb-1">Upload Syllabus PDF</h1>
-                  <p className="text-xs text-zinc-400 mb-6">Select your course syllabus or grading scheme PDF file for weight extraction.</p>
+                  <h1 className="text-xl font-bold tracking-tight mb-1">Upload Academic Document</h1>
+                  <p className="text-xs text-zinc-400 mb-6">Select your course syllabus, academic transcript, or mark sheet document for automated extraction.</p>
 
                   <div
                     onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
@@ -323,20 +598,28 @@ export function OnboardingPage() {
                     <input
                       ref={fileInputRef}
                       type="file"
-                      accept=".pdf,application/pdf"
+                      accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/jpg,image/png"
                       onChange={handleFileChange}
                       className="hidden"
                     />
 
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-purple-500/20 text-purple-400 mb-3 shadow-lg">
-                      <FileText size={28} />
-                    </div>
+                    {imagePreviewUrl ? (
+                      <img
+                        src={imagePreviewUrl}
+                        alt="Document thumbnail preview"
+                        className="h-20 w-20 rounded-xl object-cover border border-purple-500/40 shadow-xl mb-3"
+                      />
+                    ) : (
+                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-purple-500/20 text-purple-400 mb-3 shadow-lg">
+                        <FileText size={28} />
+                      </div>
+                    )}
 
                     <p className="text-sm font-semibold text-white mb-1">
-                      {uploadFile ? "PDF File Selected" : "Click to browse or drag & drop Syllabus PDF"}
+                      {uploadFile ? `${uploadFile.name}` : "Click to browse or drag & drop Academic Document"}
                     </p>
                     <p className="text-xs text-zinc-400">
-                      Supports PDF format files (.pdf)
+                      Supported formats: PDF, JPG, JPEG, PNG • Maximum file size: 10MB
                     </p>
 
                     {uploadFile && (
@@ -349,7 +632,10 @@ export function OnboardingPage() {
                         <span className="text-zinc-400 text-[11px]">({(uploadFile.size / (1024 * 1024)).toFixed(2)} MB)</span>
                         <button
                           type="button"
-                          onClick={() => setUploadFile(null)}
+                          onClick={() => {
+                            setUploadFile(null);
+                            setImagePreviewUrl(null);
+                          }}
                           className="ml-1 text-zinc-400 hover:text-rose-400"
                         >
                           <X size={14} />
@@ -359,7 +645,7 @@ export function OnboardingPage() {
                   </div>
 
                   <div className="mt-8 flex items-center justify-between border-t border-white/10 pt-5">
-                    <Button variant="ghost" size="sm" onClick={back} className="gap-1 text-zinc-400 hover:text-white">
+                    <Button variant="ghost" size="sm" onClick={handleBackStep} className="gap-1 text-zinc-400 hover:text-white">
                       <ArrowLeft size={14} /> Back
                     </Button>
                     <Button
@@ -375,7 +661,7 @@ export function OnboardingPage() {
                         </>
                       ) : (
                         <>
-                          Process PDF & Continue <ArrowRight size={14} />
+                          Process Document & Continue <ArrowRight size={14} />
                         </>
                       )}
                     </Button>
@@ -383,8 +669,8 @@ export function OnboardingPage() {
                 </>
               )}
 
-              {/* Step 1 Review Mode */}
-              {step === 0 && mode === "review" && (
+              {/* REVIEW EXTRACTED SCHEME SCREEN */}
+              {step === 2 && mode === "review" && (
                 <>
                   <h1 className="text-xl font-bold tracking-tight mb-1">Reviewing Extracted Scheme</h1>
                   <p className="mb-4 flex items-center gap-1.5 text-xs font-semibold text-amber-400 bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20">
@@ -417,87 +703,21 @@ export function OnboardingPage() {
                   </div>
                   <p className="mt-3 text-xs text-zinc-400 text-right">Total Scheme Weightage: <span className="text-emerald-400 font-bold">100% ✓</span></p>
                   <div className="mt-6 flex items-center justify-between">
-                    <Button variant="ghost" size="sm" onClick={back}>
+                    <Button variant="ghost" size="sm" onClick={handleBackStep}>
                       <ArrowLeft size={14} className="mr-1" /> Back
                     </Button>
-                    <Button variant="primary" size="sm" onClick={next}>
-                      Looks Good <ArrowRight size={14} className="ml-1" />
+                    <Button variant="primary" size="sm" onClick={handleFinishOnboarding}>
+                      Finish Onboarding & Go to Dashboard <ArrowRight size={14} className="ml-1" />
                     </Button>
                   </div>
                 </>
               )}
 
-              {/* Step 2: Grading Scale */}
-              {step === 1 && (
-                <>
-                  <h1 className="text-xl font-bold tracking-tight mb-1">What's your university grading scale?</h1>
-                  <p className="text-xs text-zinc-400 mb-6">Select the scale system used on your official transcript.</p>
-                  <div className="grid grid-cols-2 gap-3 mb-6">
-                    {["4.0 GPA System", "10.0 CGPA System", "Percentage (100%)", "Letter Grades (A-F)"].map((s) => (
-                      <button
-                        key={s}
-                        onClick={() => setScale(s)}
-                        className={`rounded-2xl border p-5 text-sm font-semibold transition-all ${
-                          scale === s
-                            ? "border-purple-500 bg-purple-500/20 text-purple-300 shadow-[0_0_20px_rgba(124,58,237,0.2)]"
-                            : "border-white/10 bg-zinc-950/60 text-zinc-300 hover:border-white/20"
-                        }`}
-                      >
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-
-              {/* Step 3: Academic Session & Semester */}
-              {step === 2 && (
-                <>
-                  <h1 className="text-xl font-bold tracking-tight mb-1">Academic Session & Semester</h1>
-                  <p className="text-xs text-zinc-400 mb-6">Specify your current academic period.</p>
-                  <div className="flex flex-col gap-4 mb-6">
-                    <div>
-                      <label className="mb-1.5 block text-xs font-medium text-zinc-300">Academic Session / Year</label>
-                      <input
-                        value={academicSession}
-                        onChange={(e) => setAcademicSession(e.target.value)}
-                        placeholder="e.g. 2025 - 2026"
-                        className="w-full rounded-xl border border-white/10 bg-zinc-950/60 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
-                      />
-                    </div>
-                    <div>
-                      <label className="mb-1.5 block text-xs font-medium text-zinc-300">Current Semester</label>
-                      <input
-                        value={semesterSystem}
-                        onChange={(e) => setSemesterSystem(e.target.value)}
-                        placeholder="e.g. Semester 4"
-                        className="w-full rounded-xl border border-white/10 bg-zinc-950/60 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
-                      />
-                    </div>
-                  </div>
-                </>
-              )}
-
-              {/* Step 4: Add Subjects */}
-              {step === 3 && (
-                <>
-                  <h1 className="text-xl font-bold tracking-tight mb-1">Add your initial subjects</h1>
-                  <p className="text-xs text-zinc-400 mb-6">Enter a primary subject to kickstart your dashboard.</p>
-                  <div className="mb-6">
-                    <label className="mb-1.5 block text-xs font-medium text-zinc-300">Subject Name</label>
-                    <input
-                      placeholder="e.g. Data Structures & Algorithms"
-                      className="w-full rounded-xl border border-white/10 bg-zinc-950/60 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
-                    />
-                  </div>
-                </>
-              )}
-
-              {/* Navigation Actions Footer for Step 0 Choose & Steps 1-3 */}
-              {(step > 0 || (step === 0 && mode === "choose")) && (
+              {/* NAVIGATION FOOTER FOR STEPS 0-2 (in mode === "choose") */}
+              {mode === "choose" && (
                 <div className="mt-8 flex items-center justify-between border-t border-white/10 pt-5">
                   {step > 0 ? (
-                    <Button variant="ghost" size="sm" onClick={back} className="gap-1 text-zinc-400 hover:text-white">
+                    <Button variant="ghost" size="sm" onClick={handleBackStep} className="gap-1 text-zinc-400 hover:text-white">
                       <ArrowLeft size={14} /> Back
                     </Button>
                   ) : <div />}
@@ -505,20 +725,19 @@ export function OnboardingPage() {
                   <Button
                     variant="primary"
                     size="md"
-                    disabled={loading || (step === 0 && mode === "choose" && !selectedOption)}
-                    onClick={() => {
-                      if (step === 0 && mode === "choose") {
-                        handleContinueStepZero();
-                      } else {
-                        next();
-                      }
-                    }}
+                    disabled={
+                      loading ||
+                      (step === 0 && !isStep1Valid) ||
+                      (step === 1 && !isStep2Valid) ||
+                      (step === 2 && !isStep3Valid)
+                    }
+                    onClick={handleNextStep}
                     className="gap-1.5"
                   >
                     {loading ? (
-                      "Completing Setup..."
-                    ) : step === steps.length - 1 ? (
-                      "Finish Setup →"
+                      "Saving Profile..."
+                    ) : step === 2 && selectedImportMethod === "manual" ? (
+                      "Complete Setup →"
                     ) : (
                       "Continue →"
                     )}

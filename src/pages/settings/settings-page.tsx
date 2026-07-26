@@ -5,9 +5,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/use-theme";
 import { useAuth } from "@/hooks/use-auth";
-import { CheckCircle2, AlertCircle, Lock, Save, Settings, User, Bell, Palette, Moon, Sun, Monitor, LogOut } from "lucide-react";
+import { CheckCircle2, AlertCircle, Lock, Save, Settings, User, Bell, Palette, Moon, Sun, Monitor, LogOut, Trash2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { LogoutModal } from "@/components/shared/logout-modal";
+import { DeleteAccountModal } from "@/components/shared/delete-account-modal";
 
 const tabs = [
   { name: "Account", icon: User },
@@ -19,7 +20,7 @@ const tabs = [
 export function SettingsPage() {
   const [activeTab, setActiveTab] = useState<string>("Account");
   const { theme, toggleTheme } = useTheme();
-  const { user, logout, updateProfile, changePassword } = useAuth();
+  const { user, logout, updateProfile, changePassword, deleteAccount } = useAuth();
   const navigate = useNavigate();
 
   // Profile Form State
@@ -42,6 +43,10 @@ export function SettingsPage() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
+  // Delete Account Modal State
+  const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+
   useEffect(() => {
     if (user) {
       setName(user.name || "");
@@ -60,6 +65,20 @@ export function SettingsPage() {
       console.error("Logout failed:", err);
     } finally {
       setIsLoggingOut(false);
+    }
+  };
+
+  const handleConfirmDeleteAccount = async (pwd: string) => {
+    setIsDeletingAccount(true);
+    try {
+      await deleteAccount(pwd);
+      setShowDeleteAccountModal(false);
+      toast.success("Your account and all associated data have been permanently deleted.");
+      navigate("/login");
+    } catch (err: any) {
+      throw err;
+    } finally {
+      setIsDeletingAccount(false);
     }
   };
 
@@ -292,8 +311,24 @@ export function SettingsPage() {
                 <Button variant="outline" size="sm" onClick={() => setShowLogoutModal(true)} className="gap-1.5">
                   <LogOut size={15} /> Log Out Session
                 </Button>
-                <Button variant="danger" size="sm">
-                  Delete Account
+              </div>
+
+              {/* Danger Zone */}
+              <div className="rounded-2xl border border-rose-500/30 bg-rose-500/5 p-6 mt-4">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <AlertTriangle size={18} className="text-rose-400" />
+                  <h3 className="text-xs font-bold text-rose-400 uppercase tracking-wider">Danger Zone</h3>
+                </div>
+                <p className="text-xs text-zinc-400 mb-4 leading-relaxed">
+                  Permanently delete your GradeWise AI account and all associated academic records. This action cannot be undone.
+                </p>
+                <Button
+                  variant="danger"
+                  size="sm"
+                  onClick={() => setShowDeleteAccountModal(true)}
+                  className="gap-1.5 bg-rose-600 hover:bg-rose-700 text-white font-semibold shadow-lg shadow-rose-600/20"
+                >
+                  <Trash2 size={15} /> Delete Account
                 </Button>
               </div>
             </div>
@@ -373,6 +408,14 @@ export function SettingsPage() {
         onClose={() => setShowLogoutModal(false)}
         onConfirm={handleConfirmLogout}
         isLoading={isLoggingOut}
+      />
+
+      {/* Delete Account Confirmation Dialog */}
+      <DeleteAccountModal
+        isOpen={showDeleteAccountModal}
+        onClose={() => setShowDeleteAccountModal(false)}
+        onConfirmDelete={handleConfirmDeleteAccount}
+        isLoading={isDeletingAccount}
       />
     </div>
   );

@@ -306,6 +306,56 @@ const changeUserPassword = async (req, res, next) => {
   }
 };
 
+/**
+ * @route   DELETE /api/auth/delete-account
+ * @desc    Permanently delete authenticated user's account and all associated academic data
+ * @access  Private (Protected by verifyToken)
+ */
+const deleteUserAccount = async (req, res, next) => {
+  try {
+    const { password } = req.body;
+
+    if (!password || typeof password !== "string") {
+      res.status(400);
+      throw new Error("Password is required to confirm account deletion");
+    }
+
+    const userId = req.user._id;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      res.status(404);
+      throw new Error("User account not found");
+    }
+
+    // Verify password using bcrypt
+    const isMatch = await user.matchPassword(password);
+    if (!isMatch) {
+      res.status(401);
+      throw new Error("Incorrect password. Account deletion aborted.");
+    }
+
+    // Import models lazily or at module top
+    const Semester = require("../models/semester-model");
+    const Subject = require("../models/subject-model");
+
+    // Permanently remove all user records from database
+    await Subject.deleteMany({ user: userId });
+    await Semester.deleteMany({ user: userId });
+    await User.findByIdAndDelete(userId);
+
+    // Invalidate session cookies
+    res.clearCookie(AUTH_COOKIE_NAME, getClearAuthCookieOptions());
+    res.clearCookie(CSRF_COOKIE_NAME, getClearCsrfCookieOptions());
+
+    res.status(200).json({
+      message: "Account and all associated academic records permanently deleted.",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -314,4 +364,5 @@ module.exports = {
   updateSetupProfile,
   updateUserProfile,
   changeUserPassword,
+  deleteUserAccount,
 };

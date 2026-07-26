@@ -8,6 +8,7 @@ const {
   updateSetupProfile,
   updateUserProfile,
   changeUserPassword,
+  deleteUserAccount,
 } = require("../controllers/auth-controller");
 const { getCsrfToken } = require("../middleware/csrf-middleware");
 const { verifyToken } = require("../middleware/auth-middleware");
@@ -23,5 +24,6 @@ router.get("/me", verifyToken, getUserProfile);
 router.put("/setup", verifyToken, updateSetupProfile);
 router.put("/profile", verifyToken, updateUserProfile);
 router.put("/change-password", verifyToken, changeUserPassword);
+router.delete("/delete-account", verifyToken, deleteUserAccount);
 
 module.exports = router;

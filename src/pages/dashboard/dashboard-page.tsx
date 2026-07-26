@@ -265,11 +265,22 @@ export function DashboardPage() {
         </div>
 
         {currentSemesterSubjects.length === 0 ? (
-          <Card className="p-10 text-center">
-            <p className="text-sm text-zinc-400 mb-4">No active subjects recorded for the current semester.</p>
-            <Button variant="primary" size="sm" onClick={() => setAddSubjectModalOpen(true)} className="mx-auto flex items-center gap-1.5">
-              <Plus size={14} /> Add Your First Subject
-            </Button>
+          <Card className="p-10 text-center flex flex-col items-center justify-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-400 mb-3 shadow-lg">
+              <BookOpen size={28} />
+            </div>
+            <h3 className="text-base font-bold text-white mb-1">No subjects added yet.</h3>
+            <p className="text-xs text-zinc-400 mb-6 max-w-sm">
+              Upload your transcript or add subjects manually to start tracking your grades, target planning, and what-if predictions.
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <Button variant="primary" size="sm" onClick={() => setAddSubjectModalOpen(true)} className="gap-1.5">
+                <Plus size={14} /> Add Subjects Manually
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setUploadModalOpen(true)} className="gap-1.5">
+                <Upload size={14} /> Upload Transcript / Syllabus PDF
+              </Button>
+            </div>
           </Card>
         ) : (
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
