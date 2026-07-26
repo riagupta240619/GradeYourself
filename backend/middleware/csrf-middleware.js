@@ -53,13 +53,12 @@ const verifyCsrf = (req, res, next) => {
     req.headers["x-xsrf-token"] ||
     (req.body && req.body._csrf);
 
-  console.log("[CSRF Diagnostic Log]", {
-    origin: req.headers.origin,
-    hasCookiesObject: Boolean(req.cookies),
-    cookieNames: req.cookies ? Object.keys(req.cookies) : [],
-    hasCookieToken: Boolean(cookieToken),
-    hasHeaderToken: Boolean(headerToken),
-  });
+  console.log("Origin:", req.headers.origin);
+  console.log("Cookie Header:", req.headers.cookie);
+  console.log("Cookies:", req.cookies);
+  console.log("X-CSRF-Token:", !!req.headers["x-csrf-token"]);
+  console.log("X-XSRF-Token:", !!req.headers["x-xsrf-token"]);
+  console.log("Body _csrf:", !!req.body?._csrf);
 
   if (!cookieToken || !headerToken) {
     res.status(403);
