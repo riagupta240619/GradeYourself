@@ -213,8 +213,8 @@ export function SubjectDetailsPage() {
           </div>
           <span className="text-xs text-zinc-500 font-semibold">Live Weightage Math</span>
         </CardHeader>
-        <CardContent className="p-0 overflow-x-auto">
-          <table className="w-full text-xs text-left">
+        <CardContent className="p-0 overflow-x-auto min-w-full">
+          <table className="w-full min-w-[500px] text-xs text-left">
             <thead>
               <tr className="border-y border-white/10 bg-zinc-950/60 text-zinc-400 font-semibold uppercase tracking-wider">
                 <th className="px-6 py-3">Assessment Type</th>

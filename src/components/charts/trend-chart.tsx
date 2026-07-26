@@ -2,9 +2,9 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 
 export function TrendChart({ data }: { data: { label: string; value: number }[] }) {
   return (
-    <div className="h-56 w-full">
+    <div className="h-56 w-full min-h-[180px] overflow-hidden">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+        <LineChart data={data} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border-hairline)" vertical={false} />
           <XAxis dataKey="label" stroke="var(--text-tertiary)" fontSize={12} tickLine={false} axisLine={false} />
           <YAxis domain={[6, 10]} stroke="var(--text-tertiary)" fontSize={12} tickLine={false} axisLine={false} />

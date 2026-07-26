@@ -441,9 +441,9 @@ export function UploadResultsModal({ isOpen, onClose }: UploadResultsModalProps)
             )}
 
             {/* Quick Semester Presets Bar */}
-            <div className="flex items-center justify-between border-y py-2.5 px-1" style={{ borderColor: "var(--border-hairline)" }}>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-y py-2.5 px-1 gap-2" style={{ borderColor: "var(--border-hairline)" }}>
               <span className="text-xs font-medium text-[var(--text-secondary)]">Set How Many Past Semesters in Image:</span>
-              <div className="flex gap-1">
+              <div className="flex gap-1 overflow-x-auto max-w-full pb-1">
                 {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
                   <button
                     key={num}

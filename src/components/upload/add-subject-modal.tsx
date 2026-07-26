@@ -226,7 +226,7 @@ export function AddSubjectModal({ isOpen, onClose }: AddSubjectModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-fade-in">
       <div
-        className="w-full max-w-lg rounded-xl border bg-[var(--bg-card)] p-6 shadow-2xl animate-scale-up"
+        className="w-full max-w-lg rounded-xl border bg-[var(--bg-card)] p-6 shadow-2xl animate-scale-up max-h-[90vh] overflow-y-auto"
         style={{ borderColor: "var(--border-hairline)" }}
       >
         <div className="flex items-center justify-between border-b pb-4 mb-4" style={{ borderColor: "var(--border-hairline)" }}>

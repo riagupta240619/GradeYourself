@@ -129,12 +129,12 @@ export function DashboardPage() {
           <p className="text-xs sm:text-sm text-zinc-400 mt-1">Track past performance, current semester subjects, and CGPA targets.</p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
           <Button
             variant="outline"
             size="sm"
             onClick={() => setUploadModalOpen(true)}
-            className="border-purple-500/30 text-purple-300 hover:bg-purple-500/10 hover:border-purple-500/50"
+            className="flex-1 sm:flex-initial border-purple-500/30 text-purple-300 hover:bg-purple-500/10 hover:border-purple-500/50"
           >
             <Upload size={15} /> Upload Results PDF
           </Button>
@@ -143,6 +143,7 @@ export function DashboardPage() {
             variant="primary"
             size="sm"
             onClick={() => setAddSubjectModalOpen(true)}
+            className="flex-1 sm:flex-initial"
           >
             <Plus size={15} /> Add New Subject
           </Button>

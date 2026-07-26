@@ -117,7 +117,7 @@ export function DeleteAccountModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
           transition={{ type: "spring", duration: 0.25 }}
-          className="relative w-full max-w-md rounded-2xl border border-rose-500/30 bg-zinc-900/95 p-6 shadow-2xl backdrop-blur-xl sm:p-7 text-white z-10"
+          className="relative w-full max-w-md rounded-2xl border border-rose-500/30 bg-zinc-900/95 p-6 shadow-2xl backdrop-blur-xl sm:p-7 text-white z-10 max-h-[90vh] overflow-y-auto"
         >
           {/* Header Icon */}
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-500/20 text-rose-400 border border-rose-500/30 shadow-[0_0_20px_rgba(244,63,94,0.25)]">
