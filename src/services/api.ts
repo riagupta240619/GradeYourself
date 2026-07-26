@@ -10,13 +10,30 @@ export function getCookie(name: string): string | null {
 }
 
 /**
+ * Dynamically resolves and normalizes the backend API base URL.
+ * Guarantees that `/api` is present regardless of whether VITE_API_URL
+ * is set to "https://gradeyourself.onrender.com" or "https://gradeyourself.onrender.com/api".
+ */
+export function resolveApiBaseUrl(): string {
+  const raw = (import.meta.env.VITE_API_URL || "").trim();
+  if (!raw) {
+    return "http://localhost:5000/api";
+  }
+  const clean = raw.replace(/\/+$/, "");
+  if (clean.endsWith("/api")) {
+    return clean;
+  }
+  return `${clean}/api`;
+}
+
+/**
  * Centralized Axios instance for GradeYourself API client
  *
  * Configured with withCredentials: true so the browser automatically handles
  * sending and receiving HttpOnly auth_token and XSRF-TOKEN cookies across cross-origin requests.
  */
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+  baseURL: resolveApiBaseUrl(),
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
