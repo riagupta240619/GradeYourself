@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { AlertTriangle, CheckCircle2, TrendingUp, ArrowUpRight, Upload, Plus, Sparkles, BookOpen, Target, Award } from "lucide-react";
+import { AlertTriangle, CheckCircle2, TrendingUp, ArrowUpRight, Upload, Plus, Sparkles, BookOpen, Target, Award, GraduationCap, Building2, BookMarked, Layers, Calendar, UserCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,9 +11,16 @@ import { UploadResultsModal } from "@/components/upload/upload-results-modal";
 import { AddSubjectModal } from "@/components/upload/add-subject-modal";
 import { DashboardService, type DashboardSummary } from "@/services/dashboard-service";
 import type { CgpaViewMode } from "@/types";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import { useAuth } from "@/hooks/use-auth";
+import { useAcademicStore } from "@/lib/store/use-academic-store";
 
 export function DashboardPage() {
+  const { user } = useAuth();
+  const storeTargetCgpa = useAcademicStore((state) => state.targetCgpa);
+  const [searchParams] = useSearchParams();
+  const isManualOnboarding = searchParams.get("onboarding") === "manual";
+
   const [view, setView] = useState<CgpaViewMode>("cgpa");
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [addSubjectModalOpen, setAddSubjectModalOpen] = useState(false);
@@ -39,6 +46,15 @@ export function DashboardPage() {
 
   useEffect(() => {
     fetchDashboardData();
+
+    // Listen for live academic data update events across components
+    const handleAcademicUpdate = () => {
+      fetchDashboardData();
+    };
+    window.addEventListener("academic-data-updated", handleAcademicUpdate);
+    return () => {
+      window.removeEventListener("academic-data-updated", handleAcademicUpdate);
+    };
   }, []);
 
   const current = useMemo(() => {
@@ -49,22 +65,40 @@ export function DashboardPage() {
     return summaryData?.subjects || [];
   }, [summaryData]);
 
-  // Backend calculated headline CGPA / SGPA
-  const cgpa = summaryData?.cgpa ?? null;
-  const sgpa = summaryData?.sgpa ?? null;
-  const headline = view === "cgpa" ? cgpa : sgpa;
+  // 1. Semester records from backend summary
+  const semesterRecords = summaryData?.semesters || [];
+
+  // 2. Calculated CGPA & SGPA from semester records
+  const rawCalculatedCgpa = summaryData?.cgpa;
+  const calculatedCgpa = typeof rawCalculatedCgpa === "number" && !isNaN(rawCalculatedCgpa) && rawCalculatedCgpa > 1.0 ? rawCalculatedCgpa : null;
+  const calculatedSgpa = typeof summaryData?.sgpa === "number" && !isNaN(summaryData.sgpa) ? summaryData.sgpa : null;
+  
+  // 3. User profile CGPA (stored in onboarding / settings)
+  const profileCgpa = typeof user?.currentCgpa === "number" && !isNaN(user.currentCgpa) ? user.currentCgpa : null;
+
+  // 4. Exact priority resolution for Current Overall CGPA card:
+  // Priority 1: Valid calculated CGPA from semester records
+  // Priority 2: Stored user profile CGPA (onboarding / settings)
+  // Priority 3: null ("No CGPA Available")
+  const activeCgpa = calculatedCgpa ?? profileCgpa;
+  const isBaselineCgpa = calculatedCgpa === null && profileCgpa !== null;
+
+  const headline = view === "cgpa" ? activeCgpa : calculatedSgpa;
 
   const atRisk = useMemo(() => {
     return summaryData?.atRiskSubjects || [];
   }, [summaryData]);
 
-  // Target progress calculation against target CGPA
-  const targetCgpa = summaryData?.targetCgpa || 9.0;
+  // Dynamic target CGPA resolution: User profile > Zustand Store > Backend Summary > Default
+  const targetCgpa = typeof user?.targetCgpa === "number"
+    ? user.targetCgpa
+    : storeTargetCgpa || summaryData?.targetCgpa || 9.0;
+
   const targetProgress = useMemo(() => {
-    if (!cgpa || !targetCgpa) return 0;
-    const progress = Math.min(100, Math.max(0, Math.round((cgpa / targetCgpa) * 100)));
+    if (headline === null || !targetCgpa) return 0;
+    const progress = Math.min(100, Math.max(0, Math.round((headline / targetCgpa) * 100)));
     return isNaN(progress) ? 0 : progress;
-  }, [cgpa, targetCgpa]);
+  }, [headline, targetCgpa]);
 
   // CGPA trend from backend
   const cgpaTrend = useMemo(() => {
@@ -76,6 +110,12 @@ export function DashboardPage() {
     }
     return [];
   }, [summaryData]);
+
+  // Show onboarding card ONLY if user completed onboarding AND no academic subjects or semester records exist
+  const hasAcademicData = Boolean(
+    (summaryData?.semesters && summaryData.semesters.length > 0) || currentSemesterSubjects.length > 0
+  );
+  const showOnboardingCard = Boolean(user?.profileCompleted) && !hasAcademicData;
 
   return (
     <div className="flex flex-col gap-8 pb-10">
@@ -126,6 +166,80 @@ export function DashboardPage() {
         </div>
       </div>
 
+      {/* Manual Entry Onboarding Card */}
+      {showOnboardingCard && (
+        <Card className="glow-purple border border-purple-500/40 bg-gradient-to-r from-purple-900/40 via-zinc-900 to-blue-950/40 p-6 shadow-xl relative overflow-hidden">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+            <div className="flex items-start gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-purple-500/20 text-purple-400 border border-purple-500/30 shadow-lg">
+                <CheckCircle2 size={26} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 text-purple-300 font-semibold text-xs mb-1">
+                  <Sparkles size={13} className="text-purple-400" /> Academic Profile Created
+                </div>
+                <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight">Your academic profile has been created.</h2>
+                <p className="text-xs sm:text-sm text-zinc-300 mt-0.5">Now let's add your semester data.</p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 shrink-0 w-full sm:w-auto">
+              <Button variant="primary" size="md" onClick={() => setAddSubjectModalOpen(true)} className="gap-2 flex-1 sm:flex-initial shadow-lg shadow-purple-600/25">
+                <Plus size={16} /> Add Subjects
+              </Button>
+              <Button variant="outline" size="md" onClick={() => setUploadModalOpen(true)} className="gap-2 flex-1 sm:flex-initial border-purple-500/30 text-purple-200 hover:bg-purple-500/10">
+                <Upload size={16} /> Upload Transcript
+              </Button>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Real Academic Profile Card */}
+      <Card className="border border-white/10 bg-zinc-900/90 p-5 shadow-lg">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-purple-600/30 to-blue-600/30 text-purple-300 border border-purple-500/30 shadow-md">
+              <GraduationCap size={22} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-extrabold text-white text-base tracking-tight">{user?.college || "University"}</h3>
+                {user?.academicStatus && (
+                  <Badge tone={user.academicStatus.includes("First") ? "warning" : "success"} className="text-[11px]">
+                    {user.academicStatus}
+                  </Badge>
+                )}
+              </div>
+              <p className="text-xs text-zinc-400 mt-0.5 flex flex-wrap items-center gap-2">
+                <span>{user?.course || "Degree"}</span>
+                <span>•</span>
+                <span>{user?.branch || "Department"}</span>
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 text-xs pt-2 md:pt-0 border-t md:border-t-0 border-white/10">
+            <div className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-zinc-950/60 px-3 py-1.5 text-zinc-300">
+              <Layers size={14} className="text-purple-400" />
+              <span>Semester: <strong className="text-white">{user?.currentSemester || user?.semesterSystem || "Semester 1"}</strong></span>
+            </div>
+
+            <div className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-zinc-950/60 px-3 py-1.5 text-zinc-300">
+              <Calendar size={14} className="text-blue-400" />
+              <span>Batch: <strong className="text-white">{user?.academicSession || "N/A"}</strong></span>
+            </div>
+
+            {typeof user?.currentCgpa === "number" && (
+              <div className="flex items-center gap-1.5 rounded-xl border border-purple-500/30 bg-purple-500/10 px-3 py-1.5 text-purple-300">
+                <Award size={14} className="text-purple-400" />
+                <span>Onboarding CGPA: <strong className="font-mono text-white">{user.currentCgpa.toFixed(2)}</strong></span>
+              </div>
+            )}
+          </div>
+        </div>
+      </Card>
+
       {error && (
         <div className="flex items-center gap-2 rounded-xl bg-rose-500/10 border border-rose-500/20 p-4 text-xs font-semibold text-rose-400">
           <AlertTriangle size={16} /> {error}
@@ -149,11 +263,11 @@ export function DashboardPage() {
                     <CountUp value={headline} decimals={2} />
                   </span>
                   <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 text-xs font-semibold text-emerald-400 shadow-[0_0_10px_rgba(34,197,94,0.15)]">
-                    <TrendingUp size={13} /> On Track
+                    <TrendingUp size={13} /> {isBaselineCgpa ? "Baseline" : "On Track"}
                   </span>
                 </div>
               ) : (
-                <div className="text-3xl font-bold text-zinc-500">N/A</div>
+                <div className="text-lg sm:text-xl font-bold text-zinc-400 mt-2">No CGPA Available</div>
               )}
               <p className="mt-2 text-xs text-zinc-400">
                 Recorded across <span className="font-semibold text-zinc-300">{summaryData?.semesters?.length || 0} semesters</span>

@@ -50,7 +50,7 @@ const getDashboardSummary = async (req, res, next) => {
         cgpa: null,
         sgpa: null,
         totalCredits: 0,
-        targetCgpa: scale === "4.0" ? 3.8 : 9.0,
+        targetCgpa: user?.targetCgpa || (scale === "4.0" ? 3.8 : 9.0),
         currentSemester: null,
         semesters: [],
         subjects: [],

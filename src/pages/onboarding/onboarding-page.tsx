@@ -116,16 +116,30 @@ export function OnboardingPage() {
   }, [user, navigate]);
 
   // Finish Onboarding and save profile
-  async function handleFinishOnboarding() {
+  async function handleFinishOnboarding(isManual = false) {
     try {
+      const parsedCgpa = completedPrevious === "yes" && cgpaInput.trim() ? parseFloat(cgpaInput) : null;
+      const statusText = completedPrevious === "yes"
+        ? "Completed Past Semesters"
+        : completedPrevious === "no"
+        ? "First Semester Student"
+        : "Active Student";
+
       await updateSetup({
         college: college.trim() || "University",
-        course: course.trim() || "B.Tech",
+        course: course.trim() || "B.Tech / B.E.",
+        branch: branch.trim() || "Computer Science & Engineering",
         semesterSystem: semesterSystem || "Semester 1",
-        branch: branch.trim() || "Computer Science",
+        currentSemester: semesterSystem || "Semester 1",
         academicSession: academicSession.trim() || "2025 - 2026",
+        currentCgpa: parsedCgpa && !isNaN(parsedCgpa) ? parsedCgpa : null,
+        academicStatus: statusText,
       });
-      navigate("/app/dashboard");
+      if (isManual) {
+        navigate("/app/dashboard?onboarding=manual");
+      } else {
+        navigate("/app/dashboard");
+      }
     } catch {
       // Error handled in AuthContext
     }
@@ -170,7 +184,7 @@ export function OnboardingPage() {
     } else if (step === 2) {
       if (!isStep3Valid) return;
       if (selectedImportMethod === "manual") {
-        handleFinishOnboarding();
+        handleFinishOnboarding(true);
       } else if (selectedImportMethod === "upload") {
         setMode("upload");
       }
@@ -706,7 +720,7 @@ export function OnboardingPage() {
                     <Button variant="ghost" size="sm" onClick={handleBackStep}>
                       <ArrowLeft size={14} className="mr-1" /> Back
                     </Button>
-                    <Button variant="primary" size="sm" onClick={handleFinishOnboarding}>
+                    <Button variant="primary" size="sm" onClick={() => handleFinishOnboarding(false)}>
                       Finish Onboarding & Go to Dashboard <ArrowRight size={14} className="ml-1" />
                     </Button>
                   </div>

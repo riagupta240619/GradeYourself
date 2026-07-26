@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import confetti from "canvas-confetti";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,12 +9,25 @@ import { AddSubjectModal } from "@/components/upload/add-subject-modal";
 import { requiredMarksForTarget } from "@/lib/grading/engine";
 import { SubjectService } from "@/services/subject-service";
 import type { Subject } from "@/types";
+import { useAuth } from "@/hooks/use-auth";
+import { useAcademicStore } from "@/lib/store/use-academic-store";
 
 export function TargetPlannerPage() {
-  const [target, setTarget] = useState(85);
+  const { user, updateProfile } = useAuth();
+  const setStoreTargetCgpa = useAcademicStore((state) => state.setTargetCgpa);
+
+  const initialTargetPct = typeof user?.targetCgpa === "number" ? Math.round(user.targetCgpa * 10) : 90;
+  const [target, setTarget] = useState(initialTargetPct);
   const [addSubjectModalOpen, setAddSubjectModalOpen] = useState(false);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Synchronize target state from user profile if updated remotely
+  useEffect(() => {
+    if (typeof user?.targetCgpa === "number") {
+      setTarget(Math.round(user.targetCgpa * 10));
+    }
+  }, [user?.targetCgpa]);
 
   const fetchSubjects = async () => {
     setLoading(true);
@@ -43,10 +56,28 @@ export function TargetPlannerPage() {
   const feasibility = unlikely ? "Unlikely" : ambitious ? "Ambitious" : "Achievable";
   const tone = unlikely ? "danger" : ambitious ? "warning" : "success";
 
-  // Trigger celebration confetti when target is hit & achievable
-  const handleSliderChange = (newTarget: number) => {
-    setTarget(newTarget);
-    if (newTarget >= 80 && !unlikely && Math.random() > 0.6) {
+  // Debounced save reference to prevent excessive API calls while dragging slider
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleSliderChange = (newTargetPct: number) => {
+    setTarget(newTargetPct);
+    const newTargetCgpa = parseFloat((newTargetPct / 10).toFixed(2));
+
+    // Instantly update global Zustand store
+    setStoreTargetCgpa(newTargetCgpa);
+
+    // Debounce API persistence to backend & AuthContext
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    saveTimeoutRef.current = setTimeout(() => {
+      updateProfile({ targetCgpa: newTargetCgpa }).catch((err) => {
+        console.error("Failed to persist target CGPA:", err);
+      });
+    }, 400);
+
+    if (newTargetPct >= 80 && !unlikely && Math.random() > 0.6) {
       confetti({
         particleCount: 40,
         spread: 60,

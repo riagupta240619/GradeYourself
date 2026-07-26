@@ -72,9 +72,3 @@ export const cgpaTrend = [
   { label: "Sem 3", value: 8.3 },
   { label: "Sem 4", value: 8.42 },
 ];
-
-export const communityTemplates: GradingScheme[] = [
-  scheme({ name: "Standard Engineering Scheme", university: "XYZ University", verified: true, usedBy: 1240 }),
-  scheme({ name: "Best 2 of 3 Sessionals", university: "ABC Institute", verified: false, usedBy: 12 }),
-  scheme({ name: "Quiz + Lab + Project Heavy", university: "PQR College", verified: true, usedBy: 340 }),
-];

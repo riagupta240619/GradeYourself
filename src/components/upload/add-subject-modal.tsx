@@ -115,6 +115,7 @@ export function AddSubjectModal({ isOpen, onClose }: AddSubjectModalProps) {
       });
 
       setSuccessMsg(`Subject "${name}" added successfully!`);
+      window.dispatchEvent(new CustomEvent("academic-data-updated"));
       setTimeout(() => {
         resetForm();
         onClose();
@@ -138,11 +139,11 @@ export function AddSubjectModal({ isOpen, onClose }: AddSubjectModalProps) {
           const json = JSON.parse(text);
           if (Array.isArray(json)) {
             setParsedSubjects(
-              json.map((s, idx) => ({
-                name: s.name || `Subject ${idx + 1}`,
-                credits: parseFloat(s.credits || 4),
-                colorTag: s.colorTag || PALETTE[idx % PALETTE.length],
-                marks: s.marks || { a1: null, m1: null, f1: null },
+              json.map((s: any, idx: number) => ({
+                name: String(s.name || `Subject ${idx + 1}`),
+                credits: Number(s.credits) || 4,
+                colorTag: PALETTE[idx % PALETTE.length],
+                marks: s.marks || {},
                 scheme: s.scheme || {
                   id: "default-scheme",
                   name: `${s.name || "Subject"} Scheme`,
@@ -158,19 +159,13 @@ export function AddSubjectModal({ isOpen, onClose }: AddSubjectModalProps) {
                 },
               }))
             );
-          } else {
-            throw new Error("Expected JSON array of subjects.");
           }
         } else {
-          const parsed = parseNewSubjectsCsv(text);
-          if (parsed.length === 0) {
-            setErrorMsg("No valid subject rows found in CSV.");
-          } else {
-            setParsedSubjects(parsed);
-          }
+          setParsedSubjects(parseNewSubjectsCsv(text));
         }
-      } catch (err: any) {
-        setErrorMsg(err.message || "Failed to read subject file.");
+      } catch (err) {
+        console.error("Parse error:", err);
+        setErrorMsg("Failed to parse document format. Please use standard CSV or JSON.");
       }
     };
     reader.readAsText(file);
@@ -205,6 +200,7 @@ export function AddSubjectModal({ isOpen, onClose }: AddSubjectModalProps) {
       }
 
       setSuccessMsg(`Successfully imported ${parsedSubjects.length} subject(s)!`);
+      window.dispatchEvent(new CustomEvent("academic-data-updated"));
       setTimeout(() => {
         resetForm();
         onClose();

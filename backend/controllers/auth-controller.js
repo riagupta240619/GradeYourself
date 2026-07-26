@@ -23,6 +23,27 @@ function sanitizeString(input, maxLength = 150) {
 }
 
 /**
+ * Format user object for client responses.
+ */
+function formatUserResponse(user) {
+  return {
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    college: user.college || "",
+    course: user.course || "",
+    branch: user.branch || "",
+    semesterSystem: user.semesterSystem || "",
+    currentSemester: user.currentSemester || user.semesterSystem || "",
+    academicSession: user.academicSession || "",
+    currentCgpa: typeof user.currentCgpa === "number" ? user.currentCgpa : null,
+    academicStatus: user.academicStatus || "",
+    targetCgpa: typeof user.targetCgpa === "number" ? user.targetCgpa : 9.0,
+    profileCompleted: Boolean(user.profileCompleted),
+  };
+}
+
+/**
  * @route   POST /api/auth/register
  * @desc    Register a new user, set HttpOnly auth_token cookie, and return safe user data
  * @access  Public
@@ -70,6 +91,7 @@ const registerUser = async (req, res, next) => {
       college: sanitizeString(college),
       course: sanitizeString(course),
       semesterSystem: sanitizeString(semesterSystem),
+      currentSemester: sanitizeString(semesterSystem),
     });
 
     if (user) {
@@ -78,17 +100,7 @@ const registerUser = async (req, res, next) => {
       // Set HttpOnly Authentication Cookie
       res.cookie(AUTH_COOKIE_NAME, token, getAuthCookieOptions());
 
-      res.status(201).json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        college: user.college,
-        course: user.course,
-        semesterSystem: user.semesterSystem,
-        branch: user.branch,
-        academicSession: user.academicSession,
-        profileCompleted: user.profileCompleted,
-      });
+      res.status(201).json(formatUserResponse(user));
     } else {
       res.status(400);
       throw new Error("Invalid user data");
@@ -124,17 +136,7 @@ const loginUser = async (req, res, next) => {
       // Set HttpOnly Authentication Cookie
       res.cookie(AUTH_COOKIE_NAME, token, getAuthCookieOptions());
 
-      res.status(200).json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        college: user.college,
-        course: user.course,
-        semesterSystem: user.semesterSystem,
-        branch: user.branch,
-        academicSession: user.academicSession,
-        profileCompleted: user.profileCompleted,
-      });
+      res.status(200).json(formatUserResponse(user));
     } else {
       res.status(401);
       throw new Error("Invalid email or password");
@@ -164,7 +166,7 @@ const logoutUser = async (req, res) => {
  * @access  Private (Protected by verifyToken)
  */
 const getUserProfile = async (req, res) => {
-  res.status(200).json(req.user);
+  res.status(200).json(formatUserResponse(req.user));
 };
 
 /**
@@ -181,29 +183,29 @@ const updateSetupProfile = async (req, res, next) => {
       throw new Error("User not found");
     }
 
-    const { college, course, semesterSystem, branch, academicSession } = req.body;
+    const { college, course, semesterSystem, currentSemester, branch, academicSession, currentCgpa, academicStatus, targetCgpa } = req.body;
 
     if (college !== undefined) user.college = sanitizeString(college);
     if (course !== undefined) user.course = sanitizeString(course);
-    if (semesterSystem !== undefined) user.semesterSystem = sanitizeString(semesterSystem);
     if (branch !== undefined) user.branch = sanitizeString(branch);
+    if (semesterSystem !== undefined) user.semesterSystem = sanitizeString(semesterSystem);
+    if (currentSemester !== undefined) user.currentSemester = sanitizeString(currentSemester);
     if (academicSession !== undefined) user.academicSession = sanitizeString(academicSession);
+    if (currentCgpa !== undefined) user.currentCgpa = currentCgpa === null || currentCgpa === "" || isNaN(Number(currentCgpa)) ? null : Number(currentCgpa);
+    if (academicStatus !== undefined) user.academicStatus = sanitizeString(academicStatus);
+    if (targetCgpa !== undefined && !isNaN(Number(targetCgpa))) user.targetCgpa = Number(targetCgpa);
+
+    if (!user.currentSemester && user.semesterSystem) {
+      user.currentSemester = user.semesterSystem;
+    } else if (!user.semesterSystem && user.currentSemester) {
+      user.semesterSystem = user.currentSemester;
+    }
 
     user.profileCompleted = true;
 
     const updatedUser = await user.save();
 
-    res.status(200).json({
-      _id: updatedUser._id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      college: updatedUser.college,
-      course: updatedUser.course,
-      semesterSystem: updatedUser.semesterSystem,
-      branch: updatedUser.branch,
-      academicSession: updatedUser.academicSession,
-      profileCompleted: updatedUser.profileCompleted,
-    });
+    res.status(200).json(formatUserResponse(updatedUser));
   } catch (error) {
     next(error);
   }
@@ -211,7 +213,7 @@ const updateSetupProfile = async (req, res, next) => {
 
 /**
  * @route   PUT /api/auth/profile
- * @desc    Update user profile details (Name, College, Branch, etc.)
+ * @desc    Update user profile details (Name, College, Branch, Course, Current Semester, Batch, CGPA, Status, Target)
  * @access  Private (Protected by verifyToken)
  */
 const updateUserProfile = async (req, res, next) => {
@@ -223,7 +225,7 @@ const updateUserProfile = async (req, res, next) => {
       throw new Error("User not found");
     }
 
-    const { name, college, branch, course, semesterSystem } = req.body;
+    const { name, college, branch, course, semesterSystem, currentSemester, academicSession, currentCgpa, academicStatus, targetCgpa } = req.body;
 
     if (name !== undefined) {
       if (typeof name !== "string" || name.trim() === "") {
@@ -237,20 +239,21 @@ const updateUserProfile = async (req, res, next) => {
     if (branch !== undefined) user.branch = sanitizeString(branch);
     if (course !== undefined) user.course = sanitizeString(course);
     if (semesterSystem !== undefined) user.semesterSystem = sanitizeString(semesterSystem);
+    if (currentSemester !== undefined) user.currentSemester = sanitizeString(currentSemester);
+    if (academicSession !== undefined) user.academicSession = sanitizeString(academicSession);
+    if (currentCgpa !== undefined) user.currentCgpa = currentCgpa === null || currentCgpa === "" || isNaN(Number(currentCgpa)) ? null : Number(currentCgpa);
+    if (academicStatus !== undefined) user.academicStatus = sanitizeString(academicStatus);
+    if (targetCgpa !== undefined && !isNaN(Number(targetCgpa))) user.targetCgpa = Number(targetCgpa);
+
+    if (!user.currentSemester && user.semesterSystem) {
+      user.currentSemester = user.semesterSystem;
+    } else if (!user.semesterSystem && user.currentSemester) {
+      user.semesterSystem = user.currentSemester;
+    }
 
     const updatedUser = await user.save();
 
-    res.status(200).json({
-      _id: updatedUser._id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      college: updatedUser.college,
-      course: updatedUser.course,
-      semesterSystem: updatedUser.semesterSystem,
-      branch: updatedUser.branch,
-      academicSession: updatedUser.academicSession,
-      profileCompleted: updatedUser.profileCompleted,
-    });
+    res.status(200).json(formatUserResponse(updatedUser));
   } catch (error) {
     next(error);
   }

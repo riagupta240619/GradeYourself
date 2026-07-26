@@ -10,6 +10,7 @@ const dashboardRoutes = require("./routes/dashboard-routes");
 const subjectRoutes = require("./routes/subject-routes");
 const semesterRoutes = require("./routes/semester-routes");
 const analyticsRoutes = require("./routes/analytics-routes");
+const templateRoutes = require("./routes/template-routes");
 const { notFound, errorHandler } = require("./middleware/error-middleware");
 const { authLimiter, apiLimiter } = require("./middleware/rate-limiter");
 const { verifyCsrf } = require("./middleware/csrf-middleware");
@@ -85,6 +86,7 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/subjects", subjectRoutes);
 app.use("/api/semesters", semesterRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/templates", templateRoutes);
 
 // ── 7. Error Handling Middlewares ─────────────────────────────────────────────
 app.use(notFound);

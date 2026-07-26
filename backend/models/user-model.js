@@ -44,6 +44,24 @@ const userSchema = new mongoose.Schema(
       default: "",
       trim: true,
     },
+    currentSemester: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    currentCgpa: {
+      type: Number,
+      default: null,
+    },
+    academicStatus: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    targetCgpa: {
+      type: Number,
+      default: 9.0,
+    },
     profileCompleted: {
       type: Boolean,
       default: false,

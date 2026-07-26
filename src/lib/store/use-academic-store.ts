@@ -5,11 +5,13 @@ interface AcademicState {
   semesters: Semester[];
   scale: GradeScale;
   targetCgpa: number;
+  activeSemesterId: string | null;
 
   // Actions
   setScale: (scale: GradeScale) => void;
   setTargetCgpa: (target: number) => void;
   setSemesters: (semesters: Semester[]) => void;
+  setActiveSemesterId: (id: string | null) => void;
   
   // Clear all client state (used on logout)
   clearState: () => void;
@@ -24,10 +26,12 @@ export const useAcademicStore = create<AcademicState>()((set) => ({
   semesters: [],
   scale: "10.0",
   targetCgpa: 8.5,
+  activeSemesterId: null,
 
   setScale: (scale) => set({ scale }),
   setTargetCgpa: (targetCgpa) => set({ targetCgpa }),
   setSemesters: (semesters) => set({ semesters }),
+  setActiveSemesterId: (activeSemesterId) => set({ activeSemesterId }),
 
   clearState: () => {
     // Clear localStorage key if any legacy persist data remains
@@ -40,6 +44,7 @@ export const useAcademicStore = create<AcademicState>()((set) => ({
       semesters: [],
       scale: "10.0",
       targetCgpa: 8.5,
+      activeSemesterId: null,
     });
   },
 }));

@@ -102,6 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const updatedUser = await AuthService.updateProfile(payload);
       setUser(updatedUser);
+      window.dispatchEvent(new CustomEvent("academic-data-updated"));
       return updatedUser;
     } catch (err: any) {
       const msg = err.response?.data?.message || "Failed to update profile";

@@ -84,14 +84,14 @@ function calculateSubjectScore(subject, scale = "10.0") {
  * Calculate SGPA for a semester
  */
 function calculateSgpa(semester, scale = "10.0") {
-  if (!semester) return scale === "4.0" ? 3.5 : 8.5;
+  if (!semester) return null;
 
   if (semester.finalizedSgpa !== null && semester.finalizedSgpa !== undefined && !isNaN(Number(semester.finalizedSgpa))) {
     return Number(semester.finalizedSgpa);
   }
 
   const subjects = semester.subjects || [];
-  if (subjects.length === 0) return scale === "4.0" ? 3.5 : 8.5;
+  if (subjects.length === 0) return null;
 
   let totalPoints = 0;
   let totalCredits = 0;
@@ -103,7 +103,7 @@ function calculateSgpa(semester, scale = "10.0") {
     totalCredits += cred;
   }
 
-  if (totalCredits === 0) return scale === "4.0" ? 3.5 : 8.5;
+  if (totalCredits === 0) return null;
 
   const sgpa = totalPoints / totalCredits;
   return Number(sgpa.toFixed(2));
@@ -113,19 +113,20 @@ function calculateSgpa(semester, scale = "10.0") {
  * Calculate overall CGPA across semesters
  */
 function calculateCgpa(semesters = [], scale = "10.0") {
-  if (!semesters || semesters.length === 0) return scale === "4.0" ? 3.5 : 8.5;
+  if (!semesters || semesters.length === 0) return null;
 
   let totalWeightedSgpa = 0;
   let totalCreditsSum = 0;
 
   for (const sem of semesters) {
     const semSgpa = calculateSgpa(sem, scale);
+    if (semSgpa === null || isNaN(semSgpa)) continue;
     const semCredits = sem.credits || (sem.subjects && sem.subjects.length > 0 ? sem.subjects.reduce((a, b) => a + (b.credits || 0), 0) : 20);
     totalWeightedSgpa += semSgpa * semCredits;
     totalCreditsSum += semCredits;
   }
 
-  if (totalCreditsSum === 0) return scale === "4.0" ? 3.5 : 8.5;
+  if (totalCreditsSum === 0) return null;
 
   const cgpa = totalWeightedSgpa / totalCreditsSum;
   return Number(cgpa.toFixed(2));

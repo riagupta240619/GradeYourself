@@ -67,6 +67,7 @@ export function SubjectDetailsPage() {
       await SubjectService.updateSubject(targetId, { marks: newMarks });
       setSavedFlash(assessmentId);
       toast.success("Marks saved!");
+      window.dispatchEvent(new CustomEvent("academic-data-updated"));
       setTimeout(() => setSavedFlash(null), 900);
       fetchSubjects();
     } catch (err) {
@@ -84,6 +85,7 @@ export function SubjectDetailsPage() {
         await SubjectService.deleteSubject(targetId);
         setSelectedId(null);
         toast.info(`Deleted ${subject.name}`);
+        window.dispatchEvent(new CustomEvent("academic-data-updated"));
         fetchSubjects();
       } catch (err) {
         console.error("Failed to delete subject on backend:", err);

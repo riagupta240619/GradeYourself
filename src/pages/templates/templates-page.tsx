@@ -1,18 +1,37 @@
-import { useState } from "react";
-import { Search, CheckCircle2, AlertCircle, Layers, Sparkles, Download, Eye } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, CheckCircle2, AlertCircle, Layers, Download, Eye, Loader2, BookOpen } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { communityTemplates } from "@/lib/data/mock";
+import { TemplateService } from "@/services/template-service";
+import type { GradingScheme } from "@/types";
 import { toast } from "sonner";
 
 export function TemplatesPage() {
   const [search, setSearch] = useState("");
+  const [templates, setTemplates] = useState<GradingScheme[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = communityTemplates.filter(
+  useEffect(() => {
+    async function fetchTemplates() {
+      setLoading(true);
+      try {
+        const data = await TemplateService.getTemplates();
+        setTemplates(data || []);
+      } catch (err) {
+        console.error("Failed to load community templates:", err);
+        setTemplates([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchTemplates();
+  }, []);
+
+  const filtered = templates.filter(
     (t) =>
-      t.university.toLowerCase().includes(search.toLowerCase()) ||
-      t.name.toLowerCase().includes(search.toLowerCase())
+      (t.university || "").toLowerCase().includes(search.toLowerCase()) ||
+      (t.name || "").toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -37,48 +56,63 @@ export function TemplatesPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {filtered.map((t) => (
-          <Card key={t.id} className="hover:border-purple-500/30 transition-all flex flex-col justify-between">
-            <CardContent className="flex flex-col gap-4 pt-6">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <h3 className="font-bold text-white text-base leading-snug">{t.university}</h3>
-                  <p className="text-xs text-purple-300 font-medium mt-0.5">{t.name}</p>
+      {loading ? (
+        <Card className="p-12 text-center flex flex-col items-center justify-center">
+          <Loader2 size={24} className="animate-spin text-purple-400 mb-2" />
+          <p className="text-xs text-zinc-400 font-medium">Loading community grading scheme repository...</p>
+        </Card>
+      ) : filtered.length === 0 ? (
+        <Card className="p-12 text-center flex flex-col items-center justify-center border-dashed">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-400 mb-3 shadow-lg">
+            <BookOpen size={28} />
+          </div>
+          <h3 className="text-lg font-bold text-white mb-1">No community templates are available yet.</h3>
+          <p className="text-xs sm:text-sm text-zinc-400 max-w-md">Be the first student to contribute.</p>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((t) => (
+            <Card key={t.id || (t as any)._id} className="hover:border-purple-500/30 transition-all flex flex-col justify-between">
+              <CardContent className="flex flex-col gap-4 pt-6">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h3 className="font-bold text-white text-base leading-snug">{t.university}</h3>
+                    <p className="text-xs text-purple-300 font-medium mt-0.5">{t.name}</p>
+                  </div>
+                  {t.verified ? (
+                    <Badge tone="success">
+                      <CheckCircle2 size={12} /> Verified
+                    </Badge>
+                  ) : (
+                    <Badge tone="warning">
+                      <AlertCircle size={12} /> Unverified
+                    </Badge>
+                  )}
                 </div>
-                {t.verified ? (
-                  <Badge tone="success">
-                    <CheckCircle2 size={12} /> Verified
-                  </Badge>
-                ) : (
-                  <Badge tone="warning">
-                    <AlertCircle size={12} /> Unverified
-                  </Badge>
-                )}
-              </div>
 
-              <div className="flex items-center justify-between text-xs border-t border-white/10 pt-3">
-                <span className="text-zinc-400 font-medium">Verified Community Scheme</span>
-                <span className="font-mono font-bold text-purple-400">{t.usedBy.toLocaleString()} Users</span>
-              </div>
+                <div className="flex items-center justify-between text-xs border-t border-white/10 pt-3">
+                  <span className="text-zinc-400 font-medium">Verified Community Scheme</span>
+                  <span className="font-mono font-bold text-purple-400">{(t.usedBy || 0).toLocaleString()} Users</span>
+                </div>
 
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  variant="primary"
-                  className="flex-1 gap-1.5"
-                  onClick={() => toast.success(`Applied ${t.name} scheme!`)}
-                >
-                  <Download size={13} /> Use Scheme
-                </Button>
-                <Button size="sm" variant="outline" className="gap-1.5" onClick={() => toast.info(`Previewing ${t.name}`)}>
-                  <Eye size={13} />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    className="flex-1 gap-1.5"
+                    onClick={() => toast.success(`Applied ${t.name} scheme!`)}
+                  >
+                    <Download size={13} /> Use Scheme
+                  </Button>
+                  <Button size="sm" variant="outline" className="gap-1.5" onClick={() => toast.info(`Previewing ${t.name}`)}>
+                    <Eye size={13} />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

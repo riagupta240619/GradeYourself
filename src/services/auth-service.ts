@@ -7,8 +7,12 @@ export interface AuthUser {
   college?: string;
   course?: string;
   semesterSystem?: string;
+  currentSemester?: string;
   branch?: string;
   academicSession?: string;
+  currentCgpa?: number | null;
+  academicStatus?: string;
+  targetCgpa?: number;
   profileCompleted: boolean;
   token?: string;
 }
@@ -31,8 +35,12 @@ export interface SetupPayload {
   college?: string;
   course?: string;
   semesterSystem?: string;
+  currentSemester?: string;
   branch?: string;
   academicSession?: string;
+  currentCgpa?: number | null;
+  academicStatus?: string;
+  targetCgpa?: number;
 }
 
 export interface UpdateProfilePayload {
@@ -41,6 +49,11 @@ export interface UpdateProfilePayload {
   branch?: string;
   course?: string;
   semesterSystem?: string;
+  currentSemester?: string;
+  academicSession?: string;
+  currentCgpa?: number | null;
+  academicStatus?: string;
+  targetCgpa?: number;
 }
 
 export interface ChangePasswordPayload {

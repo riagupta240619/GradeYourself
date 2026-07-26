@@ -237,6 +237,7 @@ export function UploadResultsModal({ isOpen, onClose }: UploadResultsModalProps)
       }
 
       setSuccessMsg(`Successfully imported ${dataToSave.length} past semester record(s)!`);
+      window.dispatchEvent(new CustomEvent("academic-data-updated"));
       setTimeout(() => {
         onClose();
       }, 1000);

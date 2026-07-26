@@ -26,7 +26,12 @@ export function SettingsPage() {
   // Profile Form State
   const [name, setName] = useState(user?.name || "");
   const [college, setCollege] = useState(user?.college || "");
+  const [course, setCourse] = useState(user?.course || "");
   const [branch, setBranch] = useState(user?.branch || "");
+  const [currentSemester, setCurrentSemester] = useState(user?.currentSemester || user?.semesterSystem || "Semester 1");
+  const [academicSession, setAcademicSession] = useState(user?.academicSession || "");
+  const [cgpaInput, setCgpaInput] = useState(typeof user?.currentCgpa === "number" ? String(user.currentCgpa) : "");
+  const [academicStatus, setAcademicStatus] = useState(user?.academicStatus || "Active Student");
   
   // Password Form State
   const [currentPassword, setCurrentPassword] = useState("");
@@ -51,7 +56,12 @@ export function SettingsPage() {
     if (user) {
       setName(user.name || "");
       setCollege(user.college || "");
+      setCourse(user.course || "");
       setBranch(user.branch || "");
+      setCurrentSemester(user.currentSemester || user.semesterSystem || "Semester 1");
+      setAcademicSession(user.academicSession || "");
+      setCgpaInput(typeof user.currentCgpa === "number" ? String(user.currentCgpa) : "");
+      setAcademicStatus(user.academicStatus || "Active Student");
     }
   }, [user]);
 
@@ -91,12 +101,20 @@ export function SettingsPage() {
       return;
     }
 
+    const parsedCgpa = cgpaInput.trim() ? parseFloat(cgpaInput) : null;
+
     setIsUpdatingProfile(true);
     try {
       await updateProfile({
         name: name.trim(),
         college: college.trim(),
+        course: course.trim(),
         branch: branch.trim(),
+        currentSemester: currentSemester.trim(),
+        semesterSystem: currentSemester.trim(),
+        academicSession: academicSession.trim(),
+        currentCgpa: parsedCgpa && !isNaN(parsedCgpa) ? parsedCgpa : null,
+        academicStatus: academicStatus.trim(),
       });
       setProfileMsg({ type: "success", text: "Profile details updated successfully!" });
       toast.success("Profile updated successfully!");
@@ -228,12 +246,56 @@ export function SettingsPage() {
                   </div>
 
                   <div>
+                    <label className="mb-1.5 block text-xs font-medium text-zinc-300">Course / Degree</label>
+                    <input
+                      className="w-full rounded-xl border border-white/10 bg-zinc-950/60 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                      value={course}
+                      placeholder="e.g. B.Tech / B.E."
+                      onChange={(e) => setCourse(e.target.value)}
+                    />
+                  </div>
+
+                  <div>
                     <label className="mb-1.5 block text-xs font-medium text-zinc-300">Branch / Major</label>
                     <input
                       className="w-full rounded-xl border border-white/10 bg-zinc-950/60 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                       value={branch}
                       placeholder="e.g. Computer Science"
                       onChange={(e) => setBranch(e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-zinc-300">Current Semester</label>
+                    <input
+                      className="w-full rounded-xl border border-white/10 bg-zinc-950/60 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                      value={currentSemester}
+                      placeholder="e.g. Semester 4"
+                      onChange={(e) => setCurrentSemester(e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-zinc-300">Academic Session / Batch</label>
+                    <input
+                      className="w-full rounded-xl border border-white/10 bg-zinc-950/60 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                      value={academicSession}
+                      placeholder="e.g. 2025 - 2026"
+                      onChange={(e) => setAcademicSession(e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-purple-300">Current CGPA (Baseline)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="10"
+                      className="w-full rounded-xl border border-white/10 bg-zinc-950/60 px-4 py-2.5 text-sm font-mono font-bold text-white placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                      value={cgpaInput}
+                      placeholder="e.g. 8.45"
+                      onChange={(e) => setCgpaInput(e.target.value)}
                     />
                   </div>
                 </div>
