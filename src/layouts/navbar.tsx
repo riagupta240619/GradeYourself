@@ -4,6 +4,7 @@ import { Search, Sun, Moon, Bell, LogOut, Menu, X, Command, GraduationCap } from
 import { useTheme } from "@/hooks/use-theme";
 import { useAuth } from "@/hooks/use-auth";
 import { motion, AnimatePresence } from "framer-motion";
+import { LogoutModal } from "@/components/shared/logout-modal";
 
 const navItems = [
   { to: "/app/dashboard", label: "Dashboard" },
@@ -23,10 +24,20 @@ export function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  const handleLogout = async () => {
-    await logout();
-    navigate("/login");
+  const handleConfirmLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await logout();
+      setShowLogoutModal(false);
+      navigate("/login");
+    } catch (err) {
+      console.error("Logout failed:", err);
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   const initial = user?.name ? user.name.charAt(0).toUpperCase() : "U";
@@ -101,7 +112,7 @@ export function Navbar() {
 
           {/* Logout Button */}
           <button
-            onClick={handleLogout}
+            onClick={() => setShowLogoutModal(true)}
             className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-zinc-900/80 text-zinc-400 hover:bg-rose-500/10 hover:text-rose-400 hover:border-rose-500/20 transition-all shadow-sm"
             aria-label="Log out"
             title="Log out"
@@ -110,6 +121,14 @@ export function Navbar() {
           </button>
         </div>
       </header>
+
+      {/* Logout Confirmation Dialog */}
+      <LogoutModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={handleConfirmLogout}
+        isLoading={isLoggingOut}
+      />
 
       {/* Mobile Drawer Menu */}
       <AnimatePresence>

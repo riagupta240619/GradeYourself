@@ -7,6 +7,7 @@ import { useTheme } from "@/hooks/use-theme";
 import { useAuth } from "@/hooks/use-auth";
 import { CheckCircle2, AlertCircle, Lock, Save, Settings, User, Bell, Palette, Moon, Sun, Monitor, LogOut } from "lucide-react";
 import { toast } from "sonner";
+import { LogoutModal } from "@/components/shared/logout-modal";
 
 const tabs = [
   { name: "Account", icon: User },
@@ -37,6 +38,10 @@ export function SettingsPage() {
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
 
+  // Logout Modal State
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
   useEffect(() => {
     if (user) {
       setName(user.name || "");
@@ -45,9 +50,17 @@ export function SettingsPage() {
     }
   }, [user]);
 
-  const handleLogout = async () => {
-    await logout();
-    navigate("/login");
+  const handleConfirmLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await logout();
+      setShowLogoutModal(false);
+      navigate("/login");
+    } catch (err) {
+      console.error("Logout failed:", err);
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
@@ -276,7 +289,7 @@ export function SettingsPage() {
 
               {/* Session Actions */}
               <div className="flex items-center gap-3">
-                <Button variant="outline" size="sm" onClick={handleLogout} className="gap-1.5">
+                <Button variant="outline" size="sm" onClick={() => setShowLogoutModal(true)} className="gap-1.5">
                   <LogOut size={15} /> Log Out Session
                 </Button>
                 <Button variant="danger" size="sm">
@@ -353,6 +366,14 @@ export function SettingsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Logout Confirmation Dialog */}
+      <LogoutModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={handleConfirmLogout}
+        isLoading={isLoggingOut}
+      />
     </div>
   );
 }

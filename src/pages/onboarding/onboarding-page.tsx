@@ -1,9 +1,21 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, PenLine, AlertTriangle, CheckCircle2, GraduationCap, ChevronRight, ArrowRight, ArrowLeft } from "lucide-react";
+import {
+  Upload,
+  PenLine,
+  AlertTriangle,
+  CheckCircle2,
+  GraduationCap,
+  ArrowRight,
+  ArrowLeft,
+  FileText,
+  X,
+  Loader2,
+  Sparkles,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { useAuth } from "@/hooks/use-auth";
 
 const steps = [
@@ -14,12 +26,20 @@ const steps = [
 ];
 
 export function OnboardingPage() {
-  const { user, updateSetup, loading, error } = useAuth();
+  const { user, updateSetup, loading, error: authError } = useAuth();
   const navigate = useNavigate();
 
   const [step, setStep] = useState(0);
-  const [mode, setMode] = useState<"choose" | "review">("choose");
+  const [selectedOption, setSelectedOption] = useState<"upload" | "manual" | null>(null);
+  const [mode, setMode] = useState<"choose" | "upload" | "review">("choose");
   const [scale, setScale] = useState("10.0 CGPA");
+
+  // File Upload State
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [isProcessingPdf, setIsProcessingPdf] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Academic Setup Fields
   const [college, setCollege] = useState(user?.college || "");
@@ -50,6 +70,16 @@ export function OnboardingPage() {
     }
   }
 
+  function handleContinueStepZero() {
+    if (!selectedOption) return;
+    if (selectedOption === "manual") {
+      setStep(1);
+      setMode("choose");
+    } else if (selectedOption === "upload") {
+      setMode("upload");
+    }
+  }
+
   function next() {
     if (step === steps.length - 1) {
       handleFinish();
@@ -60,11 +90,51 @@ export function OnboardingPage() {
   }
 
   function back() {
-    if (step > 0) {
+    if (step === 0 && mode === "upload") {
+      setMode("choose");
+    } else if (step === 0 && mode === "review") {
+      setMode("upload");
+    } else if (step > 0) {
       setStep((s) => s - 1);
       setMode("choose");
     }
   }
+
+  // File Upload Handlers
+  const validateAndSetFile = (file: File) => {
+    setUploadError(null);
+    const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+    if (!isPdf) {
+      setUploadError("Invalid file type. Please upload a valid PDF document (.pdf).");
+      setUploadFile(null);
+      return false;
+    }
+    setUploadFile(file);
+    return true;
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      validateAndSetFile(e.target.files[0]);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      validateAndSetFile(e.dataTransfer.files[0]);
+    }
+  };
+
+  const processUploadedPdf = () => {
+    if (!uploadFile) return;
+    setIsProcessingPdf(true);
+    setTimeout(() => {
+      setIsProcessingPdf(false);
+      setMode("review");
+    }, 800);
+  };
 
   return (
     <div className="relative flex min-h-screen w-full items-center justify-center bg-[#09090b] text-white p-4 sm:p-6 overflow-hidden">
@@ -100,9 +170,10 @@ export function OnboardingPage() {
 
         {/* Main Wizard Card */}
         <Card className="rounded-2xl border border-white/10 bg-zinc-900/90 shadow-2xl backdrop-blur-2xl p-6 sm:p-8">
-          {error && (
-            <div className="mb-5 rounded-xl bg-rose-500/10 border border-rose-500/20 p-3 text-xs text-rose-400 text-center font-medium">
-              {error}
+          {(authError || uploadError) && (
+            <div className="mb-5 rounded-xl bg-rose-500/10 border border-rose-500/20 p-3.5 text-xs text-rose-400 text-center font-semibold flex items-center justify-center gap-2">
+              <AlertTriangle size={15} />
+              <span>{uploadError || authError}</span>
             </div>
           )}
 
@@ -121,31 +192,79 @@ export function OnboardingPage() {
                   <p className="text-xs text-zinc-400 mb-6">Choose how you want to import your academic grading scheme.</p>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                    <button
-                      onClick={() => setMode("review")}
-                      className="group flex flex-col items-center gap-3 rounded-2xl border border-white/10 bg-zinc-950/60 p-6 text-center transition-all hover:border-purple-500/50 hover:bg-purple-500/10"
+                    {/* Option 1: Upload PDF */}
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => {
+                        setSelectedOption("upload");
+                        setUploadError(null);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setSelectedOption("upload");
+                          setUploadError(null);
+                        }
+                      }}
+                      className={`relative group flex flex-col items-center gap-3 rounded-2xl border p-6 text-center transition-all cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-purple-500 ${
+                        selectedOption === "upload"
+                          ? "border-purple-500 bg-purple-500/15 shadow-[0_0_25px_rgba(124,58,237,0.3)] ring-2 ring-purple-500/40"
+                          : "border-white/10 bg-zinc-950/60 hover:border-purple-500/40 hover:bg-purple-500/5"
+                      }`}
                     >
-                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-500/20 text-purple-400 group-hover:scale-110 transition-transform">
+                      {selectedOption === "upload" && (
+                        <div className="absolute top-3 right-3 flex h-6 w-6 items-center justify-center rounded-full bg-purple-500 text-white shadow-sm">
+                          <CheckCircle2 size={16} />
+                        </div>
+                      )}
+                      <div className={`flex h-12 w-12 items-center justify-center rounded-xl transition-transform group-hover:scale-110 ${
+                        selectedOption === "upload" ? "bg-purple-500 text-white" : "bg-purple-500/20 text-purple-400"
+                      }`}>
                         <Upload size={24} />
                       </div>
                       <div>
                         <span className="text-sm font-semibold text-white block">Upload Syllabus PDF</span>
                         <span className="text-xs text-zinc-400">AI automatically extracts weights</span>
                       </div>
-                    </button>
+                    </div>
 
-                    <button
-                      onClick={next}
-                      className="group flex flex-col items-center gap-3 rounded-2xl border border-white/10 bg-zinc-950/60 p-6 text-center transition-all hover:border-blue-500/50 hover:bg-blue-500/10"
+                    {/* Option 2: Manual Setup */}
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => {
+                        setSelectedOption("manual");
+                        setUploadError(null);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setSelectedOption("manual");
+                          setUploadError(null);
+                        }
+                      }}
+                      className={`relative group flex flex-col items-center gap-3 rounded-2xl border p-6 text-center transition-all cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+                        selectedOption === "manual"
+                          ? "border-blue-500 bg-blue-500/15 shadow-[0_0_25px_rgba(59,130,246,0.3)] ring-2 ring-blue-500/40"
+                          : "border-white/10 bg-zinc-950/60 hover:border-blue-500/40 hover:bg-blue-500/5"
+                      }`}
                     >
-                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/20 text-blue-400 group-hover:scale-110 transition-transform">
+                      {selectedOption === "manual" && (
+                        <div className="absolute top-3 right-3 flex h-6 w-6 items-center justify-center rounded-full bg-blue-500 text-white shadow-sm">
+                          <CheckCircle2 size={16} />
+                        </div>
+                      )}
+                      <div className={`flex h-12 w-12 items-center justify-center rounded-xl transition-transform group-hover:scale-110 ${
+                        selectedOption === "manual" ? "bg-blue-500 text-white" : "bg-blue-500/20 text-blue-400"
+                      }`}>
                         <PenLine size={24} />
                       </div>
                       <div>
                         <span className="text-sm font-semibold text-white block">Manual Setup</span>
                         <span className="text-xs text-zinc-400">Enter custom weights yourself</span>
                       </div>
-                    </button>
+                    </div>
                   </div>
 
                   <div className="flex flex-col gap-4 border-t border-white/10 pt-5">
@@ -178,6 +297,88 @@ export function OnboardingPage() {
                         />
                       </div>
                     </div>
+                  </div>
+                </>
+              )}
+
+              {/* Step 1: Upload PDF Screen */}
+              {step === 0 && mode === "upload" && (
+                <>
+                  <h1 className="text-xl font-bold tracking-tight mb-1">Upload Syllabus PDF</h1>
+                  <p className="text-xs text-zinc-400 mb-6">Select your course syllabus or grading scheme PDF file for weight extraction.</p>
+
+                  <div
+                    onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                    onDragLeave={(e) => { e.preventDefault(); setDragOver(false); }}
+                    onDrop={handleDrop}
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-8 text-center cursor-pointer transition-all ${
+                      dragOver
+                        ? "border-purple-500 bg-purple-500/15"
+                        : uploadFile
+                        ? "border-emerald-500/50 bg-emerald-500/5"
+                        : "border-white/15 bg-zinc-950/60 hover:border-purple-500/50 hover:bg-purple-500/5"
+                    }`}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".pdf,application/pdf"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-purple-500/20 text-purple-400 mb-3 shadow-lg">
+                      <FileText size={28} />
+                    </div>
+
+                    <p className="text-sm font-semibold text-white mb-1">
+                      {uploadFile ? "PDF File Selected" : "Click to browse or drag & drop Syllabus PDF"}
+                    </p>
+                    <p className="text-xs text-zinc-400">
+                      Supports PDF format files (.pdf)
+                    </p>
+
+                    {uploadFile && (
+                      <div
+                        onClick={(e) => e.stopPropagation()}
+                        className="mt-4 flex items-center gap-2 rounded-xl bg-purple-500/20 border border-purple-500/30 px-3.5 py-2 text-xs text-purple-300 font-mono font-semibold"
+                      >
+                        <Sparkles size={14} className="text-purple-400" />
+                        <span className="truncate max-w-[200px]">{uploadFile.name}</span>
+                        <span className="text-zinc-400 text-[11px]">({(uploadFile.size / (1024 * 1024)).toFixed(2)} MB)</span>
+                        <button
+                          type="button"
+                          onClick={() => setUploadFile(null)}
+                          className="ml-1 text-zinc-400 hover:text-rose-400"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-8 flex items-center justify-between border-t border-white/10 pt-5">
+                    <Button variant="ghost" size="sm" onClick={back} className="gap-1 text-zinc-400 hover:text-white">
+                      <ArrowLeft size={14} /> Back
+                    </Button>
+                    <Button
+                      variant="primary"
+                      size="md"
+                      disabled={!uploadFile || isProcessingPdf}
+                      onClick={processUploadedPdf}
+                      className="gap-1.5"
+                    >
+                      {isProcessingPdf ? (
+                        <>
+                          <Loader2 size={16} className="animate-spin" /> Extracting Scheme...
+                        </>
+                      ) : (
+                        <>
+                          Process PDF & Continue <ArrowRight size={14} />
+                        </>
+                      )}
+                    </Button>
                   </div>
                 </>
               )}
@@ -216,7 +417,7 @@ export function OnboardingPage() {
                   </div>
                   <p className="mt-3 text-xs text-zinc-400 text-right">Total Scheme Weightage: <span className="text-emerald-400 font-bold">100% ✓</span></p>
                   <div className="mt-6 flex items-center justify-between">
-                    <Button variant="ghost" size="sm" onClick={() => setMode("choose")}>
+                    <Button variant="ghost" size="sm" onClick={back}>
                       <ArrowLeft size={14} className="mr-1" /> Back
                     </Button>
                     <Button variant="primary" size="sm" onClick={next}>
@@ -292,8 +493,8 @@ export function OnboardingPage() {
                 </>
               )}
 
-              {/* Navigation Actions Footer */}
-              {!(step === 0 && mode === "review") && (
+              {/* Navigation Actions Footer for Step 0 Choose & Steps 1-3 */}
+              {(step > 0 || (step === 0 && mode === "choose")) && (
                 <div className="mt-8 flex items-center justify-between border-t border-white/10 pt-5">
                   {step > 0 ? (
                     <Button variant="ghost" size="sm" onClick={back} className="gap-1 text-zinc-400 hover:text-white">
@@ -301,7 +502,19 @@ export function OnboardingPage() {
                     </Button>
                   ) : <div />}
 
-                  <Button variant="primary" size="md" disabled={loading} onClick={next} className="gap-1.5">
+                  <Button
+                    variant="primary"
+                    size="md"
+                    disabled={loading || (step === 0 && mode === "choose" && !selectedOption)}
+                    onClick={() => {
+                      if (step === 0 && mode === "choose") {
+                        handleContinueStepZero();
+                      } else {
+                        next();
+                      }
+                    }}
+                    className="gap-1.5"
+                  >
                     {loading ? (
                       "Completing Setup..."
                     ) : step === steps.length - 1 ? (
