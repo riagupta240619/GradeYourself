@@ -6,11 +6,29 @@ const {
   getCsrfCookieOptions,
 } = require("../utils/cookie-config");
 
+const SECRET = process.env.JWT_SECRET || "gradewise_csrf_secret_key_2026";
+
 /**
- * Generate a high-entropy random CSRF token.
+ * Generate a cryptographically signed HMAC CSRF token.
  */
+function signToken(raw) {
+  return crypto.createHmac("sha256", SECRET).update(raw).digest("hex");
+}
+
 function generateCsrfToken() {
-  return crypto.randomBytes(32).toString("hex");
+  const raw = crypto.randomBytes(32).toString("hex");
+  const sig = signToken(raw);
+  return `${raw}.${sig}`;
+}
+
+function isValidSignedToken(token) {
+  if (typeof token !== "string" || !token.includes(".")) return false;
+  const parts = token.split(".");
+  if (parts.length !== 2) return false;
+  const [raw, sig] = parts;
+  if (!raw || !sig || raw.length !== 64 || sig.length !== 64) return false;
+  const expectedSig = signToken(raw);
+  return crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expectedSig));
 }
 
 /**
@@ -19,7 +37,7 @@ function generateCsrfToken() {
  */
 const getCsrfToken = (req, res) => {
   let token = req.cookies ? req.cookies[CSRF_COOKIE_NAME] : null;
-  if (!token || typeof token !== "string" || token.length !== 64) {
+  if (!token || !isValidSignedToken(token)) {
     token = generateCsrfToken();
   }
 
@@ -33,7 +51,7 @@ const getCsrfToken = (req, res) => {
 
 /**
  * CSRF Protection Middleware
- * Verifies submitted header against cookie using constant-time comparison.
+ * Verifies submitted header against cookie using constant-time comparison or HMAC signature validation.
  * Protects state-changing HTTP methods: POST, PUT, PATCH, DELETE.
  */
 const verifyCsrf = (req, res, next) => {
@@ -53,29 +71,23 @@ const verifyCsrf = (req, res, next) => {
     req.headers["x-xsrf-token"] ||
     (req.body && req.body._csrf);
 
-  console.log("Origin:", req.headers.origin);
-  console.log("Cookie Header:", req.headers.cookie);
-  console.log("Cookies:", req.cookies);
-  console.log("X-CSRF-Token:", !!req.headers["x-csrf-token"]);
-  console.log("X-XSRF-Token:", !!req.headers["x-xsrf-token"]);
-  console.log("Body _csrf:", !!req.body?._csrf);
-
-  if (!cookieToken || !headerToken) {
+  if (!headerToken) {
     res.status(403);
-    return next(new Error("Invalid CSRF token: Missing token in header or cookie"));
+    return next(new Error("Invalid CSRF token: Missing token in header"));
   }
 
-  if (typeof cookieToken !== "string" || typeof headerToken !== "string") {
-    res.status(403);
-    return next(new Error("Invalid CSRF token format"));
+  // 1. If cookieToken is present (Same-Origin / Supported Browsers), verify cookie === header
+  if (cookieToken && typeof cookieToken === "string") {
+    if (cookieToken !== headerToken) {
+      res.status(403);
+      return next(new Error("Invalid CSRF token: Cookie and header token mismatch"));
+    }
   }
 
-  const cookieBuf = Buffer.from(cookieToken);
-  const headerBuf = Buffer.from(headerToken);
-
-  if (cookieBuf.length !== headerBuf.length || !crypto.timingSafeEqual(cookieBuf, headerBuf)) {
+  // 2. Verify cryptographically signed CSRF header token
+  if (!isValidSignedToken(headerToken)) {
     res.status(403);
-    return next(new Error("Invalid CSRF token"));
+    return next(new Error("Invalid CSRF token: Invalid token signature"));
   }
 
   return next();

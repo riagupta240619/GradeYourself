@@ -4,12 +4,16 @@ const {
   addSemester,
   getSemesters,
   updateSemester,
+  updateFullSemester,
   deleteSemester,
+  bulkSaveTranscript,
 } = require("../controllers/semester-controller");
 const { verifyToken } = require("../middleware/auth-middleware");
 
+router.post("/bulk-transcript", verifyToken, bulkSaveTranscript);
 router.post("/", verifyToken, addSemester);
 router.get("/", verifyToken, getSemesters);
+router.put("/:id/full", verifyToken, updateFullSemester);
 router.put("/:id", verifyToken, updateSemester);
 router.delete("/:id", verifyToken, deleteSemester);
 

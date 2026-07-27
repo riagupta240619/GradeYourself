@@ -42,8 +42,12 @@ export function AddSubjectModal({ isOpen, onClose }: AddSubjectModalProps) {
         .then((data) => {
           setSemesters(data || []);
           if (data && data.length > 0) {
-            const currentSem = data.find((s) => s.isCurrent) || data[0];
-            setTargetSemId(currentSem.id || (currentSem as any)._id || "");
+            const currentSem = data.find((s) => s.isCurrent);
+            if (currentSem) {
+              setTargetSemId(currentSem.id || (currentSem as any)._id || "");
+            } else {
+              setTargetSemId("");
+            }
           } else {
             setTargetSemId("");
           }
@@ -251,29 +255,32 @@ export function AddSubjectModal({ isOpen, onClose }: AddSubjectModalProps) {
         </div>
 
         {/* Target Semester Picker */}
-        <div className="mb-4">
-          <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
+        <div className="mb-4 space-y-1.5">
+          <label className="block text-xs font-semibold text-[var(--text-secondary)]">
             Target Semester
           </label>
           <select
             value={targetSemId}
             onChange={(e) => setTargetSemId(e.target.value)}
-            className="w-full rounded-lg border bg-[var(--bg-base)] px-3 py-2 text-xs font-medium"
+            className="w-full rounded-lg border bg-[var(--bg-base)] px-3 py-2 text-xs font-semibold"
             style={{ borderColor: "var(--border-hairline)" }}
           >
             {semesters.length === 0 ? (
-              <option value="">New Semester (Will be created automatically)</option>
+              <option value="">Active Current Semester (Will be created automatically)</option>
             ) : (
               semesters.map((sem) => {
                 const sId = sem.id || (sem as any)._id;
                 return (
-                  <option key={sId} value={sId}>
-                    {sem.name} {sem.isCurrent ? "(Current)" : ""}
+                  <option key={sId} value={sId} disabled={!sem.isCurrent}>
+                    {sem.name} {sem.isCurrent ? "★ (Active Current Semester)" : "🔒 (Completed - Read Only)"}
                   </option>
                 );
               })
             )}
           </select>
+          <p className="text-[11px] text-zinc-400">
+            Note: New subjects are saved to your active Current Semester. Historical completed semesters are read-only and can be modified via Past Results.
+          </p>
         </div>
 
         {/* Tabs */}

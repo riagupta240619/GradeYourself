@@ -10,6 +10,55 @@ export interface AnalyticsSubject {
   semester?: string;
 }
 
+export interface AssessmentItem {
+  name: string;
+  marksObtained: number | null;
+  maxMarks: number | null;
+  weightPct?: number | null;
+}
+
+export interface DetailedSemesterSubject {
+  id: string;
+  _id?: string;
+  subjectName: string;
+  name: string;
+  subjectCode: string;
+  code: string;
+  credits: number;
+  marksObtained: number | null;
+  maxMarks: number | null;
+  finalPercentage: number | null;
+  pct: number;
+  grade: string | null;
+  letterGrade: string;
+  gradePoint: number | null;
+  assessments: AssessmentItem[];
+}
+
+export interface SemesterSummary {
+  highestSubject: { name: string; code: string; pct: number } | null;
+  lowestSubject: { name: string; code: string; pct: number } | null;
+  averageMarks: number;
+  totalCredits: number;
+  sgpa: number | null;
+}
+
+export interface CompletedSemesterDetail {
+  id: string;
+  _id?: string;
+  name: string;
+  semesterNumber: number;
+  isCurrent?: boolean;
+  sgpa: number | null;
+  creditsEarned: number;
+  totalSubjects: number;
+  verificationStatus: string;
+  updatedAt?: string;
+  subjects: DetailedSemesterSubject[];
+  summary: SemesterSummary;
+  aiInsight?: string;
+}
+
 export interface CreditDistributionItem {
   category: string;
   credits: number;
@@ -23,6 +72,7 @@ export interface AnalyticsSummary {
   highestSubject: AnalyticsSubject;
   lowestSubject: AnalyticsSubject;
   totalSubjectsEvaluated: number;
+  completedSemesters?: CompletedSemesterDetail[];
 }
 
 export const AnalyticsService = {

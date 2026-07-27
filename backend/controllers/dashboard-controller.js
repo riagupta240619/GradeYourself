@@ -18,11 +18,15 @@ function resolveScale(user) {
 }
 
 /**
+ * Helper to parse a numeric semester index or number from semester name.
+ */
+function parseSemesterNumber(name, index) {
+  const match = (name || "").match(/\d+/);
+  return match ? parseInt(match[0], 10) : index + 1;
+}
+
+/**
  * Build a semester-compatible object for the grading engine.
- *
- * The grading engine's calculateSgpa() accepts { finalizedSgpa, subjects[] }.
- * This helper produces that shape by fetching the real subjects from the
- * authoritative Subject collection.
  */
 async function semesterWithSubjects(semester) {
   const subjects = await SubjectModel.find({ semester: semester._id });
@@ -31,8 +35,7 @@ async function semesterWithSubjects(semester) {
 
 /**
  * @route   GET /api/dashboard/summary
- * @desc    Get the full dashboard: CGPA, SGPA, subjects, at-risk list, trend.
- *          Returns empty-state values when the user has no academic data yet.
+ * @desc    Get the full dashboard summary separated into CompletedSemesters and CurrentSemester.
  * @access  Private
  */
 const getDashboardSummary = async (req, res, next) => {
@@ -40,17 +43,16 @@ const getDashboardSummary = async (req, res, next) => {
     const user = await User.findById(req.user._id).select("-password");
     const scale = resolveScale(user);
 
-    // Fetch semesters — NO auto-seeding; new users get an empty state.
     const rawSemesters = await Semester.find({ user: req.user._id }).sort({ createdAt: 1 });
 
     if (rawSemesters.length === 0) {
-      // Return a well-formed empty state so the frontend can render an empty view
       return res.status(200).json({
         user,
         cgpa: null,
         sgpa: null,
         totalCredits: 0,
         targetCgpa: user?.targetCgpa || (scale === "4.0" ? 3.8 : 9.0),
+        completedSemesters: [],
         currentSemester: null,
         semesters: [],
         subjects: [],
@@ -59,45 +61,98 @@ const getDashboardSummary = async (req, res, next) => {
       });
     }
 
-    // Enrich each semester with its subjects from the Subject collection
     const semestersWithSubjects = await Promise.all(rawSemesters.map(semesterWithSubjects));
 
-    // CGPA across all semesters
+    // 1. Separate into CompletedSemesters and CurrentSemester datasets
+    const completedSemRawList = rawSemesters.filter((s) => !s.isCurrent);
+    const completedSemesters = completedSemRawList.map((sem, idx) => {
+      const enriched = semestersWithSubjects.find((s) => String(s._id) === String(sem._id)) || sem;
+      const semSubjects = (enriched.subjects || []).map((subj) => {
+        const score = calculateSubjectScore(subj, scale);
+        return {
+          ...subj.toObject(),
+          calculatedPct: score.pct,
+          letterGrade: score.letter,
+          gradePoint: score.gradePoint,
+          grade: score.letter,
+        };
+      });
+
+      const semCredits = semSubjects.length > 0
+        ? semSubjects.reduce((a, b) => a + (b.credits || 0), 0)
+        : sem.credits || 20;
+
+      const semSgpa = calculateSgpa(enriched, scale);
+
+      return {
+        _id: sem._id,
+        id: sem._id,
+        semesterNumber: parseSemesterNumber(sem.name, idx),
+        name: sem.name,
+        subjects: semSubjects,
+        credits: semCredits,
+        sgpa: semSgpa,
+        grades: semSubjects.map((s) => ({ subject: s.name, grade: s.letterGrade, points: s.gradePoint })),
+      };
+    });
+
+    // 2. Active Current Semester strictly identified by isCurrent === true
+    const currentSemRaw = rawSemesters.find((s) => s.isCurrent === true) || null;
+    let currentSemester = null;
+    let activeSubjects = [];
+    let calculatedSgpa = null;
+
+    if (currentSemRaw) {
+      const currentSemEnriched = semestersWithSubjects.find((s) => String(s._id) === String(currentSemRaw._id));
+      calculatedSgpa = calculateSgpa(currentSemEnriched, scale);
+
+      activeSubjects = (currentSemEnriched?.subjects || []).map((subj) => {
+        const score = calculateSubjectScore(subj, scale);
+        return {
+          ...subj.toObject(),
+          calculatedPct: score.pct,
+          letterGrade: score.letter,
+          gradePoint: score.gradePoint,
+          internalMarks: subj.internalMarks || 0,
+          externalMarks: subj.externalMarks || 0,
+          assessments: subj.scheme?.assessmentTypes || [],
+          attendance: subj.attendance || 85,
+          predictedScores: score.pct,
+        };
+      });
+
+      currentSemester = {
+        _id: currentSemRaw._id,
+        id: currentSemRaw._id,
+        semesterNumber: parseSemesterNumber(currentSemRaw.name, completedSemesters.length),
+        name: currentSemRaw.name,
+        activeSubjects,
+        assessments: activeSubjects.flatMap((s) => s.assessments || []),
+        attendance: activeSubjects.map((s) => ({ subjectId: s._id, name: s.name, attendance: s.attendance })),
+        internalMarks: activeSubjects.map((s) => ({ subjectId: s._id, name: s.name, internalMarks: s.internalMarks })),
+        predictedScores: activeSubjects.map((s) => ({ subjectId: s._id, name: s.name, predictedScore: s.calculatedPct })),
+      };
+    }
+
+    // CGPA overall across all semesters
     const calculatedCgpa = calculateCgpa(semestersWithSubjects, scale);
 
-    // Current (or most recent) semester
-    const currentSemRaw = rawSemesters.find((s) => s.isCurrent) || rawSemesters[rawSemesters.length - 1];
-    const currentSemEnriched = semestersWithSubjects.find((s) => String(s._id) === String(currentSemRaw._id));
-    const calculatedSgpa = calculateSgpa(currentSemEnriched, scale);
-
-    // Total credits across all semesters
+    // Total credits
     const totalCredits = semestersWithSubjects.reduce((sum, sem) => {
-      const semCredits =
-        sem.subjects && sem.subjects.length > 0
-          ? sem.subjects.reduce((a, b) => a + (b.credits || 0), 0)
-          : sem.credits || 20;
+      const semCredits = sem.subjects && sem.subjects.length > 0
+        ? sem.subjects.reduce((a, b) => a + (b.credits || 0), 0)
+        : sem.credits || 20;
       return sum + semCredits;
     }, 0);
 
-    // CGPA trend (one data point per semester)
-    const cgpaTrend = semestersWithSubjects.map((sem) => ({
+    // CGPA trend for completed semesters and overall progression
+    const cgpaTrend = semestersWithSubjects.map((sem, idx) => ({
       semester: sem.name.replace(/\s*\(current\)/i, ""),
       sgpa: calculateSgpa(sem, scale),
     }));
 
-    // Current subjects with calculated scores
-    const currentSubjects = (currentSemEnriched?.subjects || []).map((subj) => {
-      const score = calculateSubjectScore(subj, scale);
-      return {
-        ...subj.toObject(),
-        calculatedPct: score.pct,
-        letterGrade: score.letter,
-        gradePoint: score.gradePoint,
-      };
-    });
-
-    // At-risk subjects
-    const atRiskSubjects = findAtRiskSubjects(currentSemEnriched?.subjects || [], scale);
+    // At-risk subjects (only from the active current semester)
+    const atRiskSubjects = currentSemester ? findAtRiskSubjects(activeSubjects, scale) : [];
 
     res.status(200).json({
       user,
@@ -105,9 +160,10 @@ const getDashboardSummary = async (req, res, next) => {
       sgpa: calculatedSgpa,
       totalCredits,
       targetCgpa: scale === "4.0" ? 3.8 : 9.0,
-      currentSemester: currentSemRaw,
+      completedSemesters,
+      currentSemester,
       semesters: rawSemesters,
-      subjects: currentSubjects,
+      subjects: activeSubjects,
       cgpaTrend,
       atRiskSubjects,
     });
@@ -147,7 +203,7 @@ const getSemesters = async (req, res, next) => {
 
 /**
  * @route   GET /api/dashboard/subjects
- * @desc    Get subjects for the active semester with backend calculated grades.
+ * @desc    Get subjects ONLY for the active current semester (isCurrent: true).
  * @access  Private
  */
 const getSubjects = async (req, res, next) => {
@@ -155,9 +211,8 @@ const getSubjects = async (req, res, next) => {
     const user = await User.findById(req.user._id);
     const scale = resolveScale(user);
 
-    // Find the current semester (or most recent)
-    const currentSem = await Semester.findOne({ user: req.user._id, isCurrent: true }) ||
-      await Semester.findOne({ user: req.user._id }).sort({ createdAt: -1 });
+    // Find ONLY the current active semester
+    const currentSem = await Semester.findOne({ user: req.user._id, isCurrent: true });
 
     if (!currentSem) {
       return res.status(200).json([]);
@@ -216,3 +271,4 @@ module.exports = {
   getSubjects,
   getCgpaSummary,
 };
+

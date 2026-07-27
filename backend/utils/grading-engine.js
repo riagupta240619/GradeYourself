@@ -29,18 +29,81 @@ function pctToGrade4Scale(pct) {
   return { letter: "F", points: 0.0 };
 }
 
+// Convert letter grade to points and representative percentage
+function gradeToDetails(gradeStr, scale = "10.0") {
+  if (!gradeStr) return { letter: "P", points: scale === "4.0" ? 2.0 : 4.0, pct: 50 };
+  const g = String(gradeStr).trim().toUpperCase();
+
+  if (scale === "4.0") {
+    switch (g) {
+      case "A": case "A+": case "O": return { letter: "A", points: 4.0, pct: 95 };
+      case "A-": return { letter: "A-", points: 3.7, pct: 91 };
+      case "B+": return { letter: "B+", points: 3.3, pct: 88 };
+      case "B": return { letter: "B", points: 3.0, pct: 84 };
+      case "B-": return { letter: "B-", points: 2.7, pct: 81 };
+      case "C+": return { letter: "C+", points: 2.3, pct: 78 };
+      case "C": return { letter: "C", points: 2.0, pct: 72 };
+      case "D": return { letter: "D", points: 1.0, pct: 62 };
+      case "F": case "FAIL": return { letter: "F", points: 0.0, pct: 0 };
+      default: return { letter: g, points: 3.0, pct: 80 };
+    }
+  }
+
+  // 10.0 Scale
+  switch (g) {
+    case "O": case "OUTSTANDING": return { letter: "O", points: 10.0, pct: 95 };
+    case "A+": case "EXCELLENT": return { letter: "A+", points: 9.0, pct: 85 };
+    case "A": case "VERY GOOD": return { letter: "A", points: 8.0, pct: 75 };
+    case "B+": case "GOOD": return { letter: "B+", points: 7.0, pct: 65 };
+    case "B": case "ABOVE AVERAGE": return { letter: "B", points: 6.0, pct: 55 };
+    case "C": case "AVERAGE": return { letter: "C", points: 5.0, pct: 47 };
+    case "P": case "PASS": return { letter: "P", points: 4.0, pct: 40 };
+    case "F": case "FAIL": return { letter: "F", points: 0.0, pct: 0 };
+    default: return { letter: g, points: 8.0, pct: 75 };
+  }
+}
+
 /**
  * Calculate subject score percentage, letter grade, and grade points
  */
 function calculateSubjectScore(subject, scale = "10.0") {
   if (!subject) {
-    return { pct: 0, letter: "F", gradePoint: 0 };
+    return { pct: 0, letter: "P", gradePoint: 4.0 };
+  }
+
+  // 1. If subject has explicitly stored snapshot percentage/grade, use them directly
+  if (subject.finalPercentage !== null && subject.finalPercentage !== undefined && !isNaN(Number(subject.finalPercentage))) {
+    const pct = Number(subject.finalPercentage);
+    const letter = subject.grade || (scale === "4.0" ? pctToGrade4Scale(pct).letter : pctToGrade10Scale(pct).letter);
+    const gradePoint = subject.gradePoint !== null && subject.gradePoint !== undefined
+      ? Number(subject.gradePoint)
+      : (scale === "4.0" ? pctToGrade4Scale(pct).points : pctToGrade10Scale(pct).points);
+
+    return { pct: Number(pct.toFixed(2)), letter, gradePoint };
+  }
+
+  // 2. If subject has stored letter grade, derive details from grade
+  if (subject.grade) {
+    const details = gradeToDetails(subject.grade, scale);
+    const pct = subject.finalPercentage !== null && subject.finalPercentage !== undefined ? Number(subject.finalPercentage) : details.pct;
+    const gradePoint = subject.gradePoint !== null && subject.gradePoint !== undefined ? Number(subject.gradePoint) : details.points;
+    return { pct, letter: subject.grade, gradePoint };
+  }
+
+  // 3. If subject has stored marksObtained and maxMarks
+  if (typeof subject.marksObtained === "number" && typeof subject.maxMarks === "number" && subject.maxMarks > 0) {
+    const pct = Math.min(100, Math.max(0, (subject.marksObtained / subject.maxMarks) * 100));
+    const gradeInfo = scale === "4.0" ? pctToGrade4Scale(pct) : pctToGrade10Scale(pct);
+    const letter = subject.grade || gradeInfo.letter;
+    const gradePoint = subject.gradePoint !== null && subject.gradePoint !== undefined ? Number(subject.gradePoint) : gradeInfo.points;
+
+    return { pct: Number(pct.toFixed(2)), letter, gradePoint };
   }
 
   const marks = subject.marks || {};
   const hasMarksMap = marks && (marks.size > 0 || (typeof marks === "object" && Object.keys(marks).length > 0));
 
-  // If subject has internalMarks and externalMarks without a marks map
+  // 3. If subject has internalMarks and externalMarks without a marks map
   if (!hasMarksMap && (subject.internalMarks > 0 || subject.externalMarks > 0)) {
     const internal = subject.internalMarks || 0;
     const external = subject.externalMarks || 0;
@@ -48,15 +111,15 @@ function calculateSubjectScore(subject, scale = "10.0") {
     const pct = Math.min(100, Math.max(0, totalMarks));
 
     const gradeInfo = scale === "4.0" ? pctToGrade4Scale(pct) : pctToGrade10Scale(pct);
-    return { pct, letter: gradeInfo.letter, gradePoint: gradeInfo.points };
+    return { pct, letter: subject.grade || gradeInfo.letter, gradePoint: subject.gradePoint !== null && subject.gradePoint !== undefined ? Number(subject.gradePoint) : gradeInfo.points };
   }
 
-  // If subject has scheme and marks map
+  // 4. If subject has scheme and marks map
   const scheme = subject.scheme || {
     assessmentTypes: [
       { id: "a1", name: "Assignments", weightPct: 20, maxMarks: 20 },
-      { id: "a2", name: "Midterm", weightPct: 30, maxMarks: 50 },
-      { id: "a3", name: "Final", weightPct: 50, maxMarks: 100 },
+      { id: "m1", name: "Midterm Exam", weightPct: 30, maxMarks: 50 },
+      { id: "f1", name: "Final Exam", weightPct: 50, maxMarks: 100 },
     ],
   };
 
@@ -73,11 +136,15 @@ function calculateSubjectScore(subject, scale = "10.0") {
     }
   }
 
-  const pct = totalWeightEvaluated > 0 ? (totalWeightedScore / totalWeightEvaluated) * 100 : 82.5;
+  const pct = totalWeightEvaluated > 0 ? (totalWeightedScore / totalWeightEvaluated) * 100 : 0;
   const clampedPct = Math.min(100, Math.max(0, pct));
   const gradeInfo = scale === "4.0" ? pctToGrade4Scale(clampedPct) : pctToGrade10Scale(clampedPct);
 
-  return { pct: Number(clampedPct.toFixed(2)), letter: gradeInfo.letter, gradePoint: gradeInfo.points };
+  return {
+    pct: Number(clampedPct.toFixed(2)),
+    letter: subject.grade || gradeInfo.letter,
+    gradePoint: subject.gradePoint !== null && subject.gradePoint !== undefined ? Number(subject.gradePoint) : gradeInfo.points,
+  };
 }
 
 /**

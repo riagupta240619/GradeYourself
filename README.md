@@ -7,7 +7,7 @@ AI-powered CGPA planner — frontend build (Phase 6).
 npm install
 npm run dev
 ```
-Open http://localhost:5173
+Open https://grade-yourself.vercel.app
 
 ## Build
 ```bash

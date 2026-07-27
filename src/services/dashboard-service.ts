@@ -19,13 +19,37 @@ export interface DashboardSubject {
   scheme?: any;
 }
 
+export interface CompletedSemester {
+  _id?: string;
+  id?: string;
+  semesterNumber: number;
+  name: string;
+  subjects: DashboardSubject[];
+  credits: number;
+  sgpa: number | null;
+  grades: Array<{ subject: string; grade?: string; points?: number }>;
+}
+
+export interface CurrentSemesterData {
+  _id?: string;
+  id?: string;
+  semesterNumber?: number;
+  name?: string;
+  activeSubjects: DashboardSubject[];
+  assessments?: any[];
+  attendance?: any[];
+  internalMarks?: any[];
+  predictedScores?: any[];
+}
+
 export interface DashboardSummary {
   user: AuthUser;
-  cgpa: number;
-  sgpa: number;
+  cgpa: number | null;
+  sgpa: number | null;
   totalCredits: number;
   targetCgpa: number;
-  currentSemester: Semester;
+  completedSemesters?: CompletedSemester[];
+  currentSemester?: CurrentSemesterData | null;
   semesters: Semester[];
   subjects: DashboardSubject[];
   cgpaTrend: Array<{ semester: string; sgpa: number }>;

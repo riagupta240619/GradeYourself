@@ -47,12 +47,42 @@ function sanitizeMarksMap(rawMarks) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CREATE
+/**
+ * Helper to get or create the user's active current semester (isCurrent: true).
+ * If all existing semesters are completed (e.g. Semesters 1-4), automatically
+ * creates the next semester (e.g. Semester 5).
+ */
+async function getOrCreateCurrentSemester(userId) {
+  let currentSem = await Semester.findOne({ user: userId, isCurrent: true });
+  if (currentSem) return currentSem;
+
+  const allSemesters = await Semester.find({ user: userId });
+  let maxSemNum = 0;
+  allSemesters.forEach((s) => {
+    const match = (s.name || "").match(/\d+/);
+    if (match) {
+      maxSemNum = Math.max(maxSemNum, parseInt(match[0], 10));
+    }
+  });
+
+  const nextSemNum = maxSemNum > 0 ? maxSemNum + 1 : 1;
+  currentSem = await Semester.create({
+    user: userId,
+    name: `Semester ${nextSemNum}`,
+    isCurrent: true,
+    credits: 20,
+  });
+
+  return currentSem;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CREATE
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * @route   POST /api/subjects
- * @desc    Create a subject inside a semester owned by the authenticated user.
- *          The semester's user ownership is verified before creation.
+ * @desc    Create a subject inside the active CurrentSemester owned by the authenticated user.
  * @access  Private
  */
 const addSubject = async (req, res, next) => {
@@ -70,16 +100,20 @@ const addSubject = async (req, res, next) => {
       throw new Error("Credits must be a valid number between 1 and 10");
     }
 
-    if (!semesterId || typeof semesterId !== "string") {
-      res.status(400);
-      throw new Error("semesterId is required");
+    // Resolve target semester or get/create active current semester
+    let semester = null;
+    if (semesterId && typeof semesterId === "string" && semesterId !== "current") {
+      semester = await Semester.findOne({ _id: semesterId, user: req.user._id });
     }
 
-    // ── Verify semester exists and belongs to this user ───────────────────────
-    const semester = await Semester.findOne({ _id: semesterId, user: req.user._id });
     if (!semester) {
-      res.status(404);
-      throw new Error("Semester not found");
+      semester = await getOrCreateCurrentSemester(req.user._id);
+    }
+
+    // Enforce read-only protection on completed semesters
+    if (!semester.isCurrent) {
+      res.status(400);
+      throw new Error("Cannot add new subjects to a completed semester. Completed semesters are read-only. Please select the active current semester, or use Edit Semester in Past Results.");
     }
 
     const cleanMarks = sanitizeMarksMap(marks);
@@ -120,13 +154,15 @@ const getSubjects = async (req, res, next) => {
     const user = await User.findById(req.user._id);
     const scale = resolveScale(user);
 
-    // Optional filter: /api/subjects?semesterId=xxx
     const query = { user: req.user._id };
     if (req.query.semesterId && typeof req.query.semesterId === "string") {
       query.semester = req.query.semesterId;
+    } else if (req.query.currentOnly === "true" || req.query.all !== "true") {
+      const currentSem = await Semester.findOne({ user: req.user._id, isCurrent: true });
+      query.semester = currentSem ? currentSem._id : null;
     }
 
-    const subjects = await SubjectModel.find(query).sort({ createdAt: -1 });
+    const subjects = query.semester === null ? [] : await SubjectModel.find(query).sort({ createdAt: -1 });
 
     const formatted = subjects.map((subj) => formatSubject(subj, scale));
     res.status(200).json(formatted);

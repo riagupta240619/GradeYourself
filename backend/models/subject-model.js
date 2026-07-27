@@ -89,6 +89,37 @@ const subjectSchema = new mongoose.Schema(
       max: [100, "External marks cannot exceed 100"],
     },
 
+    // ── Stored Snapshot Fields ────────────────────────────────────────────────
+    marksObtained: {
+      type: Number,
+      default: null,
+    },
+    maxMarks: {
+      type: Number,
+      default: null,
+    },
+    finalPercentage: {
+      type: Number,
+      default: null,
+    },
+    grade: {
+      type: String,
+      default: null,
+    },
+    gradePoint: {
+      type: Number,
+      default: null,
+    },
+    assessments: [
+      {
+        id: { type: String },
+        name: { type: String },
+        marksObtained: { type: Number, default: null },
+        maxMarks: { type: Number, default: null },
+        weightPct: { type: Number, default: null },
+      },
+    ],
+
     // ── Assessment Scheme ─────────────────────────────────────────────────────
     scheme: {
       assessmentTypes: {

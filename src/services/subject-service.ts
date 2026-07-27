@@ -41,7 +41,30 @@ export const SubjectService = {
 
   async getSubjects(semesterId?: string): Promise<Subject[]> {
     const response = await api.get<Subject[]>("/subjects", {
-      params: semesterId ? { semesterId } : undefined,
+      params: semesterId ? { semesterId } : { currentOnly: "true" },
+    });
+    return response.data.map((item) => ({
+      ...item,
+      id: item._id || item.id,
+      scheme: item.scheme?.assessmentTypes ? item.scheme : {
+        id: "default-scheme",
+        name: "Standard Scheme",
+        university: "General",
+        isTemplate: false,
+        verified: true,
+        usedBy: 1,
+        assessmentTypes: [
+          { id: "a1", name: "Assignments", weightPct: 20, maxMarks: 20 },
+          { id: "m1", name: "Midterm Exam", weightPct: 30, maxMarks: 30 },
+          { id: "f1", name: "Final Exam", weightPct: 50, maxMarks: 50 },
+        ],
+      },
+    }));
+  },
+
+  async getCurrentSubjects(): Promise<Subject[]> {
+    const response = await api.get<Subject[]>("/subjects", {
+      params: { currentOnly: "true" },
     });
     return response.data.map((item) => ({
       ...item,
