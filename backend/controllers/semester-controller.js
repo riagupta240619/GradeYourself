@@ -425,6 +425,60 @@ const bulkSaveTranscript = async (req, res, next) => {
   }
 };
 
+/**
+ * @route   POST /api/semesters/:id/finalize
+ * @desc    Finalize an active current semester, locking its SGPA, moving it to CompletedSemesters,
+ *          and initializing a new active current semester.
+ * @access  Private
+ */
+const finalizeSemester = async (req, res, next) => {
+  try {
+    const semester = await Semester.findOne({ _id: req.params.id, user: req.user._id });
+    if (!semester) {
+      res.status(404);
+      throw new Error("Semester not found");
+    }
+
+    const user = await User.findById(req.user._id);
+    const scale = resolveScale(user);
+
+    const subjects = await SubjectModel.find({ semester: semester._id, user: req.user._id });
+    const fakeSem = { finalizedSgpa: null, subjects };
+    const computedSgpa = calculateSgpa(fakeSem, scale);
+
+    const finalSgpa = req.body.finalizedSgpa !== undefined && req.body.finalizedSgpa !== null && req.body.finalizedSgpa !== ""
+      ? Number(req.body.finalizedSgpa)
+      : (computedSgpa !== null ? computedSgpa : 8.0);
+
+    semester.isCurrent = false;
+    semester.finalizedSgpa = Math.round(finalSgpa * 100) / 100;
+    await semester.save();
+
+    // Determine name for the new current semester
+    const match = (semester.name || "").match(/\d+/);
+    const semNum = match ? parseInt(match[0], 10) : 1;
+    const newSemName = `Semester ${semNum + 1}`;
+
+    const newCurrent = await Semester.create({
+      user: req.user._id,
+      name: newSemName,
+      isCurrent: true,
+      credits: 20,
+    });
+
+    const formattedFinalized = await formatSemester(semester, scale);
+    const formattedNew = await formatSemester(newCurrent, scale);
+
+    res.status(200).json({
+      message: `Successfully finalized ${semester.name}. It is now in CompletedSemesters.`,
+      finalizedSemester: formattedFinalized,
+      newCurrentSemester: formattedNew,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   addSemester,
   getSemesters,
@@ -432,4 +486,5 @@ module.exports = {
   updateFullSemester,
   deleteSemester,
   bulkSaveTranscript,
+  finalizeSemester,
 };

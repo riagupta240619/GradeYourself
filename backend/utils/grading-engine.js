@@ -136,7 +136,17 @@ function calculateSubjectScore(subject, scale = "10.0") {
     }
   }
 
-  const pct = totalWeightEvaluated > 0 ? (totalWeightedScore / totalWeightEvaluated) * 100 : 0;
+  if (totalWeightEvaluated === 0) {
+    return {
+      pct: null,
+      letter: "In Progress",
+      gradePoint: null,
+      status: "In Progress",
+      isInProgress: true,
+    };
+  }
+
+  const pct = (totalWeightedScore / totalWeightEvaluated) * 100;
   const clampedPct = Math.min(100, Math.max(0, pct));
   const gradeInfo = scale === "4.0" ? pctToGrade4Scale(clampedPct) : pctToGrade10Scale(clampedPct);
 
@@ -144,6 +154,8 @@ function calculateSubjectScore(subject, scale = "10.0") {
     pct: Number(clampedPct.toFixed(2)),
     letter: subject.grade || gradeInfo.letter,
     gradePoint: subject.gradePoint !== null && subject.gradePoint !== undefined ? Number(subject.gradePoint) : gradeInfo.points,
+    status: "Completed",
+    isInProgress: false,
   };
 }
 
@@ -166,6 +178,9 @@ function calculateSgpa(semester, scale = "10.0") {
   for (const subj of subjects) {
     const cred = Number(subj.credits || 3);
     const score = calculateSubjectScore(subj, scale);
+    if (score.isInProgress || score.pct === null || score.gradePoint === null) {
+      continue;
+    }
     totalPoints += score.gradePoint * cred;
     totalCredits += cred;
   }
@@ -177,15 +192,19 @@ function calculateSgpa(semester, scale = "10.0") {
 }
 
 /**
- * Calculate overall CGPA across semesters
+ * Calculate overall CGPA across completed semesters ONLY
  */
 function calculateCgpa(semesters = [], scale = "10.0") {
   if (!semesters || semesters.length === 0) return null;
 
+  // Requirement 3: Official CGPA should always be calculated ONLY from CompletedSemesters.
+  const completedSemesters = semesters.filter((sem) => !sem.isCurrent);
+  if (completedSemesters.length === 0) return null;
+
   let totalWeightedSgpa = 0;
   let totalCreditsSum = 0;
 
-  for (const sem of semesters) {
+  for (const sem of completedSemesters) {
     const semSgpa = calculateSgpa(sem, scale);
     if (semSgpa === null || isNaN(semSgpa)) continue;
     const semCredits = sem.credits || (sem.subjects && sem.subjects.length > 0 ? sem.subjects.reduce((a, b) => a + (b.credits || 0), 0) : 20);

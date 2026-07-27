@@ -134,22 +134,37 @@ const getDashboardSummary = async (req, res, next) => {
       };
     }
 
-    // CGPA overall across all semesters
-    const calculatedCgpa = calculateCgpa(semestersWithSubjects, scale);
+    // CGPA overall strictly across CompletedSemesters ONLY
+    const completedSemWithSubjects = semestersWithSubjects.filter((s) => !s.isCurrent);
+    const calculatedCgpa = calculateCgpa(completedSemWithSubjects, scale);
 
-    // Total credits
-    const totalCredits = semestersWithSubjects.reduce((sum, sem) => {
+    // Completed credits strictly from CompletedSemesters ONLY
+    const completedCredits = completedSemWithSubjects.reduce((sum, sem) => {
       const semCredits = sem.subjects && sem.subjects.length > 0
         ? sem.subjects.reduce((a, b) => a + (b.credits || 0), 0)
         : sem.credits || 20;
       return sum + semCredits;
     }, 0);
 
-    // CGPA trend for completed semesters and overall progression
-    const cgpaTrend = semestersWithSubjects.map((sem, idx) => ({
+    // Current Semester credits separately (not counted as completed until finalized)
+    const currentSemesterCredits = activeSubjects.reduce((sum, s) => sum + (s.credits || 3), 0);
+
+    // Official CGPA trend for completed semesters ONLY
+    const cgpaTrend = completedSemWithSubjects.map((sem, idx) => ({
       semester: sem.name.replace(/\s*\(current\)/i, ""),
       sgpa: calculateSgpa(sem, scale),
     }));
+
+    // Projected CGPA incorporating current semester prediction if available
+    let projectedCgpa = calculatedCgpa;
+    if (currentSemester && calculatedSgpa !== null && !isNaN(calculatedSgpa)) {
+      const allSemForProjection = [...completedSemWithSubjects];
+      const currentSemEnriched = semestersWithSubjects.find((s) => String(s._id) === String(currentSemRaw._id));
+      if (currentSemEnriched) {
+        allSemForProjection.push({ ...currentSemEnriched, isCurrent: false });
+        projectedCgpa = calculateCgpa(allSemForProjection, scale);
+      }
+    }
 
     // At-risk subjects (only from the active current semester)
     const atRiskSubjects = currentSemester ? findAtRiskSubjects(activeSubjects, scale) : [];
@@ -158,7 +173,10 @@ const getDashboardSummary = async (req, res, next) => {
       user,
       cgpa: calculatedCgpa,
       sgpa: calculatedSgpa,
-      totalCredits,
+      projectedCgpa,
+      totalCredits: completedCredits,
+      completedCredits,
+      currentSemesterCredits,
       targetCgpa: scale === "4.0" ? 3.8 : 9.0,
       completedSemesters,
       currentSemester,
@@ -246,12 +264,13 @@ const getCgpaSummary = async (req, res, next) => {
     const scale = resolveScale(user);
 
     const rawSemesters = await Semester.find({ user: req.user._id });
+    const completedSemRawList = rawSemesters.filter((s) => !s.isCurrent);
 
-    if (rawSemesters.length === 0) {
+    if (completedSemRawList.length === 0) {
       return res.status(200).json({ cgpa: null, totalCredits: 0 });
     }
 
-    const semestersWithSubjects = await Promise.all(rawSemesters.map(semesterWithSubjects));
+    const semestersWithSubjects = await Promise.all(completedSemRawList.map(semesterWithSubjects));
     const cgpa = calculateCgpa(semestersWithSubjects, scale);
     const totalCredits = semestersWithSubjects.reduce((sum, sem) => {
       return sum + (sem.subjects.length > 0

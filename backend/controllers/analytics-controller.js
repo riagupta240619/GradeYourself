@@ -98,7 +98,8 @@ const getAnalyticsSummary = async (req, res, next) => {
     const user = await User.findById(req.user._id);
     const scale = resolveScale(user);
 
-    const semesters = await Semester.find({ user: req.user._id }).sort({ createdAt: 1 });
+    // Requirement 2: Exclude active current semester (isCurrent: true) from Analytics and Past Results
+    const semesters = await Semester.find({ user: req.user._id, isCurrent: false }).sort({ createdAt: 1 });
 
     if (semesters.length === 0) {
       return res.status(200).json({

@@ -13,6 +13,7 @@ export interface AuthUser {
   currentCgpa?: number | null;
   academicStatus?: string;
   targetCgpa?: number;
+  totalDegreeCredits?: number;
   profileCompleted: boolean;
   token?: string;
 }
@@ -41,6 +42,7 @@ export interface SetupPayload {
   currentCgpa?: number | null;
   academicStatus?: string;
   targetCgpa?: number;
+  totalDegreeCredits?: number;
 }
 
 export interface UpdateProfilePayload {
@@ -54,6 +56,7 @@ export interface UpdateProfilePayload {
   currentCgpa?: number | null;
   academicStatus?: string;
   targetCgpa?: number;
+  totalDegreeCredits?: number;
 }
 
 export interface ChangePasswordPayload {

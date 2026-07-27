@@ -86,6 +86,14 @@ export const SemesterService = {
     return response.data;
   },
 
+  async finalizeSemester(id: string, finalizedSgpa?: number | null): Promise<{ message: string; finalizedSemester: SemesterWithTotalCredits; newCurrentSemester: SemesterWithTotalCredits }> {
+    const response = await api.post<{ message: string; finalizedSemester: SemesterWithTotalCredits; newCurrentSemester: SemesterWithTotalCredits }>(
+      `/semesters/${id}/finalize`,
+      { finalizedSgpa }
+    );
+    return response.data;
+  },
+
   async bulkSaveTranscript(payload: {
     university?: string;
     program?: string;

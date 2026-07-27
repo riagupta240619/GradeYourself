@@ -55,6 +55,7 @@ export function ProfilePage() {
   const [academicSession, setAcademicSession] = useState(user?.academicSession || "");
   const [cgpaInput, setCgpaInput] = useState(typeof user?.currentCgpa === "number" ? String(user.currentCgpa) : "");
   const [academicStatus, setAcademicStatus] = useState(user?.academicStatus || "Active Student");
+  const [totalDegreeCredits, setTotalDegreeCredits] = useState<number>(user?.totalDegreeCredits || 160);
 
   useEffect(() => {
     if (user) {
@@ -66,6 +67,7 @@ export function ProfilePage() {
       setAcademicSession(user.academicSession || "");
       setCgpaInput(typeof user.currentCgpa === "number" ? String(user.currentCgpa) : "");
       setAcademicStatus(user.academicStatus || "Active Student");
+      setTotalDegreeCredits(user.totalDegreeCredits || 160);
     }
   }, [user]);
 
@@ -98,6 +100,7 @@ export function ProfilePage() {
         academicSession: academicSession.trim(),
         currentCgpa: parsedCgpa,
         academicStatus: academicStatus.trim(),
+        totalDegreeCredits: Number(totalDegreeCredits) || 160,
       });
 
       toast.success("Academic profile updated successfully!");

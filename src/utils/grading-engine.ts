@@ -92,11 +92,21 @@ export function calculateSgpa(semester: Semester, scale: GradeScale): number {
   return Math.round((points / totalCredits) * 100) / 100;
 }
 
-/** Cumulative CGPA across all provided semesters. */
+/** Check if a subject has any entered marks. */
+export function hasSubjectMarks(subject: Subject): boolean {
+  if (!subject?.scheme?.assessmentTypes) return false;
+  return subject.scheme.assessmentTypes.some((type) => {
+    const raw = subject.marks ? subject.marks[type.id] : null;
+    return raw !== null && raw !== undefined && !isNaN(Number(raw));
+  });
+}
+
+/** Cumulative CGPA across CompletedSemesters ONLY. */
 export function calculateCgpa(semesters: Semester[], scale: GradeScale): number {
   let totalCredits = 0;
   let totalPoints = 0;
-  for (const sem of semesters) {
+  const completedSemesters = semesters.filter((sem) => !sem.isCurrent);
+  for (const sem of completedSemesters) {
     const subjects = sem.subjects || [];
     const subjectCredits = subjects.reduce((s, subj) => s + subj.credits, 0);
     const credits = subjectCredits > 0 ? subjectCredits : (sem.credits ?? 20);

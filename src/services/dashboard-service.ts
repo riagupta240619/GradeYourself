@@ -10,9 +10,11 @@ export interface DashboardSubject {
   credits: number;
   targetGrade?: string;
   colorTag?: string;
-  calculatedPct?: number;
-  letterGrade?: string;
-  gradePoint?: number;
+  calculatedPct?: number | null;
+  letterGrade?: string | null;
+  gradePoint?: number | null;
+  status?: string;
+  isInProgress?: boolean;
   internalMarks?: number;
   externalMarks?: number;
   marks?: Record<string, number | null>;
@@ -46,13 +48,16 @@ export interface DashboardSummary {
   user: AuthUser;
   cgpa: number | null;
   sgpa: number | null;
+  projectedCgpa?: number | null;
   totalCredits: number;
+  completedCredits?: number;
+  currentSemesterCredits?: number;
   targetCgpa: number;
   completedSemesters?: CompletedSemester[];
   currentSemester?: CurrentSemesterData | null;
   semesters: Semester[];
   subjects: DashboardSubject[];
-  cgpaTrend: Array<{ semester: string; sgpa: number }>;
+  cgpaTrend: Array<{ semester: string; sgpa: number | null }>;
   atRiskSubjects: Array<{ subjectId: string; subjectName: string; reason: string; currentPct?: number; letterGrade?: string }>;
 }
 

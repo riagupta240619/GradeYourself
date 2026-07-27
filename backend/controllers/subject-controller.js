@@ -22,6 +22,8 @@ function formatSubject(subject, scale) {
     calculatedPct: score.pct,
     letterGrade: score.letter,
     gradePoint: score.gradePoint,
+    status: score.status,
+    isInProgress: score.isInProgress,
   };
 }
 

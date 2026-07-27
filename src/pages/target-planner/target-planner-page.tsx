@@ -59,29 +59,43 @@ export function TargetPlannerPage() {
   // Planning metrics calculations
   const targetCgpa = useMemo(() => parseFloat((target / 10).toFixed(2)), [target]);
 
+  // Requirement 3: Total Degree Credits from user profile (default 160)
+  const totalDegreeCredits = user?.totalDegreeCredits || 160;
+
+  // Requirement 1: Completed Credits strictly from CompletedSemesters only
   const completedCredits = useMemo(() => {
+    if (typeof dashboardData?.completedCredits === "number") {
+      return dashboardData.completedCredits;
+    }
     if (!dashboardData?.completedSemesters) return 0;
     return dashboardData.completedSemesters.reduce((acc, sem) => acc + (sem.credits || 0), 0);
   }, [dashboardData]);
+
+  // Requirement 4: Current Semester Credits displayed separately
+  const currentSemesterCredits = useMemo(() => {
+    return subjects.reduce((sum, s) => sum + (s.credits || 3), 0);
+  }, [subjects]);
 
   const currentCgpa = useMemo(() => {
     return dashboardData?.cgpa ?? 0;
   }, [dashboardData]);
 
+  // Requirement 2: Remaining Credits = Total Degree Credits - Completed Credits
   const remainingCredits = useMemo(() => {
-    return subjects.reduce((sum, s) => sum + (s.credits || 3), 0);
-  }, [subjects]);
+    return Math.max(0, totalDegreeCredits - completedCredits);
+  }, [totalDegreeCredits, completedCredits]);
 
+  // Requirement 5: Required SGPA for active current semester
   const requiredSgpaThisSemester = useMemo(() => {
-    if (remainingCredits === 0) return 0;
+    if (currentSemesterCredits === 0) return 0;
     if (completedCredits === 0) return targetCgpa;
 
-    const totalTargetGradePoints = targetCgpa * (completedCredits + remainingCredits);
+    const totalTargetPointsForPacedProgress = targetCgpa * (completedCredits + currentSemesterCredits);
     const completedGradePoints = currentCgpa * completedCredits;
-    const requiredPoints = totalTargetGradePoints - completedGradePoints;
-    const reqSgpa = requiredPoints / remainingCredits;
+    const requiredPointsInCurrentSem = totalTargetPointsForPacedProgress - completedGradePoints;
+    const reqSgpa = requiredPointsInCurrentSem / currentSemesterCredits;
     return Math.max(0, parseFloat(reqSgpa.toFixed(2)));
-  }, [targetCgpa, completedCredits, currentCgpa, remainingCredits]);
+  }, [targetCgpa, completedCredits, currentCgpa, currentSemesterCredits]);
 
   // Per-subject predictions
   const subjectPredictions = useMemo(() => {
@@ -105,7 +119,7 @@ export function TargetPlannerPage() {
 
       assessmentTypes.forEach((type: any) => {
         const val = marksMap[type.id];
-        if (val !== undefined && val !== null && val !== "") {
+        if (val !== undefined && val !== null && !isNaN(Number(val))) {
           evaluatedMarks += Number(val);
           evaluatedMax += Number(type.maxMarks || 100);
         } else {
@@ -220,18 +234,14 @@ export function TargetPlannerPage() {
         <Card className="border border-white/10 bg-zinc-950/60 p-5 flex flex-col justify-between space-y-3">
           <div>
             <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block mb-1">Planning Metrics</span>
-            <div className="space-y-2 text-xs">
+            <div className="space-y-1.5 text-xs">
               <div className="flex items-center justify-between">
-                <span className="text-zinc-400">Current CGPA:</span>
+                <span className="text-zinc-400">Official CGPA:</span>
                 <span className="font-bold text-white font-mono">{currentCgpa ? currentCgpa.toFixed(2) : "N/A"}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-zinc-400">Completed Credits:</span>
-                <span className="font-bold text-zinc-200 font-mono">{completedCredits}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-zinc-400">Remaining Credits:</span>
-                <span className="font-bold text-purple-300 font-mono">{remainingCredits}</span>
+                <span className="text-zinc-400">Current Sem Credits:</span>
+                <span className="font-bold text-amber-400 font-mono">{currentSemesterCredits}</span>
               </div>
             </div>
           </div>

@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AddSubjectModal } from "@/components/upload/add-subject-modal";
-import { subjectCurrentPct, predictSubject, pctToLetter } from "@/lib/grading/engine";
+import { subjectCurrentPct, predictSubject, pctToLetter, hasSubjectMarks } from "@/lib/grading/engine";
 import { SubjectService } from "@/services/subject-service";
 import type { Subject } from "@/types";
 import { Link } from "react-router-dom";
@@ -131,6 +131,7 @@ export function SubjectDetailsPage() {
     );
   }
 
+  const hasMarks = hasSubjectMarks(subject);
   const pct = subject.calculatedPct ?? subjectCurrentPct(subject);
   const prediction = predictSubject(subject);
 
@@ -176,12 +177,21 @@ export function SubjectDetailsPage() {
               <div className="flex items-center gap-3">
                 <span className="h-4 w-4 rounded-full shadow-sm" style={{ backgroundColor: subject.colorTag || "#3b82f6" }} />
                 <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">{subject.name}</h1>
-                <Badge tone="accent">{subject.credits} Credits</Badge>
+                <Badge tone={hasMarks ? "accent" : "warning"}>
+                  {hasMarks ? `${subject.credits} Credits` : "Status: In Progress"}
+                </Badge>
               </div>
 
               <div className="mt-3 flex flex-wrap items-center gap-4 text-xs">
                 <span className="text-zinc-400">
-                  Current Score: <span className="font-mono font-bold text-white text-sm">{pct.toFixed(1)}%</span> ({pctToLetter(pct)})
+                  Current Score:{" "}
+                  {hasMarks ? (
+                    <>
+                      <span className="font-mono font-bold text-white text-sm">{pct.toFixed(1)}%</span> ({pctToLetter(pct)})
+                    </>
+                  ) : (
+                    <span className="font-bold text-amber-400">Status: In Progress</span>
+                  )}
                 </span>
                 <span className="text-zinc-500">•</span>
                 <span className="text-zinc-400">

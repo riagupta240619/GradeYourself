@@ -39,6 +39,7 @@ function formatUserResponse(user) {
     currentCgpa: typeof user.currentCgpa === "number" ? user.currentCgpa : null,
     academicStatus: user.academicStatus || "",
     targetCgpa: typeof user.targetCgpa === "number" ? user.targetCgpa : 9.0,
+    totalDegreeCredits: typeof user.totalDegreeCredits === "number" && !isNaN(user.totalDegreeCredits) && user.totalDegreeCredits > 0 ? user.totalDegreeCredits : 160,
     profileCompleted: Boolean(user.profileCompleted),
   };
 }
@@ -183,7 +184,7 @@ const updateSetupProfile = async (req, res, next) => {
       throw new Error("User not found");
     }
 
-    const { college, course, semesterSystem, currentSemester, branch, academicSession, currentCgpa, academicStatus, targetCgpa } = req.body;
+    const { college, course, semesterSystem, currentSemester, branch, academicSession, currentCgpa, academicStatus, targetCgpa, totalDegreeCredits } = req.body;
 
     if (college !== undefined) user.college = sanitizeString(college);
     if (course !== undefined) user.course = sanitizeString(course);
@@ -194,6 +195,7 @@ const updateSetupProfile = async (req, res, next) => {
     if (currentCgpa !== undefined) user.currentCgpa = currentCgpa === null || currentCgpa === "" || isNaN(Number(currentCgpa)) ? null : Number(currentCgpa);
     if (academicStatus !== undefined) user.academicStatus = sanitizeString(academicStatus);
     if (targetCgpa !== undefined && !isNaN(Number(targetCgpa))) user.targetCgpa = Number(targetCgpa);
+    if (totalDegreeCredits !== undefined && !isNaN(Number(totalDegreeCredits)) && Number(totalDegreeCredits) > 0) user.totalDegreeCredits = Number(totalDegreeCredits);
 
     if (!user.currentSemester && user.semesterSystem) {
       user.currentSemester = user.semesterSystem;
@@ -225,7 +227,7 @@ const updateUserProfile = async (req, res, next) => {
       throw new Error("User not found");
     }
 
-    const { name, college, branch, course, semesterSystem, currentSemester, academicSession, currentCgpa, academicStatus, targetCgpa } = req.body;
+    const { name, college, branch, course, semesterSystem, currentSemester, academicSession, currentCgpa, academicStatus, targetCgpa, totalDegreeCredits } = req.body;
 
     if (name !== undefined) {
       if (typeof name !== "string" || name.trim() === "") {
@@ -244,6 +246,7 @@ const updateUserProfile = async (req, res, next) => {
     if (currentCgpa !== undefined) user.currentCgpa = currentCgpa === null || currentCgpa === "" || isNaN(Number(currentCgpa)) ? null : Number(currentCgpa);
     if (academicStatus !== undefined) user.academicStatus = sanitizeString(academicStatus);
     if (targetCgpa !== undefined && !isNaN(Number(targetCgpa))) user.targetCgpa = Number(targetCgpa);
+    if (totalDegreeCredits !== undefined && !isNaN(Number(totalDegreeCredits)) && Number(totalDegreeCredits) > 0) user.totalDegreeCredits = Number(totalDegreeCredits);
 
     if (!user.currentSemester && user.semesterSystem) {
       user.currentSemester = user.semesterSystem;

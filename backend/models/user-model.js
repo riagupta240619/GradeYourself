@@ -62,6 +62,10 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 9.0,
     },
+    totalDegreeCredits: {
+      type: Number,
+      default: 160,
+    },
     profileCompleted: {
       type: Boolean,
       default: false,
