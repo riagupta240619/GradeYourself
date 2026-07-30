@@ -136,30 +136,49 @@ export function DashboardPage() {
   // Requirement: Progression Graph trend data
   // Official mode: Completed semesters ONLY
   // Predicted mode: Includes active current semester projected CGPA as a dotted point
+  // Requirement: 4-Series Progression Graph trend data
+  // Official SGPA (Solid Blue), Projected SGPA (Dotted Blue), Official CGPA (Solid Purple), Projected CGPA (Dotted Purple)
   const cgpaTrend: TrendChartPoint[] = useMemo(() => {
     if (!summaryData?.cgpaTrend) return [];
 
-    const baseTrend: TrendChartPoint[] = summaryData.cgpaTrend.map((item) => ({
-      label: item.semester,
-      value: item.sgpa,
-      projectedValue: item.sgpa,
-      isProjected: false,
-    }));
+    const completedCount = summaryData.cgpaTrend.length;
+
+    const baseTrend: TrendChartPoint[] = summaryData.cgpaTrend.map((item: any, idx: number) => {
+      const isLastCompleted = idx === completedCount - 1;
+      const sgpaVal = item.sgpa !== undefined && item.sgpa !== null ? Number(item.sgpa) : null;
+      const cgpaVal = item.cgpa !== undefined && item.cgpa !== null ? Number(item.cgpa) : null;
+
+      return {
+        label: item.semester,
+        isProjected: false,
+        officialSgpa: sgpaVal,
+        officialCgpa: cgpaVal,
+        // Anchor points on the last completed semester so dotted lines connect seamlessly!
+        projectedSgpa: isLastCompleted ? sgpaVal : null,
+        projectedCgpa: isLastCompleted ? cgpaVal : null,
+        credits: item.credits || 20,
+        status: "Completed",
+      };
+    });
 
     if (summaryData?.currentSemester) {
-      const projVal = summaryData.projectedCgpa ?? summaryData.sgpa ?? activeCgpa;
+      const currentSemSgpa = summaryData.sgpa !== undefined && summaryData.sgpa !== null ? Number(summaryData.sgpa) : (calculatedSgpa ?? null);
+      const currentSemCgpa = summaryData.projectedCgpa !== undefined && summaryData.projectedCgpa !== null ? Number(summaryData.projectedCgpa) : (activeCgpa ?? null);
+
       baseTrend.push({
         label: `${summaryData.currentSemester.name || "Current Sem"} (Projected)`,
-        value: null,
-        projectedValue: projVal,
-        confidencePct,
-        note: "Based on current semester assessment predictions",
         isProjected: true,
+        officialSgpa: null,
+        officialCgpa: null,
+        projectedSgpa: currentSemSgpa,
+        projectedCgpa: currentSemCgpa,
+        confidencePct,
+        note: "Based on entered assessments",
       });
     }
 
     return baseTrend;
-  }, [summaryData, confidencePct, activeCgpa]);
+  }, [summaryData, confidencePct, calculatedSgpa, activeCgpa]);
 
   // Requirement: At-Risk subjects analyzes ONLY Current Semester subjects
   const activeAtRiskSubjects = useMemo(() => {

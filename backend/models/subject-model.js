@@ -9,6 +9,25 @@ const assessmentTypeSchema = new mongoose.Schema({
   weightPct: { type: Number, required: true },
 });
 
+const hierarchicalAssessmentSchema = new mongoose.Schema({
+  id: { type: String, required: true },
+  name: { type: String, required: true },
+  maxMarks: { type: Number, required: true },
+});
+
+const componentSchema = new mongoose.Schema({
+  id: { type: String, required: true },
+  name: { type: String, required: true },
+  weightPct: { type: Number, required: true },
+  rule: {
+    type: String,
+    enum: ["average", "sum", "highest", "best_n", "lowest", "custom"],
+    default: "average",
+  },
+  bestN: { type: Number },
+  assessments: [hierarchicalAssessmentSchema],
+});
+
 /**
  * Subject — authoritative single representation of a subject.
  *
@@ -66,8 +85,7 @@ const subjectSchema = new mongoose.Schema(
     },
 
     // ── Marks ─────────────────────────────────────────────────────────────────
-    // Flexible map: assessmentType.id → mark value
-    // e.g. { a1: 18, m1: 26, f1: 45 }
+    // Flexible map: assessmentId -> mark value
     marks: {
       type: Map,
       of: Number,
@@ -122,6 +140,7 @@ const subjectSchema = new mongoose.Schema(
 
     // ── Assessment Scheme ─────────────────────────────────────────────────────
     scheme: {
+      components: [componentSchema],
       assessmentTypes: {
         type: [assessmentTypeSchema],
         default: [
@@ -134,6 +153,8 @@ const subjectSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    toObject: { flattenMaps: true },
+    toJSON: { flattenMaps: true },
   }
 );
 

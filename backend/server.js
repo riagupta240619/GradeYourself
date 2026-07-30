@@ -1,4 +1,12 @@
-"use strict";
+const dns = require("dns");
+try {
+  dns.setServers(["8.8.8.8", "1.1.1.1", "8.8.4.4"]);
+} catch (err) {
+  // Fallback to default system DNS if custom servers fail
+}
+if (dns.setDefaultResultOrder) {
+  dns.setDefaultResultOrder("ipv4first");
+}
 
 // ── 1. Load environment variables first ──────────────────────────────────────
 const dotenv = require("dotenv");

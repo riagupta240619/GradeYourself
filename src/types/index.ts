@@ -1,5 +1,22 @@
 export type GradeScale = "4.0" | "10.0" | "percentage" | "letter";
 
+export type AggregationRule = "average" | "sum" | "highest" | "best_n" | "lowest" | "custom";
+
+export interface HierarchicalAssessment {
+  id: string;
+  name: string;
+  maxMarks: number;
+}
+
+export interface SchemeComponent {
+  id: string;
+  name: string;
+  weightPct: number;
+  rule: AggregationRule;
+  bestN?: number;
+  assessments: HierarchicalAssessment[];
+}
+
 export interface AssessmentType {
   id: string;
   name: string;
@@ -10,11 +27,12 @@ export interface AssessmentType {
 export interface GradingScheme {
   id: string;
   name: string;
-  university: string;
-  isTemplate: boolean;
-  verified: boolean;
-  usedBy: number;
-  assessmentTypes: AssessmentType[];
+  university?: string;
+  isTemplate?: boolean;
+  verified?: boolean;
+  usedBy?: number;
+  components?: SchemeComponent[];
+  assessmentTypes?: AssessmentType[];
 }
 
 export interface Subject {

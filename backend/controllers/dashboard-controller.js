@@ -69,8 +69,11 @@ const getDashboardSummary = async (req, res, next) => {
       const enriched = semestersWithSubjects.find((s) => String(s._id) === String(sem._id)) || sem;
       const semSubjects = (enriched.subjects || []).map((subj) => {
         const score = calculateSubjectScore(subj, scale);
+        const rawObj = typeof subj.toObject === "function" ? subj.toObject({ flattenMaps: true }) : subj;
+        const marks = rawObj.marks instanceof Map ? Object.fromEntries(rawObj.marks) : (rawObj.marks || {});
         return {
-          ...subj.toObject(),
+          ...rawObj,
+          marks,
           calculatedPct: score.pct,
           letterGrade: score.letter,
           gradePoint: score.gradePoint,
@@ -108,8 +111,11 @@ const getDashboardSummary = async (req, res, next) => {
 
       activeSubjects = (currentSemEnriched?.subjects || []).map((subj) => {
         const score = calculateSubjectScore(subj, scale);
+        const rawObj = typeof subj.toObject === "function" ? subj.toObject({ flattenMaps: true }) : subj;
+        const marks = rawObj.marks instanceof Map ? Object.fromEntries(rawObj.marks) : (rawObj.marks || {});
         return {
-          ...subj.toObject(),
+          ...rawObj,
+          marks,
           calculatedPct: score.pct,
           letterGrade: score.letter,
           gradePoint: score.gradePoint,
@@ -149,11 +155,24 @@ const getDashboardSummary = async (req, res, next) => {
     // Current Semester credits separately (not counted as completed until finalized)
     const currentSemesterCredits = activeSubjects.reduce((sum, s) => sum + (s.credits || 3), 0);
 
-    // Official CGPA trend for completed semesters ONLY
-    const cgpaTrend = completedSemWithSubjects.map((sem, idx) => ({
-      semester: sem.name.replace(/\s*\(current\)/i, ""),
-      sgpa: calculateSgpa(sem, scale),
-    }));
+    // Official cumulative CGPA trend for completed semesters ONLY
+    const cgpaTrend = completedSemWithSubjects.map((sem, idx) => {
+      const prefixSemesters = completedSemWithSubjects.slice(0, idx + 1);
+      const cumulativeCgpa = calculateCgpa(prefixSemesters, scale);
+      const semSgpa = calculateSgpa(sem, scale);
+      const semCredits = sem.subjects && sem.subjects.length > 0
+        ? sem.subjects.reduce((a, b) => a + (b.credits || 0), 0)
+        : sem.credits || 20;
+
+      return {
+        semester: sem.name.replace(/\s*\(current\)/i, ""),
+        isCurrent: false,
+        cgpa: cumulativeCgpa,
+        sgpa: semSgpa,
+        credits: semCredits,
+        status: "Completed",
+      };
+    });
 
     // Projected CGPA incorporating current semester prediction if available
     let projectedCgpa = calculatedCgpa;
@@ -239,8 +258,11 @@ const getSubjects = async (req, res, next) => {
     const subjects = await SubjectModel.find({ semester: currentSem._id, user: req.user._id });
     const formatted = subjects.map((subj) => {
       const score = calculateSubjectScore(subj, scale);
+      const rawObj = typeof subj.toObject === "function" ? subj.toObject({ flattenMaps: true }) : subj;
+      const marks = rawObj.marks instanceof Map ? Object.fromEntries(rawObj.marks) : (rawObj.marks || {});
       return {
-        ...subj.toObject(),
+        ...rawObj,
+        marks,
         calculatedPct: score.pct,
         letterGrade: score.letter,
         gradePoint: score.gradePoint,

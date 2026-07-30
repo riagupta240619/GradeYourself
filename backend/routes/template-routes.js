@@ -1,9 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const { getTemplates } = require("../controllers/template-controller");
+const { getTemplates, createTemplate, deleteTemplate } = require("../controllers/template-controller");
 const { verifyToken } = require("../middleware/auth-middleware");
 
-// Protected Route for Community Templates
 router.get("/", verifyToken, getTemplates);
+router.post("/", verifyToken, createTemplate);
+router.delete("/:id", verifyToken, deleteTemplate);
 
 module.exports = router;

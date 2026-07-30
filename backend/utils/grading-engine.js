@@ -114,25 +114,16 @@ function calculateSubjectScore(subject, scale = "10.0") {
     return { pct, letter: subject.grade || gradeInfo.letter, gradePoint: subject.gradePoint !== null && subject.gradePoint !== undefined ? Number(subject.gradePoint) : gradeInfo.points };
   }
 
-  // 4. If subject has scheme and marks map
-  const scheme = subject.scheme || {
-    assessmentTypes: [
-      { id: "a1", name: "Assignments", weightPct: 20, maxMarks: 20 },
-      { id: "m1", name: "Midterm Exam", weightPct: 30, maxMarks: 50 },
-      { id: "f1", name: "Final Exam", weightPct: 50, maxMarks: 100 },
-    ],
-  };
-
+  // 4. Hierarchical Component-based Scheme evaluation
+  const normScheme = normalizeScheme(subject.scheme);
   let totalWeightEvaluated = 0;
   let totalWeightedScore = 0;
 
-  for (const type of scheme.assessmentTypes || []) {
-    const markVal = marks[type.id] !== undefined ? marks[type.id] : marks.get ? marks.get(type.id) : null;
-    if (markVal !== null && markVal !== undefined && !isNaN(Number(markVal))) {
-      const numericMark = Number(markVal);
-      const contribution = (numericMark / type.maxMarks) * type.weightPct;
-      totalWeightedScore += contribution;
-      totalWeightEvaluated += type.weightPct;
+  for (const comp of normScheme.components || []) {
+    const evalRes = evaluateComponentScore(comp, marks);
+    if (evalRes.hasEntered) {
+      totalWeightEvaluated += evalRes.weightPct;
+      totalWeightedScore += evalRes.contribution;
     }
   }
 
@@ -156,6 +147,124 @@ function calculateSubjectScore(subject, scale = "10.0") {
     gradePoint: subject.gradePoint !== null && subject.gradePoint !== undefined ? Number(subject.gradePoint) : gradeInfo.points,
     status: "Completed",
     isInProgress: false,
+  };
+}
+
+/**
+ * Normalize any assessment scheme to the hierarchical components format.
+ */
+function normalizeScheme(scheme) {
+  if (!scheme) {
+    return {
+      components: [
+        {
+          id: "comp-a1",
+          name: "Assignments",
+          weightPct: 20,
+          rule: "average",
+          assessments: [{ id: "a1", name: "Assignments", maxMarks: 20 }],
+        },
+        {
+          id: "comp-m1",
+          name: "Midterm Exam",
+          weightPct: 30,
+          rule: "average",
+          assessments: [{ id: "m1", name: "Midterm Exam", maxMarks: 50 }],
+        },
+        {
+          id: "comp-f1",
+          name: "Final Exam",
+          weightPct: 50,
+          rule: "average",
+          assessments: [{ id: "f1", name: "Final Exam", maxMarks: 100 }],
+        },
+      ],
+    };
+  }
+
+  if (Array.isArray(scheme.components) && scheme.components.length > 0) {
+    return scheme;
+  }
+
+  const types = scheme.assessmentTypes || [
+    { id: "a1", name: "Assignments", weightPct: 20, maxMarks: 20 },
+    { id: "m1", name: "Midterm Exam", weightPct: 30, maxMarks: 50 },
+    { id: "f1", name: "Final Exam", weightPct: 50, maxMarks: 100 },
+  ];
+
+  const components = types.map((t) => ({
+    id: `comp-${t.id}`,
+    name: t.name,
+    weightPct: t.weightPct,
+    rule: "average",
+    assessments: [{ id: t.id, name: t.name, maxMarks: t.maxMarks }],
+  }));
+
+  return { ...scheme, components };
+}
+
+/**
+ * Evaluate score for a single component based on its aggregation rule.
+ */
+function evaluateComponentScore(component, marks) {
+  const entered = [];
+  for (const ast of component.assessments || []) {
+    const markVal = marks[ast.id] !== undefined ? marks[ast.id] : marks.get ? marks.get(ast.id) : null;
+    if (markVal !== null && markVal !== undefined && markVal !== "" && !isNaN(Number(markVal))) {
+      const num = Number(markVal);
+      const pct = ast.maxMarks > 0 ? (num / ast.maxMarks) * 100 : 0;
+      entered.push({ ast, num, pct });
+    }
+  }
+
+  if (entered.length === 0) {
+    return { hasEntered: false, compPct: null, weightPct: component.weightPct, contribution: 0 };
+  }
+
+  let compPct = 0;
+  const rule = component.rule || "average";
+
+  switch (rule) {
+    case "sum": {
+      const sumObtained = entered.reduce((sum, item) => sum + item.num, 0);
+      const sumMax = entered.reduce((sum, item) => sum + item.ast.maxMarks, 0);
+      compPct = sumMax > 0 ? (sumObtained / sumMax) * 100 : 0;
+      break;
+    }
+    case "highest": {
+      compPct = Math.max(...entered.map((item) => item.pct));
+      break;
+    }
+    case "lowest": {
+      compPct = Math.min(...entered.map((item) => item.pct));
+      break;
+    }
+    case "best_n": {
+      const n = component.bestN && component.bestN > 0 ? component.bestN : 1;
+      const sortedPct = entered.map((item) => item.pct).sort((a, b) => b - a);
+      const bestNPct = sortedPct.slice(0, n);
+      const sum = bestNPct.reduce((acc, p) => acc + p, 0);
+      compPct = sum / bestNPct.length;
+      break;
+    }
+    case "average":
+    default: {
+      const sumPct = entered.reduce((sum, item) => sum + item.pct, 0);
+      compPct = sumPct / entered.length;
+      break;
+    }
+  }
+
+  const clampedPct = Math.min(100, Math.max(0, compPct));
+  const contribution = (clampedPct / 100) * component.weightPct;
+
+  return {
+    hasEntered: true,
+    compPct: Number(clampedPct.toFixed(2)),
+    weightPct: component.weightPct,
+    contribution: Number(contribution.toFixed(2)),
+    enteredCount: entered.length,
+    totalCount: (component.assessments || []).length,
   };
 }
 
@@ -240,11 +349,44 @@ function findAtRiskSubjects(subjects = [], scale = "10.0") {
   return atRisk;
 }
 
+/**
+ * Determine academic evidence for a subject with hierarchical schemes.
+ */
+function getSubjectEvidence(subject) {
+  if (!subject) {
+    return { hasEvidence: false, enteredWeight: 0, totalWeight: 0, completionPercent: 0 };
+  }
+
+  const normScheme = normalizeScheme(subject.scheme);
+  const marks = subject.marks || {};
+
+  let enteredWeight = 0;
+  let totalWeight = 0;
+
+  for (const comp of normScheme.components || []) {
+    const w = comp.weightPct || 0;
+    totalWeight += w;
+
+    const evalRes = evaluateComponentScore(comp, marks);
+    if (evalRes.hasEntered) {
+      enteredWeight += w;
+    }
+  }
+
+  const hasEvidence = enteredWeight > 0;
+  const completionPercent = totalWeight > 0 ? Math.round((enteredWeight / totalWeight) * 100) : 0;
+
+  return { hasEvidence, enteredWeight, totalWeight, completionPercent };
+}
+
 module.exports = {
   calculateSubjectScore,
   calculateSgpa,
   calculateCgpa,
   findAtRiskSubjects,
+  getSubjectEvidence,
+  normalizeScheme,
+  evaluateComponentScore,
   pctToGrade10Scale,
   pctToGrade4Scale,
 };

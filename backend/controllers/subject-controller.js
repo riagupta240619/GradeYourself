@@ -17,8 +17,20 @@ function resolveScale(user) {
  */
 function formatSubject(subject, scale) {
   const score = calculateSubjectScore(subject, scale);
+  const rawObj = typeof subject.toObject === "function" ? subject.toObject({ flattenMaps: true }) : subject;
+
+  let plainMarks = {};
+  if (rawObj.marks) {
+    if (rawObj.marks instanceof Map) {
+      plainMarks = Object.fromEntries(rawObj.marks);
+    } else if (typeof rawObj.marks === "object") {
+      plainMarks = { ...rawObj.marks };
+    }
+  }
+
   return {
-    ...subject.toObject(),
+    ...rawObj,
+    marks: plainMarks,
     calculatedPct: score.pct,
     letterGrade: score.letter,
     gradePoint: score.gradePoint,

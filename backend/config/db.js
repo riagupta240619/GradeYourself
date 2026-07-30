@@ -30,18 +30,30 @@ mongoose.connection.on("disconnected", () => {
  *  - Logs host & db name safely without printing credentials
  *  - Terminates process cleanly on connection failure to prevent unhandled requests
  */
-const connectDB = async () => {
-  try {
-    const conn = await mongoose.connect(process.env.MONGO_URI);
+const connectDB = async (retries = 3, delay = 2000) => {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const conn = await mongoose.connect(process.env.MONGO_URI, {
+        serverSelectionTimeoutMS: 10000,
+      });
 
-    // Safely log host and database name — credentials are NEVER logged
-    console.log(
-      `MongoDB Connected: ${conn.connection.host} [database: ${conn.connection.name}]`
-    );
-    return conn;
-  } catch (error) {
-    console.error(`MongoDB Connection Error: ${error.message}`);
-    process.exit(1);
+      // Safely log host and database name — credentials are NEVER logged
+      console.log(
+        `MongoDB Connected: ${conn.connection.host} [database: ${conn.connection.name}]`
+      );
+      return conn;
+    } catch (error) {
+      console.error(
+        `MongoDB Connection Attempt ${attempt}/${retries} failed: ${error.message}`
+      );
+      if (attempt < retries) {
+        console.log(`Retrying MongoDB connection in ${delay / 1000}s...`);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      } else {
+        console.error("All MongoDB Connection Attempts Exhausted.");
+        process.exit(1);
+      }
+    }
   }
 };
 

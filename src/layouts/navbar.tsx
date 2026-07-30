@@ -9,12 +9,9 @@ import { LogoutModal } from "@/components/shared/logout-modal";
 const navItems = [
   { to: "/app/dashboard", label: "Dashboard" },
   { to: "/app/analytics", label: "Analytics" },
-  { to: "/app/target-planner", label: "Target Planner" },
-  { to: "/app/simulator", label: "What-if Simulator" },
+  { to: "/app/academic-planner", label: "Academic Planner" },
   { to: "/app/subjects", label: "Subjects" },
   { to: "/app/assessment-builder", label: "Assessment Builder" },
-  { to: "/app/advisor", label: "AI Advisor" },
-  { to: "/app/templates", label: "Community Templates" },
   { to: "/app/settings", label: "Settings" },
 ];
 

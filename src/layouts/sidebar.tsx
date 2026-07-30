@@ -22,12 +22,9 @@ import { SemesterService, type SemesterWithTotalCredits } from "@/services/semes
 const navItems = [
   { to: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/app/analytics", label: "Analytics", icon: BarChart3 },
-  { to: "/app/target-planner", label: "Target Planner", icon: Target, badge: "AI Target" },
-  { to: "/app/simulator", label: "What-if Simulator", icon: Wand2 },
+  { to: "/app/academic-planner", label: "Academic Planner", icon: Target, badge: "Planner" },
   { to: "/app/subjects", label: "Subjects", icon: BookOpen },
   { to: "/app/assessment-builder", label: "Assessment Builder", icon: Puzzle },
-  { to: "/app/advisor", label: "AI Advisor", icon: Bot, badge: "GPT-4" },
-  { to: "/app/templates", label: "Community Templates", icon: Globe },
 ];
 
 export function Sidebar() {
@@ -143,19 +140,19 @@ export function Sidebar() {
                 )
               }
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 min-w-0">
                 <item.icon
                   size={18}
                   className={cn(
-                    "transition-colors duration-200",
+                    "shrink-0 transition-colors duration-200",
                     isActive ? "text-purple-400" : "text-zinc-500 group-hover:text-zinc-300"
                   )}
                 />
-                <span>{item.label}</span>
+                <span className="whitespace-nowrap truncate">{item.label}</span>
               </div>
 
               {item.badge && (
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                <span className="shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
                   {item.badge}
                 </span>
               )}
