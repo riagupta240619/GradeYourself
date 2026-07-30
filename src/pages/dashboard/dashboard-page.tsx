@@ -190,7 +190,7 @@ export function DashboardPage() {
       .map((s: any) => {
         const pct = typeof s.calculatedPct === "number" && !isNaN(s.calculatedPct) ? s.calculatedPct : null;
         const isInProgress = s.isInProgress || pct === null || s.letterGrade === "In Progress" || s.status === "In Progress";
-        
+
         const types = Array.isArray(s.scheme?.assessmentTypes) ? s.scheme.assessmentTypes : [];
         const marksMap = s.marks && typeof s.marks === "object" ? s.marks : {};
         const missingAssessments: string[] = [];
@@ -271,14 +271,6 @@ export function DashboardPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setUploadModalOpen(true)}
-            className="flex-1 sm:flex-initial border-purple-500/30 text-purple-300 hover:bg-purple-500/10 hover:border-purple-500/50"
-          >
-            <Upload size={15} /> Upload Results PDF
-          </Button>
 
           <Button
             variant="primary"
@@ -295,11 +287,10 @@ export function DashboardPage() {
               <button
                 key={mode}
                 onClick={() => setView(mode)}
-                className={`rounded-lg px-3 py-1 transition-all ${
-                  view === mode
+                className={`rounded-lg px-3 py-1 transition-all ${view === mode
                     ? "bg-purple-600 text-white shadow-[0_0_12px_rgba(124,58,237,0.4)] font-bold"
                     : "text-zinc-400 hover:text-white"
-                }`}
+                  }`}
               >
                 {mode.toUpperCase()}
               </button>
@@ -321,16 +312,13 @@ export function DashboardPage() {
                   <Sparkles size={13} className="text-purple-400" /> Profile Setup Complete
                 </div>
                 <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight">Your academic profile is ready.</h2>
-                <p className="text-xs sm:text-sm text-zinc-300 mt-0.5">Start by adding your current subjects or uploading your transcript PDF.</p>
+                <p className="text-xs sm:text-sm text-zinc-300 mt-0.5">Start by adding your current subjects.</p>
               </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-3 shrink-0 w-full sm:w-auto">
               <Button variant="primary" size="md" onClick={() => setAddSubjectModalOpen(true)} className="gap-2 flex-1 sm:flex-initial shadow-lg shadow-purple-600/25">
                 <Plus size={16} /> Add Subjects
-              </Button>
-              <Button variant="outline" size="md" onClick={() => setUploadModalOpen(true)} className="gap-2 flex-1 sm:flex-initial border-purple-500/30 text-purple-200 hover:bg-purple-500/10">
-                <Upload size={16} /> Upload Transcript
               </Button>
             </div>
           </div>
@@ -479,21 +467,19 @@ export function DashboardPage() {
             <div className="flex rounded-xl border border-white/10 bg-zinc-950 p-1 text-xs font-semibold">
               <button
                 onClick={() => setGraphMode("official")}
-                className={`rounded-lg px-3 py-1 transition-all ${
-                  graphMode === "official"
+                className={`rounded-lg px-3 py-1 transition-all ${graphMode === "official"
                     ? "bg-purple-600 text-white font-bold shadow-[0_0_12px_rgba(124,58,237,0.4)]"
                     : "text-zinc-400 hover:text-white"
-                }`}
+                  }`}
               >
                 Official Progress
               </button>
               <button
                 onClick={() => setGraphMode("predicted")}
-                className={`rounded-lg px-3 py-1 transition-all flex items-center gap-1.5 ${
-                  graphMode === "predicted"
+                className={`rounded-lg px-3 py-1 transition-all flex items-center gap-1.5 ${graphMode === "predicted"
                     ? "bg-purple-600 text-white font-bold shadow-[0_0_12px_rgba(124,58,237,0.4)]"
                     : "text-zinc-400 hover:text-white"
-                }`}
+                  }`}
               >
                 Predicted Progress
                 <span className="h-1.5 w-1.5 rounded-full bg-purple-300 animate-pulse" />

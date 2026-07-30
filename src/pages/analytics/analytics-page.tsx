@@ -39,7 +39,7 @@ export function AnalyticsPage() {
     setLoading(true);
     try {
       const data = await AnalyticsService.getAnalyticsSummary();
-      let semList: CompletedSemesterDetail[] = data?.completedSemesters || [];
+      let semList: CompletedSemesterDetail[] = (data?.completedSemesters || []).filter((sem) => !sem.isCurrent);
 
       // Fallback: If analytics API returns no completed semesters, check Dashboard summary
       if (semList.length === 0) {
@@ -109,6 +109,7 @@ export function AnalyticsPage() {
 
       console.log("Transcript Data", semList);
 
+      // Ensure analytics summary excludes current semester data for computed fields
       setAnalytics({
         ...(data || {
           semesterTrend: [],
@@ -118,6 +119,9 @@ export function AnalyticsPage() {
           lowestSubject: null as any,
           totalSubjectsEvaluated: 0,
         }),
+        // Override any precomputed highest/lowest subject to use our filtered data
+        highestSubject: null as any,
+        lowestSubject: null as any,
         completedSemesters: semList,
       });
 
@@ -308,21 +312,19 @@ export function AnalyticsPage() {
         <div className="flex items-center gap-1 rounded-xl bg-zinc-900/80 p-1.5 border border-white/10 shadow-lg">
           <button
             onClick={() => setTab("overview")}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-              tab === "overview"
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all ${tab === "overview"
                 ? "bg-purple-600 text-white shadow-md shadow-purple-600/30"
                 : "text-zinc-400 hover:text-white"
-            }`}
+              }`}
           >
             <BarChart3 size={14} /> Analytics Overview
           </button>
           <button
             onClick={() => setTab("history")}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-              tab === "history"
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all ${tab === "history"
                 ? "bg-purple-600 text-white shadow-md shadow-purple-600/30"
                 : "text-zinc-400 hover:text-white"
-            }`}
+              }`}
           >
             <BookOpen size={14} /> Past Results Transcript
           </button>
@@ -641,11 +643,10 @@ export function AnalyticsPage() {
                       return (
                         <Card
                           key={semId}
-                          className={`overflow-hidden transition-all duration-200 border ${
-                            isSelected
+                          className={`overflow-hidden transition-all duration-200 border ${isSelected
                               ? "border-purple-500/60 bg-gradient-to-br from-zinc-900 via-zinc-900 to-purple-950/20 shadow-[0_0_25px_rgba(124,58,237,0.15)]"
                               : "border-white/10 bg-zinc-950/60 hover:border-purple-500/30"
-                          }`}
+                            }`}
                         >
                           {/* Semester Transcript Header */}
                           <div
