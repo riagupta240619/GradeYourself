@@ -5,7 +5,6 @@ import {
   CheckCircle2,
   TrendingUp,
   ArrowUpRight,
-  Upload,
   Plus,
   Sparkles,
   BookOpen,
@@ -14,10 +13,11 @@ import {
   GraduationCap,
   Layers,
   Calendar,
-  Wand2,
   Calculator,
   ChevronRight,
   ShieldAlert,
+  Upload,
+  BarChart3,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -25,20 +25,19 @@ import { Button } from "@/components/ui/button";
 import { ProgressBar } from "@/components/shared/states";
 import { CountUp } from "@/components/shared/count-up";
 import { TrendChart, type TrendChartPoint } from "@/components/charts/trend-chart";
-import { UploadResultsModal } from "@/components/upload/upload-results-modal";
 import { AddSubjectModal } from "@/components/upload/add-subject-modal";
+import { UploadResultsModal } from "@/components/upload/upload-results-modal";
 import { DashboardService, type DashboardSummary } from "@/services/dashboard-service";
 import { SemesterService } from "@/services/semester-service";
 import { toast } from "sonner";
 import type { CgpaViewMode } from "@/types";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
 import { useAcademicStore } from "@/lib/store/use-academic-store";
 
 export function DashboardPage() {
   const { user } = useAuth();
   const storeTargetCgpa = useAcademicStore((state) => state.targetCgpa);
-  const [searchParams] = useSearchParams();
 
   const [view, setView] = useState<CgpaViewMode>("cgpa");
   const [graphMode, setGraphMode] = useState<"official" | "predicted">("official");
@@ -54,7 +53,7 @@ export function DashboardPage() {
     setError(null);
     DashboardService.getDashboardSummary()
       .then((data) => {
-        setSummaryData(data);
+        setSummaryData(data || null);
       })
       .catch((err) => {
         console.error("Failed to load backend dashboard data:", err);
@@ -83,10 +82,12 @@ export function DashboardPage() {
   }, [summaryData]);
 
   const currentSemesterSubjects = useMemo(() => {
-    if (summaryData?.currentSemester && "activeSubjects" in summaryData.currentSemester) {
-      return (summaryData.currentSemester as any).activeSubjects || [];
+    if (!summaryData) return [];
+    if (summaryData.currentSemester && typeof summaryData.currentSemester === "object" && "activeSubjects" in summaryData.currentSemester) {
+      const active = (summaryData.currentSemester as any).activeSubjects;
+      return Array.isArray(active) ? active : [];
     }
-    return summaryData?.subjects || [];
+    return Array.isArray(summaryData.subjects) ? summaryData.subjects : [];
   }, [summaryData]);
 
   // 1. Calculated CGPA & SGPA from completed semester records
@@ -114,16 +115,18 @@ export function DashboardPage() {
 
   // Confidence % calculation for prediction mode
   const confidencePct = useMemo(() => {
-    if (!currentSemesterSubjects || currentSemesterSubjects.length === 0) return 75;
+    if (!Array.isArray(currentSemesterSubjects) || currentSemesterSubjects.length === 0) return 75;
     let totalWeight = 0;
     let evaluatedWeight = 0;
     currentSemesterSubjects.forEach((s: any) => {
-      const types = s.scheme?.assessmentTypes || [];
-      const marksMap = s.marks || {};
+      if (!s) return;
+      const types = Array.isArray(s.scheme?.assessmentTypes) ? s.scheme.assessmentTypes : [];
+      const marksMap = s.marks && typeof s.marks === "object" ? s.marks : {};
       types.forEach((t: any) => {
-        const w = t.weightPct || 25;
+        if (!t) return;
+        const w = typeof t.weightPct === "number" ? t.weightPct : 25;
         totalWeight += w;
-        if (marksMap[t.id] !== undefined && marksMap[t.id] !== null && marksMap[t.id] !== "") {
+        if (t.id && marksMap[t.id] !== undefined && marksMap[t.id] !== null && marksMap[t.id] !== "") {
           evaluatedWeight += w;
         }
       });
@@ -133,37 +136,35 @@ export function DashboardPage() {
     return Math.max(45, Math.min(95, ratio));
   }, [currentSemesterSubjects]);
 
-  // Requirement: Progression Graph trend data
-  // Official mode: Completed semesters ONLY
-  // Predicted mode: Includes active current semester projected CGPA as a dotted point
   // Requirement: 4-Series Progression Graph trend data
-  // Official SGPA (Solid Blue), Projected SGPA (Dotted Blue), Official CGPA (Solid Purple), Projected CGPA (Dotted Purple)
   const cgpaTrend: TrendChartPoint[] = useMemo(() => {
-    if (!summaryData?.cgpaTrend) return [];
+    const rawTrend = summaryData?.cgpaTrend;
+    const baseTrend: TrendChartPoint[] = [];
 
-    const completedCount = summaryData.cgpaTrend.length;
+    if (Array.isArray(rawTrend)) {
+      const completedCount = rawTrend.length;
+      rawTrend.forEach((item: any, idx: number) => {
+        if (!item) return;
+        const isLastCompleted = idx === completedCount - 1;
+        const sgpaVal = item.sgpa !== undefined && item.sgpa !== null && !isNaN(Number(item.sgpa)) ? Number(item.sgpa) : null;
+        const cgpaVal = item.cgpa !== undefined && item.cgpa !== null && !isNaN(Number(item.cgpa)) ? Number(item.cgpa) : null;
 
-    const baseTrend: TrendChartPoint[] = summaryData.cgpaTrend.map((item: any, idx: number) => {
-      const isLastCompleted = idx === completedCount - 1;
-      const sgpaVal = item.sgpa !== undefined && item.sgpa !== null ? Number(item.sgpa) : null;
-      const cgpaVal = item.cgpa !== undefined && item.cgpa !== null ? Number(item.cgpa) : null;
-
-      return {
-        label: item.semester,
-        isProjected: false,
-        officialSgpa: sgpaVal,
-        officialCgpa: cgpaVal,
-        // Anchor points on the last completed semester so dotted lines connect seamlessly!
-        projectedSgpa: isLastCompleted ? sgpaVal : null,
-        projectedCgpa: isLastCompleted ? cgpaVal : null,
-        credits: item.credits || 20,
-        status: "Completed",
-      };
-    });
+        baseTrend.push({
+          label: item.semester || `Sem ${idx + 1}`,
+          isProjected: false,
+          officialSgpa: sgpaVal,
+          officialCgpa: cgpaVal,
+          projectedSgpa: isLastCompleted ? sgpaVal : null,
+          projectedCgpa: isLastCompleted ? cgpaVal : null,
+          credits: typeof item.credits === "number" ? item.credits : 20,
+          status: "Completed",
+        });
+      });
+    }
 
     if (summaryData?.currentSemester) {
-      const currentSemSgpa = summaryData.sgpa !== undefined && summaryData.sgpa !== null ? Number(summaryData.sgpa) : (calculatedSgpa ?? null);
-      const currentSemCgpa = summaryData.projectedCgpa !== undefined && summaryData.projectedCgpa !== null ? Number(summaryData.projectedCgpa) : (activeCgpa ?? null);
+      const currentSemSgpa = summaryData.sgpa !== undefined && summaryData.sgpa !== null && !isNaN(Number(summaryData.sgpa)) ? Number(summaryData.sgpa) : (calculatedSgpa ?? null);
+      const currentSemCgpa = summaryData.projectedCgpa !== undefined && summaryData.projectedCgpa !== null && !isNaN(Number(summaryData.projectedCgpa)) ? Number(summaryData.projectedCgpa) : (activeCgpa ?? null);
 
       baseTrend.push({
         label: `${summaryData.currentSemester.name || "Current Sem"} (Projected)`,
@@ -182,43 +183,47 @@ export function DashboardPage() {
 
   // Requirement: At-Risk subjects analyzes ONLY Current Semester subjects
   const activeAtRiskSubjects = useMemo(() => {
-    if (!currentSemesterSubjects || currentSemesterSubjects.length === 0) return [];
+    if (!Array.isArray(currentSemesterSubjects) || currentSemesterSubjects.length === 0) return [];
 
-    return currentSemesterSubjects.map((s: any) => {
-      const pct = typeof s.calculatedPct === "number" ? s.calculatedPct : null;
-      const isInProgress = s.isInProgress || s.calculatedPct === null || s.letterGrade === "In Progress" || s.status === "In Progress";
-      
-      const types = s.scheme?.assessmentTypes || [];
-      const marksMap = s.marks || {};
-      const missingAssessments: string[] = [];
+    return currentSemesterSubjects
+      .filter(Boolean)
+      .map((s: any) => {
+        const pct = typeof s.calculatedPct === "number" && !isNaN(s.calculatedPct) ? s.calculatedPct : null;
+        const isInProgress = s.isInProgress || pct === null || s.letterGrade === "In Progress" || s.status === "In Progress";
+        
+        const types = Array.isArray(s.scheme?.assessmentTypes) ? s.scheme.assessmentTypes : [];
+        const marksMap = s.marks && typeof s.marks === "object" ? s.marks : {};
+        const missingAssessments: string[] = [];
 
-      types.forEach((t: any) => {
-        const val = marksMap[t.id];
-        if (val === undefined || val === null || val === "") {
-          missingAssessments.push(t.name);
-        }
-      });
+        types.forEach((t: any) => {
+          if (!t) return;
+          const val = t.id ? marksMap[t.id] : undefined;
+          if (val === undefined || val === null || val === "") {
+            missingAssessments.push(t.name || "Assessment");
+          }
+        });
 
-      const isBelowTarget = pct !== null && pct < 75;
-      const isCritical = pct !== null && pct < 60;
-      const isAtRisk = isBelowTarget || (isInProgress && missingAssessments.length > 1);
+        const isBelowTarget = pct !== null && pct < 75;
+        const isCritical = pct !== null && pct < 60;
+        const isAtRisk = isBelowTarget || (isInProgress && missingAssessments.length > 1);
 
-      const riskLevel: "Critical" | "Moderate" | "Low" = isCritical ? "Critical" : pct !== null && pct < 70 ? "Moderate" : "Low";
-      const requiredScore = pct !== null ? Math.min(100, Math.round(pct + 12)) : 80;
+        const riskLevel: "Critical" | "Moderate" | "Low" = isCritical ? "Critical" : pct !== null && pct < 70 ? "Moderate" : "Low";
+        const requiredScore = pct !== null ? Math.min(100, Math.round(pct + 12)) : 80;
 
-      return {
-        subject: s,
-        subjectId: s._id || s.id,
-        subjectName: s.name,
-        credits: s.credits,
-        currentScore: pct !== null ? `${pct.toFixed(1)}%` : "In Progress",
-        missingAssessments: missingAssessments.slice(0, 3),
-        requiredScore: `${requiredScore}%`,
-        riskLevel,
-        isAtRisk,
-        reason: s.reason || (isCritical ? "Performing significantly below target grade" : "Low internal score trend"),
-      };
-    }).filter((item: any) => item.isAtRisk);
+        return {
+          subject: s,
+          subjectId: s._id || s.id || `risk-${s.name || Math.random()}`,
+          subjectName: s.name || "Unnamed Subject",
+          credits: s.credits ?? 0,
+          currentScore: pct !== null ? `${pct.toFixed(1)}%` : "In Progress",
+          missingAssessments: missingAssessments.slice(0, 3),
+          requiredScore: `${requiredScore}%`,
+          riskLevel,
+          isAtRisk,
+          reason: s.reason || (isCritical ? "Performing significantly below target grade" : "Low internal score trend"),
+        };
+      })
+      .filter((item: any) => item && item.isAtRisk);
   }, [currentSemesterSubjects]);
 
   // Finalize current semester action
@@ -245,7 +250,7 @@ export function DashboardPage() {
   };
 
   const hasAcademicData = Boolean(
-    (summaryData?.semesters && summaryData.semesters.length > 0) || currentSemesterSubjects.length > 0
+    (Array.isArray(summaryData?.semesters) && summaryData.semesters.length > 0) || currentSemesterSubjects.length > 0
   );
   const showOnboardingCard = Boolean(user?.profileCompleted) && !hasAcademicData;
 
@@ -435,7 +440,7 @@ export function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-4xl sm:text-5xl font-extrabold font-tabular text-purple-400 mt-1 tracking-tight">
-                {targetCgpa.toFixed(2)}
+                {typeof targetCgpa === "number" ? targetCgpa.toFixed(2) : "9.00"}
               </div>
               <p className="mt-2 text-xs text-zinc-400">Graduation Target Benchmark</p>
             </CardContent>
@@ -461,7 +466,7 @@ export function DashboardPage() {
       </div>
 
       {/* ────────────────────────────────────────────────────────────────────────── */}
-      {/* 3. CGPA PROGRESSION GRAPH (Moved directly below summary cards) */}
+      {/* 3. CGPA PROGRESSION GRAPH */}
       {/* ────────────────────────────────────────────────────────────────────────── */}
       <Card className="border border-white/10 bg-zinc-900/90 shadow-xl">
         <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2">
@@ -470,7 +475,6 @@ export function DashboardPage() {
             <CardTitle>CGPA Progression Trend</CardTitle>
           </div>
 
-          {/* Viewing Mode Pills: Official Progress (default) vs Predicted Progress */}
           <div className="flex items-center gap-2">
             <div className="flex rounded-xl border border-white/10 bg-zinc-950 p-1 text-xs font-semibold">
               <button
@@ -497,7 +501,7 @@ export function DashboardPage() {
             </div>
 
             <span className="text-xs text-zinc-500 font-semibold hidden md:inline">
-              {summaryData?.completedSemesters?.length || 0} Completed
+              {(summaryData?.completedSemesters ?? []).length} Completed
             </span>
           </div>
         </CardHeader>
@@ -511,7 +515,7 @@ export function DashboardPage() {
       </Card>
 
       {/* ────────────────────────────────────────────────────────────────────────── */}
-      {/* 4. CURRENT SEMESTER COURSES (Moved ABOVE At-Risk Subjects section) */}
+      {/* 4. CURRENT SEMESTER COURSES */}
       {/* ────────────────────────────────────────────────────────────────────────── */}
       <div>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -559,8 +563,9 @@ export function DashboardPage() {
         ) : (
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {currentSemesterSubjects.map((subject: any, idx: number) => {
+              if (!subject) return null;
               const isInProgress = subject.isInProgress || subject.calculatedPct === null || subject.calculatedPct === undefined || subject.letterGrade === "In Progress" || subject.status === "In Progress";
-              const pct = typeof subject.calculatedPct === "number" ? subject.calculatedPct : 0;
+              const pct = typeof subject.calculatedPct === "number" && !isNaN(subject.calculatedPct) ? subject.calculatedPct : 0;
               const letter = isInProgress ? "In Progress" : (subject.letterGrade || "N/A");
               const idKey = subject._id || subject.id || `subj-${idx}`;
               return (
@@ -575,7 +580,7 @@ export function DashboardPage() {
                               style={{ backgroundColor: subject.colorTag || "#3b82f6" }}
                             />
                             <span className="font-bold text-white text-base group-hover:text-purple-300 transition-colors">
-                              {subject.name}
+                              {subject.name || "Subject"}
                             </span>
                           </div>
                           <Badge tone={isInProgress ? "warning" : "accent"}>{letter}</Badge>
@@ -590,7 +595,7 @@ export function DashboardPage() {
                         <ProgressBar value={isInProgress ? 0 : pct} tone={isInProgress ? "warning" : "accent"} />
 
                         <div className="mt-4 flex items-center justify-between text-xs text-zinc-400 border-t border-white/10 pt-3">
-                          <span className="font-medium text-zinc-300">Credits: {subject.credits}</span>
+                          <span className="font-medium text-zinc-300">Credits: {subject.credits ?? 0}</span>
                           <span className="font-semibold text-purple-400 flex items-center gap-1 group-hover:text-purple-300">
                             Details <ChevronRight size={13} />
                           </span>
@@ -606,12 +611,11 @@ export function DashboardPage() {
       </div>
 
       {/* ────────────────────────────────────────────────────────────────────────── */}
-      {/* 5. AT-RISK SUBJECTS (Analyzes ONLY Current Semester subjects) */}
+      {/* 5. AT-RISK SUBJECTS */}
       {/* ────────────────────────────────────────────────────────────────────────── */}
       {currentSemesterSubjects.length > 0 && (
         <div>
           {atRiskCount === 0 ? (
-            /* State 2: Healthy state when 0 subjects are at risk */
             <div className="flex items-center justify-between rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-4 text-xs text-emerald-400 font-semibold shadow-[0_0_15px_rgba(34,197,94,0.1)]">
               <div className="flex items-center gap-3">
                 <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-400">
@@ -624,7 +628,6 @@ export function DashboardPage() {
               </div>
             </div>
           ) : atRiskCount >= 3 ? (
-            /* State 4: Expanded Priority Alert for 3+ subjects at risk */
             <Card className="border-2 border-rose-500/50 bg-gradient-to-br from-rose-950/30 via-zinc-900 to-rose-950/20 shadow-[0_0_30px_rgba(244,63,94,0.2)]">
               <CardHeader className="flex flex-row items-center justify-between pb-3 border-b border-rose-500/20">
                 <div className="flex items-center gap-2.5">
@@ -672,7 +675,6 @@ export function DashboardPage() {
               </CardContent>
             </Card>
           ) : (
-            /* State 3: Standard warning section for 1–2 subjects at risk */
             <Card className="border-amber-500/30 bg-amber-500/5">
               <CardHeader className="flex-row items-center gap-2 space-y-0 pb-3">
                 <AlertTriangle size={18} className="text-amber-400" />
@@ -726,19 +728,19 @@ export function DashboardPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="px-0 pb-0 grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <Link to="/app/simulator">
+          <Link to="/app/academic-planner">
             <div className="flex flex-col items-center justify-center p-4 rounded-xl border border-white/10 bg-zinc-950/60 hover:border-purple-500/40 hover:bg-purple-500/10 transition-all text-center group cursor-pointer">
-              <Wand2 size={20} className="text-purple-400 mb-2 group-hover:scale-110 transition-transform" />
-              <span className="text-xs font-bold text-white group-hover:text-purple-300">Grade Simulator</span>
-              <span className="text-[10px] text-zinc-500 mt-0.5">What-if marks test</span>
+              <Calculator size={20} className="text-purple-400 mb-2 group-hover:scale-110 transition-transform" />
+              <span className="text-xs font-bold text-white group-hover:text-purple-300">Academic Planner</span>
+              <span className="text-[10px] text-zinc-500 mt-0.5">Goal CGPA & required marks</span>
             </div>
           </Link>
 
-          <Link to="/app/planner">
+          <Link to="/app/analytics">
             <div className="flex flex-col items-center justify-center p-4 rounded-xl border border-white/10 bg-zinc-950/60 hover:border-purple-500/40 hover:bg-purple-500/10 transition-all text-center group cursor-pointer">
-              <Calculator size={20} className="text-blue-400 mb-2 group-hover:scale-110 transition-transform" />
-              <span className="text-xs font-bold text-white group-hover:text-purple-300">Target Planner</span>
-              <span className="text-[10px] text-zinc-500 mt-0.5">Goal CGPA calculator</span>
+              <BarChart3 size={20} className="text-blue-400 mb-2 group-hover:scale-110 transition-transform" />
+              <span className="text-xs font-bold text-white group-hover:text-purple-300">Analytics</span>
+              <span className="text-[10px] text-zinc-500 mt-0.5 font-sans">Deep performance trends</span>
             </div>
           </Link>
 

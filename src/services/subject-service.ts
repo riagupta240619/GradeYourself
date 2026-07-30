@@ -129,6 +129,10 @@ export const SubjectService = {
     };
   },
 
+  async updateMarks(id: string, marks: Record<string, number | null>): Promise<Subject> {
+    return this.updateSubject(id, { marks });
+  },
+
   async deleteSubject(id: string): Promise<{ message: string; id: string }> {
     const response = await api.delete<{ message: string; id: string }>(`/subjects/${id}`);
     return response.data;

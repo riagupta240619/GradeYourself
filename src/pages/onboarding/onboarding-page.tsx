@@ -180,14 +180,7 @@ export function OnboardingPage() {
       setStep(1);
     } else if (step === 1) {
       if (!isStep2Valid) return;
-      setStep(2);
-    } else if (step === 2) {
-      if (!isStep3Valid) return;
-      if (selectedImportMethod === "manual") {
-        handleFinishOnboarding(true);
-      } else if (selectedImportMethod === "upload") {
-        setMode("upload");
-      }
+      handleFinishOnboarding(true);
     }
   }
 
@@ -750,8 +743,8 @@ export function OnboardingPage() {
                   >
                     {loading ? (
                       "Saving Profile..."
-                    ) : step === 2 && selectedImportMethod === "manual" ? (
-                      "Complete Setup →"
+                    ) : step === 1 ? (
+                      "Complete Setup & Go to Dashboard →"
                     ) : (
                       "Continue →"
                     )}

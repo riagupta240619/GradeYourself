@@ -77,11 +77,17 @@ function generateSemesterAiInsight(semName, sgpa, subjects, highestSubj, lowestS
   if (!subjects || subjects.length === 0) {
     return `${semName} record verified with completed course credits.`;
   }
-  const formattedSgpa = typeof sgpa === "number" ? sgpa.toFixed(2) : "N/A";
+  const formattedSgpa = typeof sgpa === "number" && !isNaN(sgpa) ? sgpa.toFixed(2) : "N/A";
+  const getSubjPctStr = (s) => {
+    if (!s) return "—";
+    const p = s.finalPercentage !== null && s.finalPercentage !== undefined ? s.finalPercentage : s.pct;
+    return typeof p === "number" && !isNaN(p) ? `${p.toFixed(1)}%` : "—";
+  };
+
   if (typeof sgpa === "number" && sgpa >= 8.5) {
-    return `Exceptional academic performance in ${semName} with an SGPA of ${formattedSgpa}. ${highestSubj ? `Highest mastery in ${highestSubj.subjectName || highestSubj.name} (${highestSubj.finalPercentage !== null ? highestSubj.finalPercentage.toFixed(1) : highestSubj.pct.toFixed(1)}%).` : ""} Core competency standards achieved.`;
+    return `Exceptional academic performance in ${semName} with an SGPA of ${formattedSgpa}. ${highestSubj ? `Highest mastery in ${highestSubj.subjectName || highestSubj.name} (${getSubjPctStr(highestSubj)}).` : ""} Core competency standards achieved.`;
   } else if (typeof sgpa === "number" && sgpa >= 7.0) {
-    return `Solid performance in ${semName} with an SGPA of ${formattedSgpa}. ${lowestSubj ? `Opportunity for improvement identified in ${lowestSubj.subjectName || lowestSubj.name} (${lowestSubj.finalPercentage !== null ? lowestSubj.finalPercentage.toFixed(1) : lowestSubj.pct.toFixed(1)}%).` : ""} Re-assessment recommended.`;
+    return `Solid performance in ${semName} with an SGPA of ${formattedSgpa}. ${lowestSubj ? `Opportunity for improvement identified in ${lowestSubj.subjectName || lowestSubj.name} (${getSubjPctStr(lowestSubj)}).` : ""} Re-assessment recommended.`;
   } else {
     return `${semName} SGPA stands at ${formattedSgpa}. ${lowestSubj ? `Targeted academic review recommended for ${lowestSubj.subjectName || lowestSubj.name}.` : ""} Focus on continuous study plan for upcoming terms.`;
   }
@@ -98,8 +104,8 @@ const getAnalyticsSummary = async (req, res, next) => {
     const user = await User.findById(req.user._id);
     const scale = resolveScale(user);
 
-    // Requirement 2: Exclude active current semester (isCurrent: true) from Analytics and Past Results
-    const semesters = await Semester.find({ user: req.user._id, isCurrent: false }).sort({ createdAt: 1 });
+    // Exclude active current semester (isCurrent: true) from Analytics and Past Results
+    const semesters = await Semester.find({ user: req.user._id, isCurrent: { $ne: true } }).sort({ createdAt: 1 });
 
     if (semesters.length === 0) {
       return res.status(200).json({
@@ -122,17 +128,20 @@ const getAnalyticsSummary = async (req, res, next) => {
       const sem = semesters[i];
       const semName = sem.name.replace(/\s*\(current\)/i, "");
 
-      const subjects = await SubjectModel.find({ semester: sem._id, user: req.user._id });
+      const subjects = await SubjectModel.find({ semester: sem._id });
       const semForEngine = { ...sem.toObject(), subjects };
 
-      const semSgpa = calculateSgpa(semForEngine, scale);
+      const semSgpa = typeof sem.finalizedSgpa === "number" && !isNaN(sem.finalizedSgpa)
+        ? sem.finalizedSgpa
+        : calculateSgpa(semForEngine, scale);
+
       semesterTrend.push({ semester: semName, sgpa: semSgpa });
 
       // Progressive CGPA up to and including this semester
       const priorSems = semesters.slice(0, i);
       const priorSubjectSets = await Promise.all(
         priorSems.map(async (ps) => {
-          const psSubjects = await SubjectModel.find({ semester: ps._id, user: req.user._id });
+          const psSubjects = await SubjectModel.find({ semester: ps._id });
           return { ...ps.toObject(), subjects: psSubjects };
         })
       );
@@ -206,7 +215,9 @@ const getAnalyticsSummary = async (req, res, next) => {
         semesterNumber: parseSemesterNumber(sem.name, i),
         isCurrent: sem.isCurrent,
         sgpa: semSgpa,
+        cgpa: progressiveCgpa,
         creditsEarned: effectiveCredits,
+        totalCredits: effectiveCredits,
         totalSubjects: semSubjectDetails.length,
         verificationStatus: "Official Record Verified",
         updatedAt: sem.updatedAt || sem.createdAt,
@@ -217,6 +228,7 @@ const getAnalyticsSummary = async (req, res, next) => {
           averageMarks: Number(semAvgMarks.toFixed(1)),
           totalCredits: effectiveCredits,
           sgpa: semSgpa,
+          cgpa: progressiveCgpa,
         },
         aiInsight: generateSemesterAiInsight(semName, semSgpa, semSubjectDetails, semHighest, semLowest),
       });
@@ -247,7 +259,7 @@ const getAnalyticsSummary = async (req, res, next) => {
       categoryMap[category].count += 1;
     }
 
-    res.status(200).json({
+    const responsePayload = {
       semesterTrend,
       cgpaHistory,
       creditDistribution: Object.values(categoryMap),
@@ -255,7 +267,12 @@ const getAnalyticsSummary = async (req, res, next) => {
       lowestSubject,
       totalSubjectsEvaluated: allSubjects.length,
       completedSemesters,
-    });
+    };
+
+    console.log("Analytics Response:");
+    console.log(JSON.stringify(responsePayload, null, 2));
+
+    res.status(200).json(responsePayload);
   } catch (error) {
     next(error);
   }

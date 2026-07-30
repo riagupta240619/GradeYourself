@@ -57,7 +57,7 @@ export function evaluateComponentScore(component: SchemeComponent, marks: Record
   
   for (const ast of component.assessments || []) {
     const raw = marks ? marks[ast.id] : null;
-    if (raw !== null && raw !== undefined && raw !== "" && !isNaN(Number(raw))) {
+    if (raw !== null && raw !== undefined && (raw as any) !== "" && !isNaN(Number(raw))) {
       const num = Number(raw);
       const pct = ast.maxMarks > 0 ? (num / ast.maxMarks) * 100 : 0;
       entered.push({ astId: ast.id, name: ast.name, num, maxMarks: ast.maxMarks, pct });
@@ -124,7 +124,7 @@ export function hasSubjectMarks(subject: Subject): boolean {
   for (const comp of norm.components) {
     for (const ast of comp.assessments) {
       const raw = marks[ast.id];
-      if (raw !== null && raw !== undefined && raw !== "" && !isNaN(Number(raw))) {
+      if (raw !== null && raw !== undefined && (raw as any) !== "" && !isNaN(Number(raw))) {
         return true;
       }
     }
@@ -377,7 +377,7 @@ export function calculateHierarchicalRequiredMarks(subject: Subject, targetPct: 
 
     for (const ast of comp.assessments) {
       const raw = marks[ast.id];
-      const isGraded = raw !== null && raw !== undefined && raw !== "" && !isNaN(Number(raw));
+      const isGraded = raw !== null && raw !== undefined && (raw as any) !== "" && !isNaN(Number(raw));
       const enteredMark = isGraded ? Number(raw) : null;
 
       let requiredMark: number | null = null;

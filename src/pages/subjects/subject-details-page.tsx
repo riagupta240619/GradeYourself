@@ -174,7 +174,7 @@ export function SubjectDetailsPage() {
         </Link>
         <Card className="p-10 text-center">
           <h2 className="text-xl font-bold mb-2">No Active Courses Found</h2>
-          <p className="text-xs text-zinc-400 mb-5">Add your subjects or upload your syllabus to start tracking course performance.</p>
+          <p className="text-xs text-zinc-400 mb-5">Add your subjects to start tracking course performance.</p>
           <Button variant="primary" size="sm" onClick={() => setAddSubjectModalOpen(true)} className="mx-auto flex items-center gap-1.5">
             <Plus size={15} /> Add New Subject
           </Button>
@@ -364,7 +364,7 @@ export function SubjectDetailsPage() {
                   <tbody className="divide-y divide-white/5">
                     {comp.assessments.map((ast) => {
                       const raw = subject.marks ? subject.marks[ast.id] : null;
-                      const hasVal = raw !== null && raw !== undefined && raw !== "" && !isNaN(Number(raw));
+                      const hasVal = raw !== null && raw !== undefined && (raw as any) !== "" && !isNaN(Number(raw));
                       const astPct = hasVal ? (((Number(raw) / ast.maxMarks) * 100).toFixed(1)) : "—";
 
                       return (

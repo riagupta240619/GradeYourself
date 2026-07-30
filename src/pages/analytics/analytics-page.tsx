@@ -1,10 +1,28 @@
 import { useState, useEffect, useMemo, Fragment } from "react";
 import { motion } from "framer-motion";
-import { Trophy, AlertTriangle, TrendingUp, BookOpen, CheckCircle2, Sparkles, ChevronDown, ChevronUp, Edit3, Award, BarChart3, PieChart, Download, ShieldCheck, Zap } from "lucide-react";
+import {
+  Trophy,
+  AlertTriangle,
+  TrendingUp,
+  BookOpen,
+  CheckCircle2,
+  Sparkles,
+  ChevronDown,
+  ChevronUp,
+  Edit3,
+  Award,
+  BarChart3,
+  PieChart,
+  Download,
+  ShieldCheck,
+  Zap,
+  GraduationCap,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AnalyticsService, type AnalyticsSummary, type AnalyticsSubject } from "@/services/analytics-service";
+import { AnalyticsService, type AnalyticsSummary, type AnalyticsSubject, type CompletedSemesterDetail } from "@/services/analytics-service";
+import { DashboardService } from "@/services/dashboard-service";
 import { EditSemesterModal } from "@/components/upload/edit-semester-modal";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { toast } from "sonner";
@@ -17,24 +35,101 @@ export function AnalyticsPage() {
   const [expandedSubjectIds, setExpandedSubjectIds] = useState<Set<string>>(new Set());
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-  const fetchAnalytics = () => {
+  const fetchAnalytics = async () => {
     setLoading(true);
-    AnalyticsService.getAnalyticsSummary()
-      .then((data) => {
-        setAnalytics(data);
-        if (data?.completedSemesters && data.completedSemesters.length > 0) {
-          if (!selectedSemesterId) {
-            setSelectedSemesterId(data.completedSemesters[0].id || data.completedSemesters[0]._id || null);
+    try {
+      const data = await AnalyticsService.getAnalyticsSummary();
+      let semList: CompletedSemesterDetail[] = data?.completedSemesters || [];
+
+      // Fallback: If analytics API returns no completed semesters, check Dashboard summary
+      if (semList.length === 0) {
+        try {
+          const dashData = await DashboardService.getDashboardSummary();
+          if (dashData?.completedSemesters && dashData.completedSemesters.length > 0) {
+            semList = dashData.completedSemesters.map((ds: any, idx: number) => {
+              const semCredits = ds.credits || 20;
+
+              const semSubjects = (ds.subjects || []).map((subj: any) => ({
+                id: subj._id || subj.id || `subj-${idx}`,
+                _id: subj._id || subj.id || `subj-${idx}`,
+                subjectName: subj.name || "Subject",
+                name: subj.name || "Subject",
+                subjectCode: subj.code || "",
+                code: subj.code || "",
+                credits: subj.credits || 3,
+                marksObtained: subj.marksObtained ?? null,
+                maxMarks: subj.maxMarks ?? null,
+                finalPercentage: typeof subj.calculatedPct === "number" ? subj.calculatedPct : (subj.finalPercentage ?? 0),
+                pct: typeof subj.calculatedPct === "number" ? subj.calculatedPct : (subj.finalPercentage ?? 0),
+                grade: subj.letterGrade || subj.grade || "N/A",
+                letterGrade: subj.letterGrade || subj.grade || "N/A",
+                gradePoint: subj.gradePoint ?? 0,
+                assessments: subj.assessments || [],
+              }));
+
+              const highest = semSubjects.length > 0
+                ? [...semSubjects].sort((a, b) => b.finalPercentage - a.finalPercentage)[0]
+                : null;
+              const lowest = semSubjects.length > 0
+                ? [...semSubjects].sort((a, b) => a.finalPercentage - b.finalPercentage)[0]
+                : null;
+
+              return {
+                id: ds._id || ds.id || `sem-${idx}`,
+                _id: ds._id || ds.id || `sem-${idx}`,
+                name: ds.name || `Semester ${idx + 1}`,
+                semesterNumber: ds.semesterNumber || idx + 1,
+                isCurrent: false,
+                sgpa: typeof ds.sgpa === "number" ? ds.sgpa : null,
+                cgpa: typeof dashData.cgpa === "number" ? dashData.cgpa : (typeof ds.sgpa === "number" ? ds.sgpa : null),
+                creditsEarned: semCredits,
+                totalCredits: semCredits,
+                totalSubjects: semSubjects.length,
+                verificationStatus: "Official Record Verified",
+                updatedAt: new Date().toISOString(),
+                subjects: semSubjects,
+                summary: {
+                  highestSubject: highest ? { name: highest.name, code: highest.code, pct: highest.finalPercentage } : null,
+                  lowestSubject: lowest ? { name: lowest.name, code: lowest.code, pct: lowest.finalPercentage } : null,
+                  averageMarks: semSubjects.length > 0 ? Number((semSubjects.reduce((a: number, b: any) => a + b.finalPercentage, 0) / semSubjects.length).toFixed(1)) : 0,
+                  totalCredits: semCredits,
+                  sgpa: typeof ds.sgpa === "number" ? ds.sgpa : null,
+                  cgpa: typeof dashData.cgpa === "number" ? dashData.cgpa : null,
+                },
+              };
+            });
           }
+        } catch (dashErr) {
+          console.error("Dashboard fallback failed:", dashErr);
         }
-      })
-      .catch((err) => {
-        console.error("Failed to load analytics summary from backend:", err);
-        setAnalytics(null);
-      })
-      .finally(() => {
-        setLoading(false);
+      }
+
+      // Ensure chronological order (Semester 1 -> Semester 2 -> Semester 3 -> Semester 4)
+      semList.sort((a, b) => (a.semesterNumber || 0) - (b.semesterNumber || 0));
+
+      console.log("Transcript Data", semList);
+
+      setAnalytics({
+        ...(data || {
+          semesterTrend: [],
+          cgpaHistory: [],
+          creditDistribution: [],
+          highestSubject: null as any,
+          lowestSubject: null as any,
+          totalSubjectsEvaluated: 0,
+        }),
+        completedSemesters: semList,
       });
+
+      if (semList.length > 0 && !selectedSemesterId) {
+        setSelectedSemesterId(semList[0].id || semList[0]._id || null);
+      }
+    } catch (err) {
+      console.error("Failed to load analytics summary from backend:", err);
+      setAnalytics(null);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -55,7 +150,7 @@ export function AnalyticsPage() {
     );
   }, [completedSemesters, selectedSemesterId]);
 
-  // Performance Summary Calculations
+  // Performance Summary Calculations (Unchanged for Overview)
   const bestSemester = useMemo(() => {
     if (!completedSemesters.length) return null;
     let best = completedSemesters[0];
@@ -105,7 +200,6 @@ export function AnalyticsPage() {
     const variance = sgpas.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / sgpas.length;
     const stdDev = Math.sqrt(variance);
 
-    // Consistency score starts at 100 and decreases as stdDev increases
     const score = Math.max(60, Math.min(100, Math.round(100 - stdDev * 25)));
     const label = score >= 90 ? "High Consistency" : score >= 75 ? "Moderate Consistency" : "Variable Consistency";
 
@@ -119,7 +213,7 @@ export function AnalyticsPage() {
     for (const sem of completedSemesters) {
       for (const subj of sem.subjects || []) {
         list.push({
-          name: subj.name || subj.subjectName,
+          name: subj.name || subj.subjectName || "Subject",
           code: subj.code || subj.subjectCode || "",
           credits: subj.credits || 3,
           pct: subj.finalPercentage ?? subj.pct ?? 0,
@@ -132,6 +226,14 @@ export function AnalyticsPage() {
     }
     return list.sort((a, b) => b.pct - a.pct);
   }, [completedSemesters]);
+
+  const highestSubject = useMemo(() => {
+    return analytics?.highestSubject || (sortedAllSubjects.length > 0 ? sortedAllSubjects[0] : null);
+  }, [analytics, sortedAllSubjects]);
+
+  const lowestSubject = useMemo(() => {
+    return analytics?.lowestSubject || (sortedAllSubjects.length > 0 ? sortedAllSubjects[sortedAllSubjects.length - 1] : null);
+  }, [analytics, sortedAllSubjects]);
 
   // Grade Distribution Histogram
   const gradeDistribution = useMemo(() => {
@@ -153,8 +255,8 @@ export function AnalyticsPage() {
 
   // Credit Analysis
   const creditAnalysis = useMemo(() => {
-    const completedCredits = completedSemesters.reduce((sum, sem) => sum + (sem.creditsEarned || 20), 0);
-    const degreeTotal = 160; // Standard 4-year degree credit target
+    const completedCredits = completedSemesters.reduce((sum, sem) => sum + (sem.creditsEarned || sem.credits || 20), 0);
+    const degreeTotal = 160;
     const progressPct = Math.min(100, Math.round((completedCredits / degreeTotal) * 100));
 
     return {
@@ -329,13 +431,13 @@ export function AnalyticsPage() {
                       <span>Highest Scoring Subject</span>
                       <Award size={16} className="text-amber-400" />
                     </div>
-                    {analytics?.highestSubject ? (
+                    {highestSubject ? (
                       <div>
-                        <h3 className="font-extrabold text-white text-lg">{analytics.highestSubject.name}</h3>
-                        <p className="text-xs text-zinc-400 mt-0.5">{analytics.highestSubject.code || "Course"} • {analytics.highestSubject.credits} Credits</p>
+                        <h3 className="font-extrabold text-white text-lg">{highestSubject.name}</h3>
+                        <p className="text-xs text-zinc-400 mt-0.5">{highestSubject.code || "Course"} • {highestSubject.credits} Credits</p>
                         <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/10">
-                          <Badge tone="accent">{analytics.highestSubject.letterGrade || "A+"}</Badge>
-                          <span className="font-mono font-extrabold text-white text-lg">{safeFormatPct(analytics.highestSubject.pct)}</span>
+                          <Badge tone="accent">{highestSubject.letterGrade || "A+"}</Badge>
+                          <span className="font-mono font-extrabold text-white text-lg">{safeFormatPct(highestSubject.pct)}</span>
                         </div>
                       </div>
                     ) : (
@@ -348,13 +450,13 @@ export function AnalyticsPage() {
                       <span>Lowest Scoring Subject</span>
                       <AlertTriangle size={16} className="text-rose-400" />
                     </div>
-                    {analytics?.lowestSubject ? (
+                    {lowestSubject ? (
                       <div>
-                        <h3 className="font-extrabold text-white text-lg">{analytics.lowestSubject.name}</h3>
-                        <p className="text-xs text-zinc-400 mt-0.5">{analytics.lowestSubject.code || "Course"} • {analytics.lowestSubject.credits} Credits</p>
+                        <h3 className="font-extrabold text-white text-lg">{lowestSubject.name}</h3>
+                        <p className="text-xs text-zinc-400 mt-0.5">{lowestSubject.code || "Course"} • {lowestSubject.credits} Credits</p>
                         <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/10">
-                          <Badge tone="warning">{analytics.lowestSubject.letterGrade || "B"}</Badge>
-                          <span className="font-mono font-extrabold text-amber-400 text-lg">{safeFormatPct(analytics.lowestSubject.pct)}</span>
+                          <Badge tone="warning">{lowestSubject.letterGrade || "B"}</Badge>
+                          <span className="font-mono font-extrabold text-amber-400 text-lg">{safeFormatPct(lowestSubject.pct)}</span>
                         </div>
                       </div>
                     ) : (
@@ -499,202 +601,158 @@ export function AnalyticsPage() {
                     <p className="text-xs sm:text-sm text-zinc-200 leading-relaxed">
                       {completedSemesters.length > 0
                         ? `Across your evaluated semesters, your academic standing maintains a ${consistencyScore.label.toLowerCase()} (${consistencyScore.score}%). Your peak performance was recorded in ${bestSemester?.name || "earlier terms"} with an SGPA of ${bestSemester?.sgpa ? bestSemester.sgpa.toFixed(2) : "N/A"}. Maintaining focused effort on core subjects will optimize your cumulative CGPA trajectory.`
-                        : "Upload transcripts or record your semester subjects to unlock personalized AI academic trend observations and consistency analysis."}
+                        : "Record your active semester subjects to unlock personalized AI academic trend observations and consistency analysis."}
                     </p>
                   </div>
                 </div>
               </Card>
             </div>
           ) : (
-            /* Past Results Tab (Semester-wise Academic Transcript) */
+            /* Past Results Transcript Tab (Live Digital Academic Transcript) */
             <ErrorBoundary fallbackTitle="Past Results Component Error">
-              {!completedSemesters || completedSemesters.length === 0 ? (
+              {completedSemesters.length === 0 ? (
                 <Card className="p-12 text-center bg-zinc-950/60 border border-white/10 space-y-3">
                   <div className="w-12 h-12 mx-auto rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
                     <BookOpen size={24} />
                   </div>
                   <h3 className="text-base font-bold text-white">No historical semester data available.</h3>
-                  <p className="text-xs text-zinc-400 max-w-md mx-auto">
-                    Upload an academic transcript or add semester records to inspect past performance.
-                  </p>
                 </Card>
               ) : (
                 <div className="flex flex-col gap-6">
-                  {/* Clickable Semester Cards List */}
-                  <div>
-                    <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-3">
-                      Select Semester Record to Inspect Transcript
+                  {/* Digital Academic Transcript Header Bar */}
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
+                      <GraduationCap size={16} className="text-purple-400" /> Chronological Academic Transcript ({completedSemesters.length} Completed {completedSemesters.length === 1 ? "Semester" : "Semesters"})
                     </h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {completedSemesters.map((s) => {
-                        const sId = s.id || s._id || "";
-                        const isSelected = selectedSem ? (selectedSem.id || selectedSem._id) === sId : false;
-                        return (
-                          <div
-                            key={sId}
-                            onClick={() => setSelectedSemesterId(sId)}
-                            className={`cursor-pointer rounded-2xl border p-4 transition-all duration-200 ${
-                              isSelected
-                                ? "border-purple-500 bg-purple-500/10 shadow-[0_0_20px_rgba(124,58,237,0.2)] ring-1 ring-purple-500/40"
-                                : "border-white/10 bg-zinc-950/60 hover:border-purple-500/30 hover:bg-zinc-900/80"
-                            }`}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="font-bold text-white text-base">{s.name || `Semester ${s.semesterNumber}`}</p>
-                                <p className="text-xs text-emerald-400 font-medium flex items-center gap-1 mt-0.5">
-                                  <CheckCircle2 size={13} /> {s.verificationStatus || "Official Record Verified"}
-                                </p>
-                              </div>
-                              <div className="text-right">
-                                <Badge tone="accent" className="text-xs font-mono font-bold">
-                                  SGPA {typeof s.sgpa === "number" ? s.sgpa.toFixed(2) : "N/A"}
-                                </Badge>
-                                <p className="text-[11px] text-zinc-400 mt-1">
-                                  {s.creditsEarned ?? "—"} Credits • {s.totalSubjects ?? 0} Subjects
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
+                    <Button variant="outline" size="sm" onClick={handleExportTranscript} className="gap-1.5 text-xs">
+                      <Download size={14} /> Export Transcript
+                    </Button>
                   </div>
 
-                  {/* Detailed Semester Results View */}
-                  {selectedSem ? (
-                    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="flex flex-col gap-6">
-                      {/* Header Card with Export Action */}
-                      <Card className="border border-purple-500/30 bg-gradient-to-br from-zinc-900 via-zinc-900 to-purple-950/20 p-5">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h2 className="text-xl font-extrabold text-white tracking-tight">{selectedSem.name} Academic Transcript</h2>
-                              <Badge tone="accent">Semester {selectedSem.semesterNumber}</Badge>
+                  {/* Vertical Chronological Transcript Cards */}
+                  <div className="flex flex-col gap-6">
+                    {completedSemesters.map((sem, sIdx) => {
+                      const semId = sem.id || sem._id || `sem-${sIdx}`;
+                      const isSelected = selectedSem ? (selectedSem.id || selectedSem._id) === semId : false;
+                      const semSgpaFormatted = typeof sem.sgpa === "number" ? sem.sgpa.toFixed(2) : "N/A";
+                      const semCgpaFormatted = typeof sem.cgpa === "number" ? sem.cgpa.toFixed(2) : (typeof sem.sgpa === "number" ? sem.sgpa.toFixed(2) : "N/A");
+                      const semCredits = sem.creditsEarned || sem.credits || 20;
+
+                      return (
+                        <Card
+                          key={semId}
+                          className={`overflow-hidden transition-all duration-200 border ${
+                            isSelected
+                              ? "border-purple-500/60 bg-gradient-to-br from-zinc-900 via-zinc-900 to-purple-950/20 shadow-[0_0_25px_rgba(124,58,237,0.15)]"
+                              : "border-white/10 bg-zinc-950/60 hover:border-purple-500/30"
+                          }`}
+                        >
+                          {/* Semester Transcript Header */}
+                          <div
+                            onClick={() => setSelectedSemesterId(semId)}
+                            className="flex flex-col sm:flex-row sm:items-center justify-between p-5 bg-zinc-950/90 border-b border-white/10 gap-4 cursor-pointer"
+                          >
+                            <div className="flex items-center gap-3.5">
+                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30 font-bold text-sm font-mono">
+                                #{sem.semesterNumber || sIdx + 1}
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <h3 className="font-extrabold text-white text-lg tracking-tight">{sem.name || `Semester ${sem.semesterNumber}`}</h3>
+                                  <Badge tone="success" className="text-[10px]">
+                                    <CheckCircle2 size={11} className="mr-1 inline" /> Completed
+                                  </Badge>
+                                </div>
+                                <p className="text-xs text-zinc-400 mt-0.5">
+                                  Verified Official Academic Transcript Record
+                                </p>
+                              </div>
                             </div>
-                            <p className="text-xs text-zinc-400 mt-1">Official verified transcript record</p>
+
+                            <div className="flex flex-wrap items-center gap-4 text-xs font-mono">
+                              <div className="flex flex-col">
+                                <span className="text-zinc-400 text-[10px] uppercase font-bold font-sans">SGPA</span>
+                                <span className="text-purple-300 font-extrabold text-base">{semSgpaFormatted}</span>
+                              </div>
+                              <div className="h-6 w-px bg-white/10 hidden sm:block" />
+                              <div className="flex flex-col">
+                                <span className="text-zinc-400 text-[10px] uppercase font-bold font-sans">CGPA</span>
+                                <span className="text-white font-extrabold text-base">{semCgpaFormatted}</span>
+                              </div>
+                              <div className="h-6 w-px bg-white/10 hidden sm:block" />
+                              <div className="flex flex-col">
+                                <span className="text-zinc-400 text-[10px] uppercase font-bold font-sans">Credits Earned</span>
+                                <span className="text-emerald-400 font-extrabold text-base">{semCredits}</span>
+                              </div>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedSemesterId(semId);
+                                  setIsEditModalOpen(true);
+                                }}
+                                className="ml-2 p-2 rounded-xl bg-purple-600/20 hover:bg-purple-600 text-purple-300 hover:text-white transition border border-purple-500/30"
+                                title="Edit Semester"
+                              >
+                                <Edit3 size={14} />
+                              </button>
+                            </div>
                           </div>
 
-                          <div className="flex flex-wrap items-center gap-3 text-xs">
-                            <div className="rounded-xl border border-white/10 bg-zinc-950/60 px-3 py-1.5 font-mono">
-                              <span className="text-zinc-400 block text-[10px] uppercase font-bold">SGPA</span>
-                              <span className="text-base font-extrabold text-purple-400">{typeof selectedSem.sgpa === "number" ? selectedSem.sgpa.toFixed(2) : "N/A"}</span>
-                            </div>
+                          {/* Semester Subjects Breakdown Table */}
+                          <CardContent className="p-0">
+                            <div className="overflow-x-auto">
+                              <table className="w-full text-left text-xs">
+                                <thead className="bg-zinc-950/60 text-zinc-400 border-b border-white/10 font-semibold uppercase text-[10px] tracking-wider">
+                                  <tr>
+                                    <th className="p-3.5 pl-6">Subject Course</th>
+                                    <th className="p-3.5">Code</th>
+                                    <th className="p-3.5">Credits</th>
+                                    <th className="p-3.5">Marks Obtained</th>
+                                    <th className="p-3.5">Max Marks</th>
+                                    <th className="p-3.5">Score %</th>
+                                    <th className="p-3.5 pr-6 text-right">Letter Grade</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-white/5 font-mono">
+                                  {Array.isArray(sem.subjects) && sem.subjects.length > 0 ? (
+                                    sem.subjects.map((subj, subIdx) => {
+                                      const subjId = subj?.id || subj?._id || `subj-${semId}-${subIdx}`;
+                                      const displayName = subj?.subjectName || subj?.name || "Subject";
+                                      const displayCode = subj?.subjectCode || subj?.code || "—";
+                                      const displayMarksObtained = subj?.marksObtained !== null && subj?.marksObtained !== undefined ? subj.marksObtained : "—";
+                                      const displayMaxMarks = subj?.maxMarks !== null && subj?.maxMarks !== undefined ? subj.maxMarks : "—";
+                                      const displayPct = safeFormatPct(subj?.finalPercentage ?? subj?.pct);
+                                      const displayGrade = subj?.grade || subj?.letterGrade || "—";
 
-                            <Button variant="outline" size="sm" onClick={handleExportTranscript} className="gap-1.5">
-                              <Download size={14} /> Export Transcript
-                            </Button>
-
-                            <button
-                              onClick={() => setIsEditModalOpen(true)}
-                              className="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs transition shadow-lg shadow-purple-600/20 flex items-center gap-1.5"
-                            >
-                              <Edit3 size={14} /> Edit Semester
-                            </button>
-                          </div>
-                        </div>
-                      </Card>
-
-                      {/* Detailed Subjects Table with Expandable Rows */}
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-sm font-bold flex items-center justify-between">
-                            <span>Subject Breakdown Table ({selectedSem.subjects?.length || 0})</span>
-                            <span className="text-xs text-zinc-400 font-normal">Click a subject row to view stored assessment components</span>
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-0">
-                          <div className="overflow-x-auto">
-                            <table className="w-full text-left text-xs">
-                              <thead className="bg-zinc-950/80 text-zinc-400 border-b border-white/10 font-semibold uppercase text-[11px] tracking-wider">
-                                <tr>
-                                  <th className="p-3.5 pl-5">Subject Name</th>
-                                  <th className="p-3.5">Subject Code</th>
-                                  <th className="p-3.5">Credits</th>
-                                  <th className="p-3.5">Marks Obtained</th>
-                                  <th className="p-3.5">Max Marks</th>
-                                  <th className="p-3.5">Final Percentage</th>
-                                  <th className="p-3.5">Grade</th>
-                                  <th className="p-3.5">Grade Point</th>
-                                  <th className="p-3.5 pr-5 text-right">Details</th>
-                                </tr>
-                              </thead>
-                              <tbody className="divide-y divide-white/5 font-mono">
-                                {Array.isArray(selectedSem.subjects) && selectedSem.subjects.map((subj) => {
-                                  const subjId = subj?.id || subj?._id || subj?.name || Math.random().toString();
-                                  const isExpanded = expandedSubjectIds.has(subjId);
-                                  const displayName = subj?.subjectName || subj?.name || "Untitled Subject";
-                                  const displayCode = subj?.subjectCode || subj?.code || "—";
-                                  const displayMarksObtained = subj?.marksObtained !== null && subj?.marksObtained !== undefined ? subj.marksObtained : "—";
-                                  const displayMaxMarks = subj?.maxMarks !== null && subj?.maxMarks !== undefined ? subj.maxMarks : "—";
-                                  const displayPercentage = safeFormatPct(subj?.finalPercentage ?? subj?.pct);
-                                  const displayGrade = subj?.grade || subj?.letterGrade || "—";
-                                  const displayGradePoint = safeFormatNumber(subj?.gradePoint, 1);
-
-                                  return (
-                                    <Fragment key={subjId}>
-                                      <tr
-                                        onClick={() => toggleSubjectExpand(subjId)}
-                                        className="cursor-pointer hover:bg-white/5 transition-colors"
-                                      >
-                                        <td className="p-3.5 pl-5 font-sans font-bold text-white">{displayName}</td>
-                                        <td className="p-3.5 text-zinc-400">{displayCode}</td>
-                                        <td className="p-3.5">{subj?.credits ?? "—"}</td>
-                                        <td className="p-3.5 text-zinc-200">{displayMarksObtained}</td>
-                                        <td className="p-3.5 text-zinc-400">{displayMaxMarks}</td>
-                                        <td className="p-3.5 font-bold text-purple-300">{displayPercentage}</td>
-                                        <td className="p-3.5 font-sans"><Badge tone="accent">{displayGrade}</Badge></td>
-                                        <td className="p-3.5 font-semibold">{displayGradePoint}</td>
-                                        <td className="p-3.5 pr-5 text-right">
-                                          <button className="rounded-lg p-1 text-zinc-400 hover:text-white hover:bg-white/10">
-                                            {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                                          </button>
-                                        </td>
-                                      </tr>
-
-                                      {isExpanded && (
-                                        <tr className="bg-purple-950/20 border-t border-purple-500/20">
-                                          <td colSpan={9} className="p-4 pl-8">
-                                            <div className="rounded-xl border border-purple-500/20 bg-zinc-950/80 p-4">
-                                              <p className="text-[11px] font-bold uppercase tracking-wider text-purple-300 mb-3 flex items-center gap-1.5 font-sans">
-                                                <BookOpen size={13} /> Stored Assessment Components — {displayName}
-                                              </p>
-                                              {Array.isArray(subj?.assessments) && subj.assessments.length > 0 ? (
-                                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                                                  {subj.assessments.map((item, aIdx) => (
-                                                    <div key={aIdx} className="rounded-lg border border-white/10 bg-zinc-900/60 p-2.5">
-                                                      <span className="text-[10px] text-zinc-400 block font-sans font-semibold">{item?.name || `Component ${aIdx + 1}`}</span>
-                                                      <span className="font-mono font-bold text-white mt-0.5 block">
-                                                        {item?.marksObtained !== null && item?.marksObtained !== undefined
-                                                          ? `${item.marksObtained} / ${item.maxMarks || 100}`
-                                                          : "Left Blank"}
-                                                      </span>
-                                                    </div>
-                                                  ))}
-                                                </div>
-                                              ) : (
-                                                <p className="text-xs text-zinc-400 font-sans">
-                                                  No individual assessment components were recorded for this subject in the database.
-                                                </p>
-                                              )}
-                                            </div>
+                                      return (
+                                        <tr key={subjId} className="hover:bg-purple-500/5 transition-colors">
+                                          <td className="p-3.5 pl-6 font-sans font-bold text-white">{displayName}</td>
+                                          <td className="p-3.5 text-zinc-400">{displayCode}</td>
+                                          <td className="p-3.5 text-zinc-300">{subj?.credits ?? 3}</td>
+                                          <td className="p-3.5 text-zinc-200">{displayMarksObtained}</td>
+                                          <td className="p-3.5 text-zinc-400">{displayMaxMarks}</td>
+                                          <td className="p-3.5 font-bold text-purple-300">{displayPct}</td>
+                                          <td className="p-3.5 pr-6 text-right font-sans">
+                                            <Badge tone="accent">{displayGrade}</Badge>
                                           </td>
                                         </tr>
-                                      )}
-                                    </Fragment>
-                                  );
-                                })}
-                              </tbody>
-                            </table>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  ) : (
-                    <Card className="p-8 text-center text-xs text-zinc-400">
-                      Select a semester card above to view detailed results.
-                    </Card>
-                  )}
+                                      );
+                                    })
+                                  ) : (
+                                    <tr>
+                                      <td colSpan={7} className="p-6 text-center text-zinc-500 font-sans text-xs italic">
+                                        No detailed subject records stored for this semester.
+                                      </td>
+                                    </tr>
+                                  )}
+                                </tbody>
+                              </table>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </ErrorBoundary>

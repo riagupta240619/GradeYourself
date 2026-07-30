@@ -50,7 +50,10 @@ export interface CompletedSemesterDetail {
   semesterNumber: number;
   isCurrent?: boolean;
   sgpa: number | null;
+  cgpa?: number | null;
   creditsEarned: number;
+  credits?: number;
+  totalCredits?: number;
   totalSubjects: number;
   verificationStatus: string;
   updatedAt?: string;
@@ -78,6 +81,7 @@ export interface AnalyticsSummary {
 export const AnalyticsService = {
   async getAnalyticsSummary(): Promise<AnalyticsSummary> {
     const response = await api.get<AnalyticsSummary>("/analytics");
+    console.log("Transcript API Response", response.data);
     return response.data;
   },
 };

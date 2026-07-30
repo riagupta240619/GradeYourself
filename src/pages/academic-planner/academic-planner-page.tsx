@@ -94,7 +94,7 @@ function AcademicPlannerContent() {
         scheme.components.forEach((c: any) => {
           (c?.assessments || []).forEach((ast: any) => {
             const val = marks[ast?.id];
-            if (val !== undefined && val !== null && val !== "" && !isNaN(Number(val))) {
+            if (val !== undefined && val !== null && (val as any) !== "" && !isNaN(Number(val))) {
               completed++;
             } else {
               remaining++;
@@ -104,7 +104,7 @@ function AcademicPlannerContent() {
       } else if (scheme?.assessmentTypes && Array.isArray(scheme.assessmentTypes)) {
         scheme.assessmentTypes.forEach((t: any) => {
           const val = marks[t?.id];
-          if (val !== undefined && val !== null && val !== "" && !isNaN(Number(val))) {
+          if (val !== undefined && val !== null && (val as any) !== "" && !isNaN(Number(val))) {
             completed++;
           } else {
             remaining++;

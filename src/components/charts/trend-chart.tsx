@@ -11,6 +11,7 @@ export interface TrendChartPoint {
   credits?: number;
   confidencePct?: number;
   note?: string;
+  status?: string;
   // Legacy fields fallback
   value?: number | null;
   projectedValue?: number | null;
