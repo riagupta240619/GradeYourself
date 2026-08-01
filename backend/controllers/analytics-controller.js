@@ -3,7 +3,11 @@
 const Semester = require("../models/semester-model");
 const SubjectModel = require("../models/subject-model");
 const User = require("../models/user-model");
-const { calculateSubjectScore, calculateSgpa, calculateCgpa } = require("../utils/grading-engine");
+const {
+  calculateSubjectScore,
+  calculateSgpa,
+  calculateCgpa,
+} = require("../utils/grading-engine");
 
 /**
  * Resolve the user's grading scale from their profile.
@@ -29,9 +33,18 @@ function extractUserAssessments(subj) {
   if (Array.isArray(subj.assessments) && subj.assessments.length > 0) {
     return subj.assessments.map((a) => ({
       name: a.name,
-      marksObtained: a.marksObtained !== undefined && a.marksObtained !== null ? Number(a.marksObtained) : null,
-      maxMarks: a.maxMarks !== undefined && a.maxMarks !== null ? Number(a.maxMarks) : null,
-      weightPct: a.weightPct !== undefined && a.weightPct !== null ? Number(a.weightPct) : null,
+      marksObtained:
+        a.marksObtained !== undefined && a.marksObtained !== null
+          ? Number(a.marksObtained)
+          : null,
+      maxMarks:
+        a.maxMarks !== undefined && a.maxMarks !== null
+          ? Number(a.maxMarks)
+          : null,
+      weightPct:
+        a.weightPct !== undefined && a.weightPct !== null
+          ? Number(a.weightPct)
+          : null,
     }));
   }
 
@@ -58,10 +71,18 @@ function extractUserAssessments(subj) {
     }
   };
 
-  addIfUserEntered("Assignment(s)", getMark("a1") ?? getMark("assignments"), 20);
+  addIfUserEntered(
+    "Assignment(s)",
+    getMark("a1") ?? getMark("assignments"),
+    20,
+  );
   addIfUserEntered("Quiz(es)", getMark("a2") ?? getMark("quizzes"), 20);
   addIfUserEntered("Mid Semester", getMark("m1") ?? getMark("midterm"), 30);
-  addIfUserEntered("Practical/Lab", getMark("l1") ?? getMark("lab") ?? getMark("practical"), 50);
+  addIfUserEntered(
+    "Practical/Lab",
+    getMark("l1") ?? getMark("lab") ?? getMark("practical"),
+    50,
+  );
   addIfUserEntered("Viva", getMark("viva"), 20);
   addIfUserEntered("End Semester", getMark("f1") ?? getMark("final"), 100);
   addIfUserEntered("Project", getMark("project"), 100);
@@ -73,14 +94,24 @@ function extractUserAssessments(subj) {
 /**
  * Generate semester AI academic insight summary analyzing stored data.
  */
-function generateSemesterAiInsight(semName, sgpa, subjects, highestSubj, lowestSubj) {
+function generateSemesterAiInsight(
+  semName,
+  sgpa,
+  subjects,
+  highestSubj,
+  lowestSubj,
+) {
   if (!subjects || subjects.length === 0) {
     return `${semName} record verified with completed course credits.`;
   }
-  const formattedSgpa = typeof sgpa === "number" && !isNaN(sgpa) ? sgpa.toFixed(2) : "N/A";
+  const formattedSgpa =
+    typeof sgpa === "number" && !isNaN(sgpa) ? sgpa.toFixed(2) : "N/A";
   const getSubjPctStr = (s) => {
     if (!s) return "—";
-    const p = s.finalPercentage !== null && s.finalPercentage !== undefined ? s.finalPercentage : s.pct;
+    const p =
+      s.finalPercentage !== null && s.finalPercentage !== undefined
+        ? s.finalPercentage
+        : s.pct;
     return typeof p === "number" && !isNaN(p) ? `${p.toFixed(1)}%` : "—";
   };
 
@@ -105,7 +136,10 @@ const getAnalyticsSummary = async (req, res, next) => {
     const scale = resolveScale(user);
 
     // Exclude active current semester (isCurrent: true) from Analytics and Past Results
-    const semesters = await Semester.find({ user: req.user._id, isCurrent: { $ne: true } }).sort({ createdAt: 1 });
+    const semesters = await Semester.find({
+      user: req.user._id,
+      isCurrent: { $ne: true },
+    }).sort({ createdAt: 1 });
 
     if (semesters.length === 0) {
       return res.status(200).json({
@@ -131,9 +165,10 @@ const getAnalyticsSummary = async (req, res, next) => {
       const subjects = await SubjectModel.find({ semester: sem._id });
       const semForEngine = { ...sem.toObject(), subjects };
 
-      const semSgpa = typeof sem.finalizedSgpa === "number" && !isNaN(sem.finalizedSgpa)
-        ? sem.finalizedSgpa
-        : calculateSgpa(semForEngine, scale);
+      const semSgpa =
+        typeof sem.finalizedSgpa === "number" && !isNaN(sem.finalizedSgpa)
+          ? sem.finalizedSgpa
+          : calculateSgpa(semForEngine, scale);
 
       semesterTrend.push({ semester: semName, sgpa: semSgpa });
 
@@ -143,10 +178,14 @@ const getAnalyticsSummary = async (req, res, next) => {
         priorSems.map(async (ps) => {
           const psSubjects = await SubjectModel.find({ semester: ps._id });
           return { ...ps.toObject(), subjects: psSubjects };
-        })
+        }),
       );
-      const progressiveCgpa = calculateCgpa([...priorSubjectSets, semForEngine], scale);
-      cgpaHistory.push({ semester: semName, cgpa: progressiveCgpa });
+      const progressiveCgpa = calculateCgpa(
+        [...priorSubjectSets, semForEngine],
+        scale,
+      );
+      const semCgpa = typeof sem.cgpa === "number" ? sem.cgpa : progressiveCgpa;
+      cgpaHistory.push({ semester: semName, cgpa: semCgpa });
 
       // Formatted subject list for this specific semester reading exact database snapshot fields
       const semSubjectDetails = [];
@@ -156,14 +195,16 @@ const getAnalyticsSummary = async (req, res, next) => {
       for (const subj of subjects) {
         const score = calculateSubjectScore(subj, scale);
 
-        const finalPercentage = subj.finalPercentage !== null && subj.finalPercentage !== undefined
-          ? Number(subj.finalPercentage)
-          : score.pct;
+        const finalPercentage =
+          subj.finalPercentage !== null && subj.finalPercentage !== undefined
+            ? Number(subj.finalPercentage)
+            : score.pct;
 
         const grade = subj.grade || score.letter;
-        const gradePoint = subj.gradePoint !== null && subj.gradePoint !== undefined
-          ? Number(subj.gradePoint)
-          : score.gradePoint;
+        const gradePoint =
+          subj.gradePoint !== null && subj.gradePoint !== undefined
+            ? Number(subj.gradePoint)
+            : score.gradePoint;
 
         const userAssessments = extractUserAssessments(subj);
 
@@ -175,8 +216,14 @@ const getAnalyticsSummary = async (req, res, next) => {
           subjectCode: subj.code || "",
           code: subj.code || "",
           credits: subj.credits || 3,
-          marksObtained: subj.marksObtained !== undefined && subj.marksObtained !== null ? Number(subj.marksObtained) : null,
-          maxMarks: subj.maxMarks !== undefined && subj.maxMarks !== null ? Number(subj.maxMarks) : null,
+          marksObtained:
+            subj.marksObtained !== undefined && subj.marksObtained !== null
+              ? Number(subj.marksObtained)
+              : null,
+          maxMarks:
+            subj.maxMarks !== undefined && subj.maxMarks !== null
+              ? Number(subj.maxMarks)
+              : null,
           finalPercentage: finalPercentage,
           pct: finalPercentage,
           grade: grade,
@@ -187,7 +234,7 @@ const getAnalyticsSummary = async (req, res, next) => {
 
         semSubjectDetails.push(subjDetail);
         semTotalMarksSum += finalPercentage;
-        semCreditsEarned += (subj.credits || 3);
+        semCreditsEarned += subj.credits || 3;
 
         allSubjects.push({
           name: subj.name,
@@ -203,10 +250,18 @@ const getAnalyticsSummary = async (req, res, next) => {
       // Sort subjects within semester by final percentage descending
       semSubjectDetails.sort((a, b) => b.finalPercentage - a.finalPercentage);
 
-      const semHighest = semSubjectDetails.length > 0 ? semSubjectDetails[0] : null;
-      const semLowest = semSubjectDetails.length > 0 ? semSubjectDetails[semSubjectDetails.length - 1] : null;
-      const semAvgMarks = semSubjectDetails.length > 0 ? semTotalMarksSum / semSubjectDetails.length : 0;
-      const effectiveCredits = semCreditsEarned > 0 ? semCreditsEarned : (sem.credits || 20);
+      const semHighest =
+        semSubjectDetails.length > 0 ? semSubjectDetails[0] : null;
+      const semLowest =
+        semSubjectDetails.length > 0
+          ? semSubjectDetails[semSubjectDetails.length - 1]
+          : null;
+      const semAvgMarks =
+        semSubjectDetails.length > 0
+          ? semTotalMarksSum / semSubjectDetails.length
+          : 0;
+      const effectiveCredits =
+        semCreditsEarned > 0 ? semCreditsEarned : sem.credits || 20;
 
       completedSemesters.push({
         id: sem._id,
@@ -215,7 +270,7 @@ const getAnalyticsSummary = async (req, res, next) => {
         semesterNumber: parseSemesterNumber(sem.name, i),
         isCurrent: sem.isCurrent,
         sgpa: semSgpa,
-        cgpa: progressiveCgpa,
+        cgpa: typeof sem.cgpa === "number" ? sem.cgpa : progressiveCgpa,
         creditsEarned: effectiveCredits,
         totalCredits: effectiveCredits,
         totalSubjects: semSubjectDetails.length,
@@ -223,14 +278,32 @@ const getAnalyticsSummary = async (req, res, next) => {
         updatedAt: sem.updatedAt || sem.createdAt,
         subjects: semSubjectDetails,
         summary: {
-          highestSubject: semHighest ? { name: semHighest.name, code: semHighest.code, pct: semHighest.finalPercentage } : null,
-          lowestSubject: semLowest ? { name: semLowest.name, code: semLowest.code, pct: semLowest.finalPercentage } : null,
+          highestSubject: semHighest
+            ? {
+                name: semHighest.name,
+                code: semHighest.code,
+                pct: semHighest.finalPercentage,
+              }
+            : null,
+          lowestSubject: semLowest
+            ? {
+                name: semLowest.name,
+                code: semLowest.code,
+                pct: semLowest.finalPercentage,
+              }
+            : null,
           averageMarks: Number(semAvgMarks.toFixed(1)),
           totalCredits: effectiveCredits,
           sgpa: semSgpa,
           cgpa: progressiveCgpa,
         },
-        aiInsight: generateSemesterAiInsight(semName, semSgpa, semSubjectDetails, semHighest, semLowest),
+        aiInsight: generateSemesterAiInsight(
+          semName,
+          semSgpa,
+          semSubjectDetails,
+          semHighest,
+          semLowest,
+        ),
       });
     }
 
@@ -238,7 +311,8 @@ const getAnalyticsSummary = async (req, res, next) => {
     allSubjects.sort((a, b) => b.pct - a.pct);
 
     const highestSubject = allSubjects.length > 0 ? allSubjects[0] : null;
-    const lowestSubject = allSubjects.length > 0 ? allSubjects[allSubjects.length - 1] : null;
+    const lowestSubject =
+      allSubjects.length > 0 ? allSubjects[allSubjects.length - 1] : null;
 
     // Credit distribution by broad academic category
     const categoryMap = {};
@@ -246,7 +320,9 @@ const getAnalyticsSummary = async (req, res, next) => {
       let category = "Core Engineering";
       if (/CS|Data|Code|System|Network/i.test(subj.name || subj.code)) {
         category = "Computer Science";
-      } else if (/MATH|Calculus|Discrete|Linear/i.test(subj.name || subj.code)) {
+      } else if (
+        /MATH|Calculus|Discrete|Linear/i.test(subj.name || subj.code)
+      ) {
         category = "Mathematics";
       } else if (/PHYS|Science|Chemistry/i.test(subj.name || subj.code)) {
         category = "Basic Sciences";
@@ -281,5 +357,3 @@ const getAnalyticsSummary = async (req, res, next) => {
 module.exports = {
   getAnalyticsSummary,
 };
-
-

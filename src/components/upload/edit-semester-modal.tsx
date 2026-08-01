@@ -1,8 +1,21 @@
 import { useState, useEffect } from "react";
-import { X, Plus, Trash2, Save, AlertTriangle, BookOpen, Check, Loader2 } from "lucide-react";
+import {
+  X,
+  Plus,
+  Trash2,
+  Save,
+  AlertTriangle,
+  BookOpen,
+  Check,
+  Loader2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SemesterService } from "@/services/semester-service";
-import type { CompletedSemesterDetail, DetailedSemesterSubject, AssessmentItem } from "@/services/analytics-service";
+import type {
+  CompletedSemesterDetail,
+  DetailedSemesterSubject,
+  AssessmentItem,
+} from "@/services/analytics-service";
 
 interface EditSemesterModalProps {
   isOpen: boolean;
@@ -11,11 +24,18 @@ interface EditSemesterModalProps {
   onSuccess: () => void;
 }
 
-export function EditSemesterModal({ isOpen, semester, onClose, onSuccess }: EditSemesterModalProps) {
+export function EditSemesterModal({
+  isOpen,
+  semester,
+  onClose,
+  onSuccess,
+}: EditSemesterModalProps) {
   const [semesterName, setSemesterName] = useState("");
   const [credits, setCredits] = useState<number>(20);
+  const [sgpa, setSgpa] = useState<number | null>(null);
+  const [cgpa, setCgpa] = useState<number | null>(null);
   const [subjects, setSubjects] = useState<DetailedSemesterSubject[]>([]);
-  
+
   // Pre-save Confirmation Dialog State
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -25,6 +45,8 @@ export function EditSemesterModal({ isOpen, semester, onClose, onSuccess }: Edit
     if (semester) {
       setSemesterName(semester.name || `Semester ${semester.semesterNumber}`);
       setCredits(semester.creditsEarned || 20);
+      setSgpa(typeof semester.sgpa === "number" ? semester.sgpa : null);
+      setCgpa(typeof semester.cgpa === "number" ? semester.cgpa : null);
       setSubjects(
         (semester.subjects || []).map((s) => ({
           ...s,
@@ -33,11 +55,12 @@ export function EditSemesterModal({ isOpen, semester, onClose, onSuccess }: Edit
           credits: s.credits || 3,
           marksObtained: s.marksObtained !== undefined ? s.marksObtained : null,
           maxMarks: s.maxMarks !== undefined ? s.maxMarks : null,
-          finalPercentage: s.finalPercentage !== undefined ? s.finalPercentage : s.pct,
+          finalPercentage:
+            s.finalPercentage !== undefined ? s.finalPercentage : s.pct,
           grade: s.grade || s.letterGrade || "",
           gradePoint: s.gradePoint !== undefined ? s.gradePoint : null,
           assessments: Array.isArray(s.assessments) ? [...s.assessments] : [],
-        }))
+        })),
       );
       setShowConfirmation(false);
       setErrorMsg(null);
@@ -46,7 +69,11 @@ export function EditSemesterModal({ isOpen, semester, onClose, onSuccess }: Edit
 
   if (!isOpen || !semester) return null;
 
-  function handleUpdateSubjectField(index: number, field: keyof DetailedSemesterSubject, value: any) {
+  function handleUpdateSubjectField(
+    index: number,
+    field: keyof DetailedSemesterSubject,
+    value: any,
+  ) {
     const updated = [...subjects];
     const item = { ...updated[index], [field]: value };
     if (field === "subjectName") item.name = value;
@@ -57,7 +84,12 @@ export function EditSemesterModal({ isOpen, semester, onClose, onSuccess }: Edit
     setSubjects(updated);
   }
 
-  function handleUpdateAssessment(sIdx: number, aIdx: number, field: keyof AssessmentItem, value: any) {
+  function handleUpdateAssessment(
+    sIdx: number,
+    aIdx: number,
+    field: keyof AssessmentItem,
+    value: any,
+  ) {
     const updated = [...subjects];
     const sub = { ...updated[sIdx] };
     const assessments = [...(sub.assessments || [])];
@@ -122,19 +154,47 @@ export function EditSemesterModal({ isOpen, semester, onClose, onSuccess }: Edit
       await SemesterService.updateFullSemester(semester!.id || semester!._id!, {
         name: semesterName,
         credits: credits,
+        finalizedSgpa: sgpa,
+        cgpa: cgpa,
         subjects: subjects.map((sub) => ({
           subjectName: sub.subjectName || sub.name,
           subjectCode: sub.subjectCode || sub.code,
           credits: Number(sub.credits) || 3,
-          marksObtained: sub.marksObtained !== null && sub.marksObtained !== undefined && sub.marksObtained !== ("" as any) ? Number(sub.marksObtained) : null,
-          maxMarks: sub.maxMarks !== null && sub.maxMarks !== undefined && sub.maxMarks !== ("" as any) ? Number(sub.maxMarks) : null,
-          finalPercentage: sub.finalPercentage !== null && sub.finalPercentage !== undefined && sub.finalPercentage !== ("" as any) ? Number(sub.finalPercentage) : null,
+          marksObtained:
+            sub.marksObtained !== null &&
+            sub.marksObtained !== undefined &&
+            sub.marksObtained !== ("" as any)
+              ? Number(sub.marksObtained)
+              : null,
+          maxMarks:
+            sub.maxMarks !== null &&
+            sub.maxMarks !== undefined &&
+            sub.maxMarks !== ("" as any)
+              ? Number(sub.maxMarks)
+              : null,
+          finalPercentage:
+            sub.finalPercentage !== null &&
+            sub.finalPercentage !== undefined &&
+            sub.finalPercentage !== ("" as any)
+              ? Number(sub.finalPercentage)
+              : null,
           grade: sub.grade || sub.letterGrade || null,
-          gradePoint: sub.gradePoint !== null && sub.gradePoint !== undefined && sub.gradePoint !== ("" as any) ? Number(sub.gradePoint) : null,
+          gradePoint:
+            sub.gradePoint !== null &&
+            sub.gradePoint !== undefined &&
+            sub.gradePoint !== ("" as any)
+              ? Number(sub.gradePoint)
+              : null,
           assessments: (sub.assessments || []).map((a) => ({
             name: a.name,
-            marksObtained: a.marksObtained !== null && a.marksObtained !== undefined ? Number(a.marksObtained) : null,
-            maxMarks: a.maxMarks !== null && a.maxMarks !== undefined ? Number(a.maxMarks) : null,
+            marksObtained:
+              a.marksObtained !== null && a.marksObtained !== undefined
+                ? Number(a.marksObtained)
+                : null,
+            maxMarks:
+              a.maxMarks !== null && a.maxMarks !== undefined
+                ? Number(a.maxMarks)
+                : null,
           })),
         })),
       });
@@ -144,7 +204,11 @@ export function EditSemesterModal({ isOpen, semester, onClose, onSuccess }: Edit
       onClose();
     } catch (err: any) {
       console.error("Failed to update semester:", err);
-      setErrorMsg(err.response?.data?.message || err.message || "Failed to update semester snapshot.");
+      setErrorMsg(
+        err.response?.data?.message ||
+          err.message ||
+          "Failed to update semester snapshot.",
+      );
       setShowConfirmation(false);
     } finally {
       setIsSaving(false);
@@ -164,7 +228,8 @@ export function EditSemesterModal({ isOpen, semester, onClose, onSuccess }: Edit
               </span>
             </h2>
             <p className="text-xs text-slate-400">
-              Update stored subjects, grades, credits & assessment components for this historical record.
+              Update stored subjects, grades, credits & assessment components
+              for this historical record.
             </p>
           </div>
 
@@ -187,7 +252,9 @@ export function EditSemesterModal({ isOpen, semester, onClose, onSuccess }: Edit
           {/* Semester Overview Inputs */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-slate-950/60 border border-slate-800">
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1">Semester Name</label>
+              <label className="block text-xs font-medium text-slate-400 mb-1">
+                Semester Name
+              </label>
               <input
                 type="text"
                 value={semesterName}
@@ -197,7 +264,9 @@ export function EditSemesterModal({ isOpen, semester, onClose, onSuccess }: Edit
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1">Total Credits</label>
+              <label className="block text-xs font-medium text-slate-400 mb-1">
+                Total Credits
+              </label>
               <input
                 type="number"
                 min="1"
@@ -207,12 +276,48 @@ export function EditSemesterModal({ isOpen, semester, onClose, onSuccess }: Edit
                 className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500"
               />
             </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-400 mb-1">
+                Semester SGPA
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                max="10"
+                value={sgpa ?? ""}
+                onChange={(e) =>
+                  setSgpa(e.target.value === "" ? null : Number(e.target.value))
+                }
+                placeholder="0.00"
+                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-400 mb-1">
+                Cumulative CGPA
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                max="10"
+                value={cgpa ?? ""}
+                onChange={(e) =>
+                  setCgpa(e.target.value === "" ? null : Number(e.target.value))
+                }
+                placeholder="0.00"
+                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500"
+              />
+            </div>
           </div>
 
           {/* Subject List & Assessment Details */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Subjects ({subjects.length})</h3>
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+                Subjects ({subjects.length})
+              </h3>
               <Button
                 variant="outline"
                 size="sm"
@@ -231,49 +336,81 @@ export function EditSemesterModal({ isOpen, semester, onClose, onSuccess }: Edit
                 <div className="grid grid-cols-1 sm:grid-cols-6 gap-3 text-xs">
                   {/* Subject Name */}
                   <div className="sm:col-span-2">
-                    <label className="block text-[10px] text-slate-400 mb-0.5 font-semibold">Subject Name</label>
+                    <label className="block text-[10px] text-slate-400 mb-0.5 font-semibold">
+                      Subject Name
+                    </label>
                     <input
                       type="text"
                       value={sub.subjectName || sub.name}
-                      onChange={(e) => handleUpdateSubjectField(sIdx, "subjectName", e.target.value)}
+                      onChange={(e) =>
+                        handleUpdateSubjectField(
+                          sIdx,
+                          "subjectName",
+                          e.target.value,
+                        )
+                      }
                       className="w-full px-2.5 py-1.5 rounded bg-slate-900 border border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500"
                     />
                   </div>
 
                   {/* Subject Code */}
                   <div>
-                    <label className="block text-[10px] text-slate-400 mb-0.5 font-semibold">Code</label>
+                    <label className="block text-[10px] text-slate-400 mb-0.5 font-semibold">
+                      Code
+                    </label>
                     <input
                       type="text"
                       value={sub.subjectCode || sub.code}
-                      onChange={(e) => handleUpdateSubjectField(sIdx, "subjectCode", e.target.value.toUpperCase())}
+                      onChange={(e) =>
+                        handleUpdateSubjectField(
+                          sIdx,
+                          "subjectCode",
+                          e.target.value.toUpperCase(),
+                        )
+                      }
                       className="w-full px-2.5 py-1.5 rounded bg-slate-900 border border-slate-700 text-indigo-300 font-mono focus:outline-none uppercase"
                     />
                   </div>
 
                   {/* Credits */}
                   <div>
-                    <label className="block text-[10px] text-slate-400 mb-0.5 font-semibold">Credits</label>
+                    <label className="block text-[10px] text-slate-400 mb-0.5 font-semibold">
+                      Credits
+                    </label>
                     <input
                       type="number"
                       min="1"
                       max="10"
                       value={sub.credits}
-                      onChange={(e) => handleUpdateSubjectField(sIdx, "credits", Number(e.target.value) || 3)}
+                      onChange={(e) =>
+                        handleUpdateSubjectField(
+                          sIdx,
+                          "credits",
+                          Number(e.target.value) || 3,
+                        )
+                      }
                       className="w-full px-2.5 py-1.5 rounded bg-slate-900 border border-slate-700 text-slate-900 dark:text-white font-mono text-center focus:outline-none"
                     />
                   </div>
 
                   {/* Final Percentage */}
                   <div>
-                    <label className="block text-[10px] text-purple-600 dark:text-purple-300 mb-0.5 font-bold">Final Pct (%)</label>
+                    <label className="block text-[10px] text-purple-600 dark:text-purple-300 mb-0.5 font-bold">
+                      Final Pct (%)
+                    </label>
                     <input
                       type="number"
                       step="0.1"
                       min="0"
                       max="100"
                       value={sub.finalPercentage ?? sub.pct ?? ""}
-                      onChange={(e) => handleUpdateSubjectField(sIdx, "finalPercentage", e.target.value === "" ? null : Number(e.target.value))}
+                      onChange={(e) =>
+                        handleUpdateSubjectField(
+                          sIdx,
+                          "finalPercentage",
+                          e.target.value === "" ? null : Number(e.target.value),
+                        )
+                      }
                       placeholder="85.0"
                       className="w-full px-2.5 py-1.5 rounded bg-purple-950/40 border border-purple-500/40 text-purple-600 dark:text-purple-300 font-mono text-center font-bold focus:outline-none"
                     />
@@ -282,11 +419,19 @@ export function EditSemesterModal({ isOpen, semester, onClose, onSuccess }: Edit
                   {/* Grade & Delete */}
                   <div className="flex items-center gap-2">
                     <div className="flex-1">
-                      <label className="block text-[10px] text-slate-400 mb-0.5 font-semibold">Grade</label>
+                      <label className="block text-[10px] text-slate-400 mb-0.5 font-semibold">
+                        Grade
+                      </label>
                       <input
                         type="text"
                         value={sub.grade || sub.letterGrade}
-                        onChange={(e) => handleUpdateSubjectField(sIdx, "grade", e.target.value.toUpperCase())}
+                        onChange={(e) =>
+                          handleUpdateSubjectField(
+                            sIdx,
+                            "grade",
+                            e.target.value.toUpperCase(),
+                          )
+                        }
                         className="w-full px-2.5 py-1.5 rounded bg-slate-900 border border-slate-700 text-emerald-400 font-mono text-center font-bold uppercase focus:outline-none"
                       />
                     </div>
@@ -304,7 +449,9 @@ export function EditSemesterModal({ isOpen, semester, onClose, onSuccess }: Edit
                 <div className="pt-2 border-t border-slate-800/60">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[11px] font-semibold text-slate-400 flex items-center gap-1">
-                      <BookOpen className="w-3.5 h-3.5 text-purple-400" /> Stored Assessment Components ({sub.assessments?.length || 0})
+                      <BookOpen className="w-3.5 h-3.5 text-purple-400" />{" "}
+                      Stored Assessment Components (
+                      {sub.assessments?.length || 0})
                     </span>
                     <button
                       onClick={() => handleAddAssessment(sIdx)}
@@ -317,11 +464,21 @@ export function EditSemesterModal({ isOpen, semester, onClose, onSuccess }: Edit
                   {sub.assessments && sub.assessments.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                       {sub.assessments.map((ast, aIdx) => (
-                        <div key={`ast-${sIdx}-${aIdx}`} className="p-2 rounded bg-slate-900 border border-slate-800 flex items-center gap-2">
+                        <div
+                          key={`ast-${sIdx}-${aIdx}`}
+                          className="p-2 rounded bg-slate-900 border border-slate-800 flex items-center gap-2"
+                        >
                           <input
                             type="text"
                             value={ast.name}
-                            onChange={(e) => handleUpdateAssessment(sIdx, aIdx, "name", e.target.value)}
+                            onChange={(e) =>
+                              handleUpdateAssessment(
+                                sIdx,
+                                aIdx,
+                                "name",
+                                e.target.value,
+                              )
+                            }
                             placeholder="Component Name"
                             className="w-28 bg-transparent text-[11px] font-medium text-slate-900 dark:text-white border-b border-slate-700 focus:outline-none"
                           />
@@ -329,7 +486,16 @@ export function EditSemesterModal({ isOpen, semester, onClose, onSuccess }: Edit
                             <input
                               type="number"
                               value={ast.marksObtained ?? ""}
-                              onChange={(e) => handleUpdateAssessment(sIdx, aIdx, "marksObtained", e.target.value === "" ? null : Number(e.target.value))}
+                              onChange={(e) =>
+                                handleUpdateAssessment(
+                                  sIdx,
+                                  aIdx,
+                                  "marksObtained",
+                                  e.target.value === ""
+                                    ? null
+                                    : Number(e.target.value),
+                                )
+                              }
                               placeholder="Marks"
                               className="w-12 px-1 py-0.5 rounded bg-slate-950 text-center text-slate-900 dark:text-white border border-slate-800"
                             />
@@ -337,7 +503,16 @@ export function EditSemesterModal({ isOpen, semester, onClose, onSuccess }: Edit
                             <input
                               type="number"
                               value={ast.maxMarks ?? 100}
-                              onChange={(e) => handleUpdateAssessment(sIdx, aIdx, "maxMarks", e.target.value === "" ? null : Number(e.target.value))}
+                              onChange={(e) =>
+                                handleUpdateAssessment(
+                                  sIdx,
+                                  aIdx,
+                                  "maxMarks",
+                                  e.target.value === ""
+                                    ? null
+                                    : Number(e.target.value),
+                                )
+                              }
                               placeholder="Max"
                               className="w-12 px-1 py-0.5 rounded bg-slate-950 text-center text-slate-400 border border-slate-800"
                             />
@@ -352,7 +527,9 @@ export function EditSemesterModal({ isOpen, semester, onClose, onSuccess }: Edit
                       ))}
                     </div>
                   ) : (
-                    <p className="text-[11px] text-slate-500 italic">No breakdown components stored for this subject.</p>
+                    <p className="text-[11px] text-slate-500 italic">
+                      No breakdown components stored for this subject.
+                    </p>
                   )}
                 </div>
               </div>
@@ -387,12 +564,19 @@ export function EditSemesterModal({ isOpen, semester, onClose, onSuccess }: Edit
               <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20">
                 <AlertTriangle className="w-6 h-6 text-amber-400" />
               </div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">Confirm Snapshot Update</h3>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                Confirm Snapshot Update
+              </h3>
             </div>
 
             <p className="text-xs text-slate-300 leading-relaxed">
-              Are you sure you want to save these edits to <strong className="text-slate-900 dark:text-white">{semesterName}</strong>?
-              This action will update your stored historical record, recalculate your **Semester SGPA**, **Overall CGPA**, and update your **Analytics Graphs**.
+              Are you sure you want to save these edits to{" "}
+              <strong className="text-slate-900 dark:text-white">
+                {semesterName}
+              </strong>
+              ? This action will update your stored historical record,
+              recalculate your **Semester SGPA**, **Overall CGPA**, and update
+              your **Analytics Graphs**.
             </p>
 
             <div className="pt-2 flex items-center justify-end gap-3">
@@ -410,7 +594,11 @@ export function EditSemesterModal({ isOpen, semester, onClose, onSuccess }: Edit
                 disabled={isSaving}
                 className="bg-amber-600 hover:bg-amber-500 text-slate-900 dark:text-white text-xs font-semibold px-4 shadow-lg shadow-amber-600/25 flex items-center gap-1.5"
               >
-                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                {isSaving ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Check className="w-4 h-4" />
+                )}
                 Confirm & Recalculate
               </Button>
             </div>

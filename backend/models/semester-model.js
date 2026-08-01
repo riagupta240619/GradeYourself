@@ -38,6 +38,12 @@ const semesterSchema = new mongoose.Schema(
       type: Number,
       default: null,
     },
+    // Stores the official CGPA value associated with this semester snapshot.
+    // This is optional and may be computed on demand when absent.
+    cgpa: {
+      type: Number,
+      default: null,
+    },
     // Total credits for the semester (used for CGPA weighting).
     // Overridden by the sum of Subject.credits when subjects exist.
     credits: {
@@ -47,7 +53,7 @@ const semesterSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 const Semester = mongoose.model("Semester", semesterSchema);

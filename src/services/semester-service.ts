@@ -42,6 +42,7 @@ export interface UpdateFullSemesterPayload {
   name?: string;
   credits?: number;
   finalizedSgpa?: number | null;
+  cgpa?: number | null;
   subjects?: UpdateFullSubjectInput[];
 }
 

@@ -15,7 +15,9 @@ function resolveScale(user) {
  * Falls back to semester.credits (the stored default) if no subjects exist yet.
  */
 async function fetchTotalCredits(semesterId, fallbackCredits) {
-  const subjects = await SubjectModel.find({ semester: semesterId }).select("credits");
+  const subjects = await SubjectModel.find({ semester: semesterId }).select(
+    "credits",
+  );
   if (subjects.length > 0) {
     return subjects.reduce((sum, s) => sum + (s.credits || 0), 0);
   }
@@ -28,7 +30,11 @@ async function fetchTotalCredits(semesterId, fallbackCredits) {
  * For active semesters, calculates live from Subject collection.
  */
 async function computeSemesterSgpa(semester, scale) {
-  if (semester.finalizedSgpa !== null && semester.finalizedSgpa !== undefined && !isNaN(Number(semester.finalizedSgpa))) {
+  if (
+    semester.finalizedSgpa !== null &&
+    semester.finalizedSgpa !== undefined &&
+    !isNaN(Number(semester.finalizedSgpa))
+  ) {
     return Number(semester.finalizedSgpa);
   }
   // Live calculation — fetch subjects from collection
@@ -70,10 +76,17 @@ const addSemester = async (req, res, next) => {
     }
 
     const numCredits = Number(credits);
-    const cleanCredits = !isNaN(numCredits) && numCredits >= 1 && numCredits <= 100 ? numCredits : 20;
+    const cleanCredits =
+      !isNaN(numCredits) && numCredits >= 1 && numCredits <= 100
+        ? numCredits
+        : 20;
 
     let cleanFinalizedSgpa = null;
-    if (finalizedSgpa !== undefined && finalizedSgpa !== null && finalizedSgpa !== "") {
+    if (
+      finalizedSgpa !== undefined &&
+      finalizedSgpa !== null &&
+      finalizedSgpa !== ""
+    ) {
       const parsedSgpa = Number(finalizedSgpa);
       if (!isNaN(parsedSgpa) && parsedSgpa >= 0 && parsedSgpa <= 10) {
         cleanFinalizedSgpa = Math.round(parsedSgpa * 100) / 100;
@@ -113,7 +126,9 @@ const addSemester = async (req, res, next) => {
  */
 const getSemesters = async (req, res, next) => {
   try {
-    let semesters = await Semester.find({ user: req.user._id }).sort({ createdAt: 1 });
+    let semesters = await Semester.find({ user: req.user._id }).sort({
+      createdAt: 1,
+    });
 
     const hasCurrent = semesters.some((s) => s.isCurrent === true);
     if (!hasCurrent && semesters.length > 0) {
@@ -137,7 +152,9 @@ const getSemesters = async (req, res, next) => {
     const user = await User.findById(req.user._id);
     const scale = resolveScale(user);
 
-    const formatted = await Promise.all(semesters.map((sem) => formatSemester(sem, scale)));
+    const formatted = await Promise.all(
+      semesters.map((sem) => formatSemester(sem, scale)),
+    );
     res.status(200).json(formatted);
   } catch (error) {
     next(error);
@@ -156,7 +173,10 @@ const getSemesters = async (req, res, next) => {
  */
 const updateSemester = async (req, res, next) => {
   try {
-    const semester = await Semester.findOne({ _id: req.params.id, user: req.user._id });
+    const semester = await Semester.findOne({
+      _id: req.params.id,
+      user: req.user._id,
+    });
     if (!semester) {
       res.status(404);
       throw new Error("Semester not found");
@@ -165,7 +185,10 @@ const updateSemester = async (req, res, next) => {
     const { name, isCurrent, finalizedSgpa, credits } = req.body;
 
     if (isCurrent) {
-      await Semester.updateMany({ user: req.user._id, _id: { $ne: semester._id } }, { isCurrent: false });
+      await Semester.updateMany(
+        { user: req.user._id, _id: { $ne: semester._id } },
+        { isCurrent: false },
+      );
       semester.isCurrent = true;
     } else if (isCurrent === false) {
       semester.isCurrent = false;
@@ -214,13 +237,16 @@ const updateSemester = async (req, res, next) => {
  */
 const updateFullSemester = async (req, res, next) => {
   try {
-    const semester = await Semester.findOne({ _id: req.params.id, user: req.user._id });
+    const semester = await Semester.findOne({
+      _id: req.params.id,
+      user: req.user._id,
+    });
     if (!semester) {
       res.status(404);
       throw new Error("Semester not found");
     }
 
-    const { name, credits, finalizedSgpa, subjects } = req.body;
+    const { name, credits, finalizedSgpa, cgpa, subjects } = req.body;
 
     if (name !== undefined) {
       if (typeof name !== "string" || name.trim() === "") {
@@ -237,17 +263,35 @@ const updateFullSemester = async (req, res, next) => {
       }
     }
 
-    if (finalizedSgpa !== undefined && finalizedSgpa !== null && finalizedSgpa !== "") {
-      const parsedSgpa = Number(finalizedSgpa);
-      if (!isNaN(parsedSgpa) && parsedSgpa >= 0 && parsedSgpa <= 10) {
-        semester.finalizedSgpa = Math.round(parsedSgpa * 100) / 100;
+    if (finalizedSgpa !== undefined) {
+      if (finalizedSgpa === null || finalizedSgpa === "") {
+        semester.finalizedSgpa = null;
+      } else {
+        const parsedSgpa = Number(finalizedSgpa);
+        if (!isNaN(parsedSgpa) && parsedSgpa >= 0 && parsedSgpa <= 10) {
+          semester.finalizedSgpa = Math.round(parsedSgpa * 100) / 100;
+        }
+      }
+    }
+
+    if (cgpa !== undefined) {
+      if (cgpa === null || cgpa === "") {
+        semester.cgpa = null;
+      } else {
+        const parsedCgpa = Number(cgpa);
+        if (!isNaN(parsedCgpa) && parsedCgpa >= 0 && parsedCgpa <= 10) {
+          semester.cgpa = Math.round(parsedCgpa * 100) / 100;
+        }
       }
     }
 
     // Update subjects array if provided
     if (Array.isArray(subjects)) {
       // Clear previous subjects for this semester
-      await SubjectModel.deleteMany({ semester: semester._id, user: req.user._id });
+      await SubjectModel.deleteMany({
+        semester: semester._id,
+        user: req.user._id,
+      });
 
       for (const subInput of subjects) {
         if (!subInput.name && !subInput.subjectName) continue;
@@ -257,16 +301,32 @@ const updateFullSemester = async (req, res, next) => {
 
         const user = await User.findById(req.user._id);
         const scale = resolveScale(user);
-        const gradeVal = subInput.grade || subInput.letterGrade || subInput.targetGrade || null;
-        const details = gradeVal ? gradeToDetails(gradeVal, scale) : { letter: "P", points: 4.0, pct: 50 };
+        const gradeVal =
+          subInput.grade ||
+          subInput.letterGrade ||
+          subInput.targetGrade ||
+          null;
+        const details = gradeVal
+          ? gradeToDetails(gradeVal, scale)
+          : { letter: "P", points: 4.0, pct: 50 };
 
-        const gradePointVal = subInput.gradePoint !== undefined && subInput.gradePoint !== null && subInput.gradePoint !== ""
-          ? Number(subInput.gradePoint)
-          : details.points;
+        const gradePointVal =
+          subInput.gradePoint !== undefined &&
+          subInput.gradePoint !== null &&
+          subInput.gradePoint !== ""
+            ? Number(subInput.gradePoint)
+            : details.points;
 
-        const finalPctVal = subInput.finalPercentage !== undefined && subInput.finalPercentage !== null && subInput.finalPercentage !== ""
-          ? Number(subInput.finalPercentage)
-          : (subInput.pct !== undefined && subInput.pct !== null && subInput.pct !== "" ? Number(subInput.pct) : details.pct);
+        const finalPctVal =
+          subInput.finalPercentage !== undefined &&
+          subInput.finalPercentage !== null &&
+          subInput.finalPercentage !== ""
+            ? Number(subInput.finalPercentage)
+            : subInput.pct !== undefined &&
+                subInput.pct !== null &&
+                subInput.pct !== ""
+              ? Number(subInput.pct)
+              : details.pct;
 
         await SubjectModel.create({
           user: req.user._id,
@@ -278,10 +338,22 @@ const updateFullSemester = async (req, res, next) => {
           targetGrade: gradeVal || "A",
           grade: gradeVal || details.letter,
           gradePoint: gradePointVal,
-          marksObtained: subInput.marksObtained !== undefined && subInput.marksObtained !== null && subInput.marksObtained !== "" ? Number(subInput.marksObtained) : null,
-          maxMarks: subInput.maxMarks !== undefined && subInput.maxMarks !== null && subInput.maxMarks !== "" ? Number(subInput.maxMarks) : null,
+          marksObtained:
+            subInput.marksObtained !== undefined &&
+            subInput.marksObtained !== null &&
+            subInput.marksObtained !== ""
+              ? Number(subInput.marksObtained)
+              : null,
+          maxMarks:
+            subInput.maxMarks !== undefined &&
+            subInput.maxMarks !== null &&
+            subInput.maxMarks !== ""
+              ? Number(subInput.maxMarks)
+              : null,
           finalPercentage: finalPctVal,
-          assessments: Array.isArray(subInput.assessments) ? subInput.assessments : [],
+          assessments: Array.isArray(subInput.assessments)
+            ? subInput.assessments
+            : [],
           marks: subInput.marks || {},
         });
       }
@@ -311,16 +383,24 @@ const updateFullSemester = async (req, res, next) => {
  */
 const deleteSemester = async (req, res, next) => {
   try {
-    const semester = await Semester.findOneAndDelete({ _id: req.params.id, user: req.user._id });
+    const semester = await Semester.findOneAndDelete({
+      _id: req.params.id,
+      user: req.user._id,
+    });
     if (!semester) {
       res.status(404);
       throw new Error("Semester not found");
     }
 
     // Cascade-delete all subjects that belonged to this semester
-    await SubjectModel.deleteMany({ semester: semester._id, user: req.user._id });
+    await SubjectModel.deleteMany({
+      semester: semester._id,
+      user: req.user._id,
+    });
 
-    res.status(200).json({ message: "Semester deleted successfully", id: req.params.id });
+    res
+      .status(200)
+      .json({ message: "Semester deleted successfully", id: req.params.id });
   } catch (error) {
     next(error);
   }
@@ -351,12 +431,19 @@ const bulkSaveTranscript = async (req, res, next) => {
     const savedSemesters = [];
 
     for (const semInput of semesters) {
-      const name = semInput.semesterName || `Semester ${semInput.semester || 1}`;
-      const sgpa = semInput.sgpa !== null && semInput.sgpa !== undefined ? Number(semInput.sgpa) : null;
+      const name =
+        semInput.semesterName || `Semester ${semInput.semester || 1}`;
+      const sgpa =
+        semInput.sgpa !== null && semInput.sgpa !== undefined
+          ? Number(semInput.sgpa)
+          : null;
       const credits = Number(semInput.credits) || 20;
 
       // Find existing semester or create new
-      let semesterObj = await Semester.findOne({ user: userId, name: name.trim() });
+      let semesterObj = await Semester.findOne({
+        user: userId,
+        name: name.trim(),
+      });
       if (semesterObj) {
         semesterObj.finalizedSgpa = sgpa;
         semesterObj.credits = credits;
@@ -375,21 +462,36 @@ const bulkSaveTranscript = async (req, res, next) => {
       // Add/Update subjects for this semester
       if (Array.isArray(semInput.subjects)) {
         // Clear previous subjects for clean update if overwriting
-        await SubjectModel.deleteMany({ semester: semesterObj._id, user: userId });
+        await SubjectModel.deleteMany({
+          semester: semesterObj._id,
+          user: userId,
+        });
 
         for (const subInput of semInput.subjects) {
           if (!subInput.name) continue;
 
           const gradeVal = subInput.grade || subInput.targetGrade || null;
-          const details = gradeVal ? gradeToDetails(gradeVal, scale) : { letter: "P", points: 4.0, pct: 50 };
+          const details = gradeVal
+            ? gradeToDetails(gradeVal, scale)
+            : { letter: "P", points: 4.0, pct: 50 };
 
-          const gradePointVal = subInput.gradePoint !== undefined && subInput.gradePoint !== null && subInput.gradePoint !== ""
-            ? Number(subInput.gradePoint)
-            : details.points;
+          const gradePointVal =
+            subInput.gradePoint !== undefined &&
+            subInput.gradePoint !== null &&
+            subInput.gradePoint !== ""
+              ? Number(subInput.gradePoint)
+              : details.points;
 
-          const finalPctVal = subInput.finalPercentage !== undefined && subInput.finalPercentage !== null && subInput.finalPercentage !== ""
-            ? Number(subInput.finalPercentage)
-            : (subInput.pct !== undefined && subInput.pct !== null && subInput.pct !== "" ? Number(subInput.pct) : details.pct);
+          const finalPctVal =
+            subInput.finalPercentage !== undefined &&
+            subInput.finalPercentage !== null &&
+            subInput.finalPercentage !== ""
+              ? Number(subInput.finalPercentage)
+              : subInput.pct !== undefined &&
+                  subInput.pct !== null &&
+                  subInput.pct !== ""
+                ? Number(subInput.pct)
+                : details.pct;
 
           await SubjectModel.create({
             user: userId,
@@ -401,10 +503,22 @@ const bulkSaveTranscript = async (req, res, next) => {
             targetGrade: gradeVal || "A",
             grade: gradeVal || details.letter,
             gradePoint: gradePointVal,
-            marksObtained: subInput.marksObtained !== undefined && subInput.marksObtained !== null && subInput.marksObtained !== "" ? Number(subInput.marksObtained) : null,
-            maxMarks: subInput.maxMarks !== undefined && subInput.maxMarks !== null && subInput.maxMarks !== "" ? Number(subInput.maxMarks) : null,
+            marksObtained:
+              subInput.marksObtained !== undefined &&
+              subInput.marksObtained !== null &&
+              subInput.marksObtained !== ""
+                ? Number(subInput.marksObtained)
+                : null,
+            maxMarks:
+              subInput.maxMarks !== undefined &&
+              subInput.maxMarks !== null &&
+              subInput.maxMarks !== ""
+                ? Number(subInput.maxMarks)
+                : null,
             finalPercentage: finalPctVal,
-            assessments: Array.isArray(subInput.assessments) ? subInput.assessments : [],
+            assessments: Array.isArray(subInput.assessments)
+              ? subInput.assessments
+              : [],
             marks: subInput.marks || {},
           });
         }
@@ -422,9 +536,15 @@ const bulkSaveTranscript = async (req, res, next) => {
       .find((value) => Number.isFinite(value) && value >= 0 && value <= 10);
 
     if (latestCgpa !== undefined) user.currentCgpa = latestCgpa;
-    if (typeof university === "string" && university.trim()) user.college = university.trim().slice(0, 150);
-    if (typeof program === "string" && program.trim()) user.course = program.trim().slice(0, 150);
-    if (latestCgpa !== undefined || (typeof university === "string" && university.trim()) || (typeof program === "string" && program.trim())) {
+    if (typeof university === "string" && university.trim())
+      user.college = university.trim().slice(0, 150);
+    if (typeof program === "string" && program.trim())
+      user.course = program.trim().slice(0, 150);
+    if (
+      latestCgpa !== undefined ||
+      (typeof university === "string" && university.trim()) ||
+      (typeof program === "string" && program.trim())
+    ) {
       await user.save();
     }
     res.status(200).json({
@@ -446,7 +566,10 @@ const bulkSaveTranscript = async (req, res, next) => {
  */
 const finalizeSemester = async (req, res, next) => {
   try {
-    const semester = await Semester.findOne({ _id: req.params.id, user: req.user._id });
+    const semester = await Semester.findOne({
+      _id: req.params.id,
+      user: req.user._id,
+    });
     if (!semester) {
       res.status(404);
       throw new Error("Semester not found");
@@ -455,13 +578,21 @@ const finalizeSemester = async (req, res, next) => {
     const user = await User.findById(req.user._id);
     const scale = resolveScale(user);
 
-    const subjects = await SubjectModel.find({ semester: semester._id, user: req.user._id });
+    const subjects = await SubjectModel.find({
+      semester: semester._id,
+      user: req.user._id,
+    });
     const fakeSem = { finalizedSgpa: null, subjects };
     const computedSgpa = calculateSgpa(fakeSem, scale);
 
-    const finalSgpa = req.body.finalizedSgpa !== undefined && req.body.finalizedSgpa !== null && req.body.finalizedSgpa !== ""
-      ? Number(req.body.finalizedSgpa)
-      : (computedSgpa !== null ? computedSgpa : 8.0);
+    const finalSgpa =
+      req.body.finalizedSgpa !== undefined &&
+      req.body.finalizedSgpa !== null &&
+      req.body.finalizedSgpa !== ""
+        ? Number(req.body.finalizedSgpa)
+        : computedSgpa !== null
+          ? computedSgpa
+          : 8.0;
 
     semester.isCurrent = false;
     semester.finalizedSgpa = Math.round(finalSgpa * 100) / 100;
