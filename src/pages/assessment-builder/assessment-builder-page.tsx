@@ -276,12 +276,12 @@ export function AssessmentBuilderPage() {
   return (
     <div className="flex max-w-4xl flex-col gap-8 pb-10">
       {/* Header with Two Primary Actions */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-white/10 pb-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 dark:border-white/10 pb-4">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-700 dark:text-purple-300 mb-2">
+          <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-700 dark:text-purple-600 dark:text-purple-300 mb-2">
             <Sliders size={12} className="text-purple-400" /> Universal Scheme Architect
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Assessment Scheme Builder</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-900 dark:text-white">Assessment Scheme Builder</h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1">
             Build, import, and configure evaluation schemes for any university
           </p>
@@ -292,7 +292,7 @@ export function AssessmentBuilderPage() {
           <Button
             size="md"
             variant="outline"
-            className="gap-2 text-xs font-bold text-white border-white/20 hover:bg-zinc-800"
+            className="gap-2 text-xs font-bold text-slate-900 dark:text-white border-white/20 hover:bg-zinc-800"
             onClick={handleCreateNewScheme}
           >
             <Plus size={15} /> Create New Scheme
@@ -310,7 +310,7 @@ export function AssessmentBuilderPage() {
       </div>
 
       {/* Editor Weight Validation Banner */}
-      <div className="flex items-center justify-between p-4 rounded-2xl bg-zinc-950/80 border border-white/10">
+      <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-zinc-950/80 border border-slate-200 dark:border-white/10">
         <div className="flex items-center gap-2">
           <Badge tone={weightValid ? "success" : "danger"}>
             Total Weight: {total}% {weightValid ? "✓ Ready" : "(Must equal 100%)"}
@@ -333,12 +333,12 @@ export function AssessmentBuilderPage() {
           const isCollapsed = collapsedMap[comp.id];
 
           return (
-            <Card key={comp.id} className="border border-white/10 bg-zinc-950/90 shadow-xl overflow-hidden">
-              <CardHeader className="bg-zinc-900/80 p-4 border-b border-white/10 flex flex-row items-center justify-between">
+            <Card key={comp.id} className="border border-slate-200 dark:border-white/10 bg-white dark:bg-zinc-950/90 shadow-xl overflow-hidden">
+              <CardHeader className="bg-white/90 dark:bg-zinc-900/80 p-4 border-b border-slate-200 dark:border-white/10 flex flex-row items-center justify-between">
                 <div className="flex items-center gap-3 flex-1">
                   <span className="text-zinc-500 font-mono text-xs font-bold">#{compIdx + 1}</span>
                   <input
-                    className="bg-transparent text-white font-extrabold text-base outline-none focus:border-b focus:border-purple-500 w-full max-w-xs"
+                    className="bg-transparent text-slate-900 dark:text-white font-extrabold text-base outline-none focus:border-b focus:border-purple-500 w-full max-w-xs"
                     value={comp.name}
                     onChange={(e) => updateComponent(comp.id, "name", e.target.value)}
                     placeholder="Component Name..."
@@ -346,13 +346,13 @@ export function AssessmentBuilderPage() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1 font-mono text-xs text-purple-300">
+                  <div className="flex items-center gap-1 font-mono text-xs text-purple-600 dark:text-purple-300">
                     <span>Weight:</span>
                     <input
                       type="number"
                       min={0}
                       max={100}
-                      className="w-16 bg-zinc-950 border border-white/20 rounded px-2 py-0.5 text-white font-bold text-center"
+                      className="w-16 bg-white dark:bg-zinc-950 border border-white/20 rounded px-2 py-0.5 text-slate-900 dark:text-white font-bold text-center"
                       value={comp.weightPct}
                       onChange={(e) => updateComponent(comp.id, "weightPct", Number(e.target.value))}
                     />
@@ -363,24 +363,24 @@ export function AssessmentBuilderPage() {
                     <button
                       onClick={() => moveComponent(compIdx, "up")}
                       disabled={compIdx === 0}
-                      className="p-1 text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white disabled:opacity-30"
+                      className="p-1 text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-slate-900 dark:text-white disabled:opacity-30"
                     >
                       <ArrowUp size={15} />
                     </button>
                     <button
                       onClick={() => moveComponent(compIdx, "down")}
                       disabled={compIdx === components.length - 1}
-                      className="p-1 text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white disabled:opacity-30"
+                      className="p-1 text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-slate-900 dark:text-white disabled:opacity-30"
                     >
                       <ArrowDown size={15} />
                     </button>
-                    <button onClick={() => duplicateComponent(comp)} className="p-1 text-zinc-400 hover:text-purple-300">
+                    <button onClick={() => duplicateComponent(comp)} className="p-1 text-zinc-400 hover:text-purple-600 dark:text-purple-300">
                       <Copy size={15} />
                     </button>
                     <button onClick={() => removeComponent(comp.id)} className="p-1 text-zinc-400 hover:text-rose-400">
                       <Trash2 size={15} />
                     </button>
-                    <button onClick={() => toggleCollapse(comp.id)} className="p-1 text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white">
+                    <button onClick={() => toggleCollapse(comp.id)} className="p-1 text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-slate-900 dark:text-white">
                       {isCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
                     </button>
                   </div>
@@ -388,15 +388,15 @@ export function AssessmentBuilderPage() {
               </CardHeader>
 
               {!isCollapsed && (
-                <CardContent className="p-5 space-y-4 bg-zinc-950/60">
+                <CardContent className="p-5 space-y-4 bg-slate-50 dark:bg-zinc-950/60">
                   {/* Aggregation Rule Controls */}
-                  <div className="flex flex-wrap items-center justify-between gap-4 p-3 rounded-xl bg-zinc-900/60 border border-white/5 text-xs">
+                  <div className="flex flex-wrap items-center justify-between gap-4 p-3 rounded-xl bg-white/80 dark:bg-zinc-900/60 border border-slate-200 dark:border-white/5 text-xs">
                     <div className="flex items-center gap-2">
                       <span className="text-zinc-400 font-semibold">Aggregation Rule:</span>
                       <select
                         value={comp.rule}
                         onChange={(e) => updateComponent(comp.id, "rule", e.target.value as AggregationRule)}
-                        className="bg-zinc-950 border border-white/10 rounded-lg px-3 py-1.5 text-white font-mono outline-none focus:border-purple-500"
+                        className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-1.5 text-slate-900 dark:text-white font-mono outline-none focus:border-purple-500"
                       >
                         <option value="average">Average (Mean of all assessments)</option>
                         <option value="sum">Sum (Total marks obtained / total max)</option>
@@ -408,14 +408,14 @@ export function AssessmentBuilderPage() {
 
                     {comp.rule === "best_n" && (
                       <div className="flex items-center gap-2">
-                        <span className="text-purple-300 font-semibold">Count Best N:</span>
+                        <span className="text-purple-600 dark:text-purple-300 font-semibold">Count Best N:</span>
                         <input
                           type="number"
                           min={1}
                           max={comp.assessments.length}
                           value={comp.bestN || 1}
                           onChange={(e) => updateComponent(comp.id, "bestN", Number(e.target.value))}
-                          className="w-14 bg-zinc-950 border border-white/20 rounded px-2 py-1 text-white font-mono font-bold"
+                          className="w-14 bg-white dark:bg-zinc-950 border border-white/20 rounded px-2 py-1 text-slate-900 dark:text-white font-mono font-bold"
                         />
                       </div>
                     )}
@@ -428,9 +428,9 @@ export function AssessmentBuilderPage() {
                     </span>
 
                     {comp.assessments.map((ast, astIdx) => (
-                      <div key={ast.id} className="flex items-center justify-between gap-3 p-3 rounded-xl bg-zinc-900/80 border border-white/10 text-xs">
+                      <div key={ast.id} className="flex items-center justify-between gap-3 p-3 rounded-xl bg-white/90 dark:bg-zinc-900/80 border border-slate-200 dark:border-white/10 text-xs">
                         <input
-                          className="bg-transparent text-white font-semibold outline-none focus:border-b focus:border-purple-500 flex-1"
+                          className="bg-transparent text-slate-900 dark:text-white font-semibold outline-none focus:border-b focus:border-purple-500 flex-1"
                           value={ast.name}
                           onChange={(e) => updateAssessment(comp.id, ast.id, "name", e.target.value)}
                           placeholder="Assessment Name..."
@@ -442,7 +442,7 @@ export function AssessmentBuilderPage() {
                             <input
                               type="number"
                               min={1}
-                              className="w-16 bg-zinc-950 border border-white/20 rounded px-2 py-1 text-white font-bold text-center"
+                              className="w-16 bg-white dark:bg-zinc-950 border border-white/20 rounded px-2 py-1 text-slate-900 dark:text-white font-bold text-center"
                               value={ast.maxMarks}
                               onChange={(e) => updateAssessment(comp.id, ast.id, "maxMarks", Number(e.target.value))}
                             />
@@ -468,7 +468,7 @@ export function AssessmentBuilderPage() {
       </div>
 
       {/* Triple Save Options */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl bg-zinc-950/90 border border-purple-500/30">
+      <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl bg-white dark:bg-zinc-950/90 border border-purple-500/30">
         <Button variant="outline" size="md" className="gap-2 text-xs" onClick={() => setShowSaveTemplateModal(true)}>
           <BookmarkPlus size={15} /> Save as New Template
         </Button>
@@ -495,10 +495,10 @@ export function AssessmentBuilderPage() {
       {showSaveTemplateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/80 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 p-6 flex flex-col gap-4 shadow-2xl">
-            <h3 className="font-extrabold text-white text-lg">Save Scheme as New Template</h3>
+            <h3 className="font-extrabold text-slate-900 dark:text-white text-lg">Save Scheme as New Template</h3>
             <p className="text-xs text-slate-500 dark:text-zinc-400">Enter a title to save this configuration to your local templates.</p>
             <input
-              className="w-full bg-zinc-900 border border-white/20 rounded-xl px-3.5 py-2 text-xs text-white outline-none focus:border-purple-500"
+              className="w-full bg-white dark:bg-zinc-900 border border-white/20 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white outline-none focus:border-purple-500"
               placeholder="e.g., Chitkara ST 40/60 Scheme"
               value={templateName}
               onChange={(e) => setTemplateName(e.target.value)}
@@ -519,7 +519,7 @@ export function AssessmentBuilderPage() {
       {showAssignModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/80 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 p-6 flex flex-col gap-4 shadow-2xl">
-            <h3 className="font-extrabold text-white text-lg">Assign Evaluation Scheme to Subject</h3>
+            <h3 className="font-extrabold text-slate-900 dark:text-white text-lg">Assign Evaluation Scheme to Subject</h3>
             <p className="text-xs text-slate-500 dark:text-zinc-400">Select a current semester course to apply this custom scheme.</p>
             {currentSubjects.length === 0 ? (
               <p className="text-xs text-amber-400">No active semester subjects found.</p>
@@ -527,7 +527,7 @@ export function AssessmentBuilderPage() {
               <select
                 value={selectedSubjectId}
                 onChange={(e) => setSelectedSubjectId(e.target.value)}
-                className="w-full bg-zinc-900 border border-white/20 rounded-xl px-3.5 py-2.5 text-xs text-white outline-none focus:border-purple-500"
+                className="w-full bg-white dark:bg-zinc-900 border border-white/20 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white outline-none focus:border-purple-500"
               >
                 {currentSubjects.map((s) => (
                   <option key={s.id || s._id} value={s.id || s._id}>

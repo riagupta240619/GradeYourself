@@ -190,10 +190,10 @@ export function TargetPlannerPage() {
   return (
     <div className="flex max-w-4xl flex-col gap-6 pb-10">
       <div>
-        <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-700 dark:text-purple-300 mb-2">
+        <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-700 dark:text-purple-600 dark:text-purple-300 mb-2">
           <Target size={12} className="text-purple-400" /> Current Semester AI Target Planner
         </div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Active Semester Target Planner</h1>
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-900 dark:text-white">Active Semester Target Planner</h1>
         <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1">
           Real-time predictions for your current active semester subjects.
         </p>
@@ -204,10 +204,10 @@ export function TargetPlannerPage() {
         {/* Target Slider Card */}
         <Card className="glow-purple border-purple-500/30 bg-gradient-to-br from-zinc-900 via-zinc-900 to-purple-950/30 md:col-span-2 p-5">
           <div className="flex items-center justify-between mb-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-zinc-300 flex items-center gap-1.5">
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-zinc-300 flex items-center gap-1.5">
               <Calculator size={14} className="text-purple-400" /> Target CGPA Goal
             </label>
-            <span className="text-xs font-bold text-purple-300 bg-purple-500/20 px-2.5 py-1 rounded-full border border-purple-500/30">
+            <span className="text-xs font-bold text-purple-600 dark:text-purple-300 bg-purple-500/20 px-2.5 py-1 rounded-full border border-purple-500/30">
               {targetCgpa.toFixed(2)} CGPA Goal
             </span>
           </div>
@@ -221,9 +221,9 @@ export function TargetPlannerPage() {
             className="w-full h-2 rounded-lg bg-zinc-800 appearance-none cursor-pointer accent-purple-500 my-4"
           />
 
-          <div className="flex items-baseline justify-between pt-2 border-t border-white/10">
+          <div className="flex items-baseline justify-between pt-2 border-t border-slate-200 dark:border-white/10">
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl sm:text-4xl font-extrabold font-tabular text-white tracking-tight">{target}%</span>
+              <span className="text-3xl sm:text-4xl font-extrabold font-tabular text-slate-900 dark:text-white tracking-tight">{target}%</span>
               <span className="text-xs text-slate-500 dark:text-zinc-400">Required Benchmark</span>
             </div>
             <Badge tone={tone as any}>{feasibility}</Badge>
@@ -237,7 +237,7 @@ export function TargetPlannerPage() {
             <div className="space-y-1.5 text-xs">
               <div className="flex items-center justify-between">
                 <span className="text-zinc-400">Official CGPA:</span>
-                <span className="font-bold text-white font-mono">{currentCgpa ? currentCgpa.toFixed(2) : "N/A"}</span>
+                <span className="font-bold text-slate-900 dark:text-white font-mono">{currentCgpa ? currentCgpa.toFixed(2) : "N/A"}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-zinc-400">Current Sem Credits:</span>
@@ -246,9 +246,9 @@ export function TargetPlannerPage() {
             </div>
           </div>
 
-          <div className="pt-2 border-t border-white/10">
+          <div className="pt-2 border-t border-slate-200 dark:border-white/10">
             <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400 block">Required SGPA This Semester</span>
-            <span className="text-2xl font-extrabold text-white font-mono mt-0.5 block">
+            <span className="text-2xl font-extrabold text-slate-900 dark:text-white font-mono mt-0.5 block">
               {requiredSgpaThisSemester > (scale === "4.0" ? 4.0 : 10.0) ? (
                 <span className="text-rose-400 text-lg">Impossible (&gt;{scale === "4.0" ? "4.0" : "10.0"})</span>
               ) : (
@@ -266,12 +266,12 @@ export function TargetPlannerPage() {
         </Card>
       ) : subjects.length === 0 ? (
         /* Requirement 8: Empty state when CurrentSemester has no subjects */
-        <Card className="p-12 text-center bg-zinc-950/60 border border-white/10 space-y-4">
+        <Card className="p-12 text-center bg-slate-50 dark:bg-zinc-950/60 border border-slate-200 dark:border-white/10 space-y-4">
           <div className="w-12 h-12 mx-auto rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
             <BookOpen size={24} />
           </div>
           <div>
-            <h3 className="text-base font-bold text-white">No current semester subjects available.</h3>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">No current semester subjects available.</h3>
             <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1 max-w-sm mx-auto">
               Add active subjects for the current semester on the Dashboard or click below to begin target planning.
             </p>
@@ -306,7 +306,7 @@ export function TargetPlannerPage() {
                   <span className="h-3 w-3 rounded-full mt-1 shrink-0 shadow-sm" style={{ backgroundColor: subject.colorTag || "#3b82f6" }} />
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-slate-900 dark:text-white text-sm">{subject.name}</span>
+                      <span className="font-bold text-slate-900 dark:text-slate-900 dark:text-white text-sm">{subject.name}</span>
                       <span className="text-[11px] text-zinc-400 font-mono">({subject.code || "No Code"})</span>
                       <Badge tone="accent" className="text-[10px]">{subject.credits} Credits</Badge>
                     </div>
@@ -314,12 +314,12 @@ export function TargetPlannerPage() {
                     <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-500 dark:text-zinc-400 mt-1">
                       <span>Obtained Marks: <strong className="text-zinc-200">{evaluatedMarks > 0 ? evaluatedMarks : "—"}</strong></span>
                       <span>•</span>
-                      <span>Remaining Exams: <strong className="text-purple-300">{remainingTypes.length > 0 ? remainingTypes.join(", ") : "All Completed"}</strong></span>
+                      <span>Remaining Exams: <strong className="text-purple-600 dark:text-purple-300">{remainingTypes.length > 0 ? remainingTypes.join(", ") : "All Completed"}</strong></span>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3 justify-between sm:justify-end border-t sm:border-t-0 border-white/5 pt-2 sm:pt-0">
+                <div className="flex flex-wrap items-center gap-3 justify-between sm:justify-end border-t sm:border-t-0 border-slate-200 dark:border-white/5 pt-2 sm:pt-0">
                   {isAchieved ? (
                     <span className="inline-flex items-center gap-1 font-semibold text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20 text-xs">
                       <CheckCircle2 size={13} /> Target Achieved ✓

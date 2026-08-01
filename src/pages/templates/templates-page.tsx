@@ -53,19 +53,19 @@ export function TemplatesPage() {
     <div className="flex max-w-5xl flex-col gap-8 pb-10">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-700 dark:text-purple-300 mb-2">
+          <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-700 dark:text-purple-600 dark:text-purple-300 mb-2">
             <Layers size={12} className="text-purple-400" /> Scheme Repository
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Community & University Grading Schemes</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-900 dark:text-white">Community & University Grading Schemes</h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1">
             Pre-configured evaluation schemes for Chitkara University, Standard Theory, & Lab courses.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-zinc-950/80 px-4 py-2.5 text-xs text-zinc-400 focus-within:border-purple-500 focus-within:ring-1 focus-within:ring-purple-500 transition-all w-full sm:w-72">
+        <div className="flex items-center gap-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-zinc-950/80 px-4 py-2.5 text-xs text-zinc-400 focus-within:border-purple-500 focus-within:ring-1 focus-within:ring-purple-500 transition-all w-full sm:w-72">
           <Search size={16} className="text-zinc-500" />
           <input
-            className="w-full bg-transparent text-white placeholder-zinc-500 outline-none"
+            className="w-full bg-transparent text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 outline-none"
             placeholder="Search university or scheme..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -83,7 +83,7 @@ export function TemplatesPage() {
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-400 mb-3 shadow-lg">
             <BookOpen size={28} />
           </div>
-          <h3 className="text-lg font-bold text-white mb-1">No community templates found.</h3>
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">No community templates found.</h3>
           <p className="text-xs sm:text-sm text-zinc-400 max-w-md">Save a custom template from the Assessment Builder.</p>
         </Card>
       ) : (
@@ -96,8 +96,8 @@ export function TemplatesPage() {
                 <CardContent className="flex flex-col gap-4 pt-6">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <h3 className="font-bold text-slate-900 dark:text-white text-base leading-snug">{t.university}</h3>
-                      <p className="text-xs text-purple-300 font-medium mt-0.5">{t.name}</p>
+                      <h3 className="font-bold text-slate-900 dark:text-slate-900 dark:text-white text-base leading-snug">{t.university}</h3>
+                      <p className="text-xs text-purple-600 dark:text-purple-300 font-medium mt-0.5">{t.name}</p>
                     </div>
                     {t.verified ? (
                       <Badge tone="success">
@@ -110,16 +110,16 @@ export function TemplatesPage() {
                     )}
                   </div>
 
-                  <div className="flex flex-col gap-1 text-xs bg-zinc-950/60 p-2.5 rounded-lg border border-white/5 font-mono">
+                  <div className="flex flex-col gap-1 text-xs bg-slate-50 dark:bg-zinc-950/60 p-2.5 rounded-lg border border-slate-200 dark:border-white/5 font-mono">
                     {norm.components.map((c) => (
                       <div key={c.id} className="flex justify-between items-center text-[11px]">
-                        <span className="text-zinc-300 truncate max-w-[150px]">{c.name}</span>
+                        <span className="text-slate-700 dark:text-zinc-300 truncate max-w-[150px]">{c.name}</span>
                         <span className="text-purple-400 font-bold">{c.weightPct}% ({c.rule.toUpperCase()})</span>
                       </div>
                     ))}
                   </div>
 
-                  <div className="flex items-center justify-between text-xs border-t border-white/10 pt-3">
+                  <div className="flex items-center justify-between text-xs border-t border-slate-200 dark:border-white/10 pt-3">
                     <span className="text-zinc-400 font-medium">Verified Scheme</span>
                     <span className="font-mono font-bold text-purple-400">{(t.usedBy || 0).toLocaleString()} Users</span>
                   </div>
@@ -148,12 +148,12 @@ export function TemplatesPage() {
       {previewTemplate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/80 p-4 backdrop-blur-sm">
           <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-900 p-6 flex flex-col gap-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/10 pb-3">
               <div>
-                <h3 className="font-extrabold text-white text-lg">{previewTemplate.name}</h3>
-                <p className="text-xs text-purple-300">{previewTemplate.university}</p>
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-lg">{previewTemplate.name}</h3>
+                <p className="text-xs text-purple-600 dark:text-purple-300">{previewTemplate.university}</p>
               </div>
-              <button onClick={() => setPreviewTemplate(null)} className="text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white p-1">
+              <button onClick={() => setPreviewTemplate(null)} className="text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-slate-900 dark:text-white p-1">
                 <X size={18} />
               </button>
             </div>
@@ -161,17 +161,17 @@ export function TemplatesPage() {
             <div className="flex flex-col gap-3 max-h-96 overflow-y-auto">
               {normalizeScheme(previewTemplate).components.map((comp) => (
                 <div key={comp.id} className="rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 p-3.5 flex flex-col gap-2 text-xs">
-                  <div className="flex justify-between items-center font-bold text-white">
+                  <div className="flex justify-between items-center font-bold text-slate-900 dark:text-white">
                     <span>{comp.name}</span>
                     <Badge tone="accent">{comp.weightPct}% Weight</Badge>
                   </div>
                   <div className="text-[11px] text-zinc-400 font-mono">
-                    Aggregation Rule: <span className="text-purple-300 font-semibold">{comp.rule.toUpperCase()}</span>
+                    Aggregation Rule: <span className="text-purple-600 dark:text-purple-300 font-semibold">{comp.rule.toUpperCase()}</span>
                   </div>
-                  <div className="flex flex-col gap-1 mt-1 border-t border-white/5 pt-2">
+                  <div className="flex flex-col gap-1 mt-1 border-t border-slate-200 dark:border-white/5 pt-2">
                     <span className="text-[10px] uppercase font-bold text-zinc-500">Assessments</span>
                     {comp.assessments.map((a) => (
-                      <div key={a.id} className="flex justify-between text-zinc-300 text-[11px]">
+                      <div key={a.id} className="flex justify-between text-slate-700 dark:text-zinc-300 text-[11px]">
                         <span>{a.name}</span>
                         <span className="font-mono text-purple-400">Max: {a.maxMarks}</span>
                       </div>

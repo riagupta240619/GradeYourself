@@ -65,7 +65,7 @@ export function LogoutModal({ isOpen, onClose, onConfirm, isLoading = false }: L
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 12 }}
             transition={{ type: "spring", damping: 25, stiffness: 350 }}
-            className="relative z-10 w-full max-w-md overflow-y-auto max-h-[90vh] rounded-2xl border border-white/10 bg-white dark:bg-zinc-900/95 p-6 shadow-2xl backdrop-blur-xl"
+            className="relative z-10 w-full max-w-md overflow-y-auto max-h-[90vh] rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-zinc-900/95 p-6 shadow-2xl backdrop-blur-xl"
           >
             {/* Header / Icon */}
             <div className="flex flex-col items-center text-center">
@@ -75,7 +75,7 @@ export function LogoutModal({ isOpen, onClose, onConfirm, isLoading = false }: L
 
               <h2
                 id="logout-dialog-title"
-                className="text-xl font-bold tracking-tight text-white"
+                className="text-xl font-bold tracking-tight text-slate-900 dark:text-white"
               >
                 Confirm Logout
               </h2>

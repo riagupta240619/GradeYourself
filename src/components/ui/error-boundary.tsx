@@ -34,7 +34,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <AlertCircle className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-white">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">
               {this.props.fallbackTitle || "Component Failed to Render"}
             </h3>
             <p className="text-xs text-rose-300 max-w-md mx-auto mt-1 font-mono">

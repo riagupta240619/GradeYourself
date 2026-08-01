@@ -5,6 +5,7 @@ import {
   CheckCircle2,
   TrendingUp,
   ArrowUpRight,
+  ArrowRight,
   Plus,
   Sparkles,
   BookOpen,
@@ -261,11 +262,11 @@ export function DashboardPage() {
       {/* Top Header & Mode Switches */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-300 mb-2">
-            <Sparkles size={12} className="text-purple-400" /> Command Center
+          <div className="inline-flex items-center gap-2 rounded-full border border-purple-300 bg-purple-50 dark:border-purple-500/30 dark:bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-700 dark:text-purple-600 dark:text-purple-300 mb-2">
+            <Sparkles size={12} className="text-purple-500 dark:text-purple-400" /> Command Center
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Academic Overview</h1>
-          <p className="text-xs sm:text-sm text-zinc-400 mt-1">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-900 dark:text-white">Academic Overview</h1>
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-400 mt-1">
             Real-time standing, CGPA progression, active courses, and performance targets.
           </p>
         </div>
@@ -282,14 +283,14 @@ export function DashboardPage() {
           </Button>
 
           {/* SGPA / CGPA View Switcher */}
-          <div className="flex rounded-xl border border-white/10 bg-zinc-900/90 p-1 text-xs font-semibold">
+          <div className="flex rounded-xl border border-slate-200 bg-slate-100 dark:border-white/10 dark:bg-zinc-900/90 p-1 text-xs font-semibold">
             {(["sgpa", "cgpa"] as CgpaViewMode[]).map((mode) => (
               <button
                 key={mode}
                 onClick={() => setView(mode)}
                 className={`rounded-lg px-3 py-1 transition-all ${view === mode
                     ? "bg-purple-600 text-white shadow-[0_0_12px_rgba(124,58,237,0.4)] font-bold"
-                    : "text-zinc-400 hover:text-white"
+                    : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
               >
                 {mode.toUpperCase()}
@@ -308,11 +309,11 @@ export function DashboardPage() {
                 <CheckCircle2 size={26} />
               </div>
               <div>
-                <div className="flex items-center gap-2 text-purple-300 font-semibold text-xs mb-1">
+                <div className="flex items-center gap-2 text-purple-600 dark:text-purple-300 font-semibold text-xs mb-1">
                   <Sparkles size={13} className="text-purple-400" /> Profile Setup Complete
                 </div>
-                <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight">Your academic profile is ready.</h2>
-                <p className="text-xs sm:text-sm text-zinc-300 mt-0.5">Start by adding your current subjects.</p>
+                <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight">Your academic profile is ready.</h2>
+                <p className="text-xs sm:text-sm text-slate-700 dark:text-zinc-300 mt-0.5">Start by adding your current subjects.</p>
               </div>
             </div>
 
@@ -334,22 +335,22 @@ export function DashboardPage() {
       {/* ────────────────────────────────────────────────────────────────────────── */}
       {/* 1. UNIVERSITY INFORMATION CARD */}
       {/* ────────────────────────────────────────────────────────────────────────── */}
-      <Card className="border border-white/10 bg-zinc-900/90 p-5 shadow-lg">
+      <Card className="border border-slate-200 bg-white/90 dark:border-white/10 dark:bg-zinc-900/90 p-5 shadow-lg">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-purple-600/30 to-blue-600/30 text-purple-300 border border-purple-500/30 shadow-md">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-purple-100 to-blue-100 dark:from-purple-600/30 dark:to-blue-600/30 text-purple-600 dark:text-purple-600 dark:text-purple-300 border border-purple-200 dark:border-purple-500/30 shadow-md">
               <GraduationCap size={22} />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-extrabold text-white text-base tracking-tight">{user?.college || "University"}</h3>
+                <h3 className="font-extrabold text-slate-900 dark:text-slate-900 dark:text-white text-base tracking-tight">{user?.college || "University"}</h3>
                 {user?.academicStatus && (
                   <Badge tone={user.academicStatus.includes("First") ? "warning" : "success"} className="text-[11px]">
                     {user.academicStatus}
                   </Badge>
                 )}
               </div>
-              <p className="text-xs text-zinc-400 mt-0.5 flex flex-wrap items-center gap-2">
+              <p className="text-xs text-slate-600 dark:text-zinc-400 mt-0.5 flex flex-wrap items-center gap-2">
                 <span>{user?.course || "Degree Program"}</span>
                 <span>•</span>
                 <span>{user?.branch || "Department"}</span>
@@ -357,21 +358,21 @@ export function DashboardPage() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 text-xs pt-2 md:pt-0 border-t md:border-t-0 border-white/10">
-            <div className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-zinc-950/60 px-3 py-1.5 text-zinc-300">
-              <Layers size={14} className="text-purple-400" />
-              <span>Active Semester: <strong className="text-white">{user?.currentSemester || user?.semesterSystem || "Semester 1"}</strong></span>
+          <div className="flex flex-wrap items-center gap-3 text-xs pt-2 md:pt-0 border-t md:border-t-0 border-slate-200 dark:border-white/10">
+            <div className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-zinc-950/60 px-3 py-1.5 text-slate-700 dark:text-slate-700 dark:text-zinc-300">
+              <Layers size={14} className="text-purple-600 dark:text-purple-400" />
+              <span>Active Semester: <strong className="text-slate-900 dark:text-slate-900 dark:text-white">{user?.currentSemester || user?.semesterSystem || "Semester 1"}</strong></span>
             </div>
 
-            <div className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-zinc-950/60 px-3 py-1.5 text-zinc-300">
-              <Calendar size={14} className="text-blue-400" />
-              <span>Batch: <strong className="text-white">{user?.academicSession || "N/A"}</strong></span>
+            <div className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-zinc-950/60 px-3 py-1.5 text-slate-700 dark:text-slate-700 dark:text-zinc-300">
+              <Calendar size={14} className="text-blue-600 dark:text-blue-400" />
+              <span>Batch: <strong className="text-slate-900 dark:text-slate-900 dark:text-white">{user?.academicSession || "N/A"}</strong></span>
             </div>
 
             {typeof user?.currentCgpa === "number" && (
-              <div className="flex items-center gap-1.5 rounded-xl border border-purple-500/30 bg-purple-500/10 px-3 py-1.5 text-purple-300">
-                <Award size={14} className="text-purple-400" />
-                <span>Baseline CGPA: <strong className="font-mono text-white">{user.currentCgpa.toFixed(2)}</strong></span>
+              <div className="flex items-center gap-1.5 rounded-xl border border-purple-200 bg-purple-50 dark:border-purple-500/30 dark:bg-purple-500/10 px-3 py-1.5 text-purple-700 dark:text-purple-600 dark:text-purple-300">
+                <Award size={14} className="text-purple-600 dark:text-purple-400" />
+                <span>Baseline CGPA: <strong className="font-mono text-purple-900 dark:text-slate-900 dark:text-white">{user.currentCgpa.toFixed(2)}</strong></span>
               </div>
             )}
           </div>
@@ -384,32 +385,32 @@ export function DashboardPage() {
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
         {/* Card A: CGPA / SGPA Summary */}
         <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
-          <Card className="glow-purple border-purple-500/20 bg-gradient-to-br from-zinc-900/90 via-zinc-900/70 to-purple-950/20">
+          <Card className="glow-purple border border-purple-200 bg-white/90 dark:border-purple-500/20 dark:bg-gradient-to-br dark:from-zinc-900/90 dark:via-zinc-900/70 dark:to-purple-950/20">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle>{view === "cgpa" ? "Current Overall CGPA" : `${current?.name || "Current Semester"} SGPA`}</CardTitle>
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-500/30">
                 <Award size={16} />
               </div>
             </CardHeader>
             <CardContent>
               {headline !== null ? (
                 <div className="flex items-baseline gap-3 mt-1">
-                  <span className="text-4xl sm:text-5xl font-extrabold font-tabular text-white tracking-tight">
+                  <span className="text-4xl sm:text-5xl font-extrabold font-tabular text-slate-900 dark:text-slate-900 dark:text-white tracking-tight">
                     <CountUp value={headline} decimals={2} />
                   </span>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 text-xs font-semibold text-emerald-400 shadow-[0_0_10px_rgba(34,197,94,0.15)]">
-                    <TrendingUp size={13} /> {isBaselineCgpa ? "Baseline" : "On Track"}
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 shadow-sm">
+                    <TrendingUp size={12} /> {isBaselineCgpa ? "Baseline" : "On Track"}
                   </span>
                 </div>
               ) : (
-                <div className="text-lg sm:text-xl font-bold text-zinc-400 mt-2">No CGPA Available</div>
+                <div className="text-lg sm:text-xl font-bold text-slate-400 dark:text-zinc-400 mt-2">No CGPA Available</div>
               )}
-              <p className="mt-2 text-xs text-zinc-400 flex flex-wrap items-center gap-2">
-                <span>Completed Credits: <strong className="text-emerald-400 font-mono">{summaryData?.completedCredits ?? 0}</strong></span>
+              <p className="mt-2 text-xs text-slate-600 dark:text-zinc-400 flex flex-wrap items-center gap-2">
+                <span>Completed Credits: <strong className="text-emerald-600 dark:text-emerald-400 font-mono">{summaryData?.completedCredits ?? 0}</strong></span>
                 {summaryData?.currentSemesterCredits ? (
                   <>
                     <span>•</span>
-                    <span>Current Sem Credits: <strong className="text-amber-400 font-mono">{summaryData.currentSemesterCredits}</strong></span>
+                    <span>Active Sem: <strong className="text-purple-600 dark:text-purple-400 font-mono">{summaryData.currentSemesterCredits} Cr</strong></span>
                   </>
                 ) : null}
               </p>
@@ -419,35 +420,35 @@ export function DashboardPage() {
 
         {/* Card B: Target CGPA Goal */}
         <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
-          <Card className="border-white/10 bg-zinc-900/90">
+          <Card className="border border-slate-200 bg-white/90 dark:border-white/10 dark:bg-zinc-900/90">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle>Target CGPA Goal</CardTitle>
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30">
                 <Target size={16} />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-4xl sm:text-5xl font-extrabold font-tabular text-purple-400 mt-1 tracking-tight">
+              <div className="text-4xl sm:text-5xl font-extrabold font-tabular text-purple-600 dark:text-purple-400 mt-1 tracking-tight">
                 {typeof targetCgpa === "number" ? targetCgpa.toFixed(2) : "9.00"}
               </div>
-              <p className="mt-2 text-xs text-zinc-400">Graduation Target Benchmark</p>
+              <p className="mt-2 text-xs text-slate-600 dark:text-zinc-400">Graduation Target Benchmark</p>
             </CardContent>
           </Card>
         </motion.div>
 
         {/* Card C: Goal Completion Progress */}
         <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
-          <Card className="border-white/10 bg-zinc-900/90">
+          <Card className="border border-slate-200 bg-white/90 dark:border-white/10 dark:bg-zinc-900/90">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle>Goal Completion</CardTitle>
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30">
                 <CheckCircle2 size={16} />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="mb-2 text-3xl font-extrabold font-tabular text-white tracking-tight">{targetProgress}%</div>
+              <div className="mb-2 text-3xl font-extrabold font-tabular text-slate-900 dark:text-slate-900 dark:text-white tracking-tight">{targetProgress}%</div>
               <ProgressBar value={targetProgress} tone="accent" />
-              <p className="mt-2 text-xs text-zinc-400">Progress toward target CGPA</p>
+              <p className="mt-2 text-xs text-slate-600 dark:text-zinc-400">Progress toward target CGPA</p>
             </CardContent>
           </Card>
         </motion.div>
@@ -456,20 +457,20 @@ export function DashboardPage() {
       {/* ────────────────────────────────────────────────────────────────────────── */}
       {/* 3. CGPA PROGRESSION GRAPH */}
       {/* ────────────────────────────────────────────────────────────────────────── */}
-      <Card className="border border-white/10 bg-zinc-900/90 shadow-xl">
+      <Card className="border border-slate-200 bg-white/90 dark:border-white/10 dark:bg-zinc-900/90 shadow-xl">
         <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2">
           <div className="flex items-center gap-2">
-            <TrendingUp size={18} className="text-purple-400" />
-            <CardTitle>CGPA Progression Trend</CardTitle>
+            <TrendingUp size={18} className="text-purple-600 dark:text-purple-400" />
+            <CardTitle className="text-slate-900 dark:text-slate-900 dark:text-white">CGPA Progression Trend</CardTitle>
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="flex rounded-xl border border-white/10 bg-zinc-950 p-1 text-xs font-semibold">
+            <div className="flex rounded-xl border border-slate-200 bg-slate-100 dark:border-white/10 dark:bg-zinc-950 p-1 text-xs font-semibold">
               <button
                 onClick={() => setGraphMode("official")}
                 className={`rounded-lg px-3 py-1 transition-all ${graphMode === "official"
                     ? "bg-purple-600 text-white font-bold shadow-[0_0_12px_rgba(124,58,237,0.4)]"
-                    : "text-zinc-400 hover:text-white"
+                    : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
               >
                 Official Progress
@@ -478,7 +479,7 @@ export function DashboardPage() {
                 onClick={() => setGraphMode("predicted")}
                 className={`rounded-lg px-3 py-1 transition-all flex items-center gap-1.5 ${graphMode === "predicted"
                     ? "bg-purple-600 text-white font-bold shadow-[0_0_12px_rgba(124,58,237,0.4)]"
-                    : "text-zinc-400 hover:text-white"
+                    : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
               >
                 Predicted Progress
@@ -486,103 +487,89 @@ export function DashboardPage() {
               </button>
             </div>
 
-            <span className="text-xs text-zinc-500 font-semibold hidden md:inline">
+            <span className="text-xs text-slate-400 dark:text-zinc-500 font-semibold hidden md:inline">
               {(summaryData?.completedSemesters ?? []).length} Completed
             </span>
           </div>
         </CardHeader>
-        <CardContent>
+
+        <CardContent className="pt-2">
           {cgpaTrend.length > 0 ? (
             <TrendChart data={cgpaTrend} mode={graphMode} />
           ) : (
-            <p className="text-xs text-zinc-500 text-center py-8">No historical semester trend data recorded yet.</p>
+            <p className="text-xs text-slate-500 dark:text-zinc-500 text-center py-8">No historical semester trend data recorded yet.</p>
           )}
         </CardContent>
       </Card>
 
       {/* ────────────────────────────────────────────────────────────────────────── */}
-      {/* 4. CURRENT SEMESTER COURSES */}
+      {/* 4. ACTIVE CURRENT SEMESTER COURSES GRID */}
       {/* ────────────────────────────────────────────────────────────────────────── */}
       <div>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <BookOpen size={16} className="text-purple-400" />
-            <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+            <BookOpen size={16} className="text-purple-600 dark:text-purple-400" />
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-zinc-400">
               Active Current Semester Courses ({currentSemesterSubjects.length})
             </h2>
             <Badge tone="warning" className="text-[10px]">In Progress</Badge>
           </div>
 
-          <div className="flex items-center gap-2.5">
-            {current && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleFinalizeCurrentSemester}
-                disabled={isFinalizing}
-                className="border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/10 text-xs gap-1.5"
-              >
-                <CheckCircle2 size={14} /> Finalize Current Semester
+          <div className="flex items-center gap-2">
+            <Link to="/app/subjects">
+              <Button variant="ghost" size="sm" className="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-600 dark:text-purple-300 gap-1">
+                View All Subjects <ArrowRight size={14} />
               </Button>
-            )}
-            <Button variant="outline" size="sm" onClick={() => setAddSubjectModalOpen(true)} className="text-xs">
-              <Plus size={14} className="mr-1" /> Add Subject
-            </Button>
+            </Link>
           </div>
         </div>
 
         {currentSemesterSubjects.length === 0 ? (
-          <Card className="p-10 text-center flex flex-col items-center justify-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-400 mb-3 shadow-lg">
-              <BookOpen size={28} />
-            </div>
-            <h3 className="text-base font-bold text-white mb-1">No subjects added for the active semester.</h3>
-            <p className="text-xs text-zinc-400 mb-6 max-w-sm">
-              Add subjects for your active semester to start tracking your grades and performance.
+          <Card className="border border-slate-200 bg-white/90 dark:border-white/10 dark:bg-zinc-900/70 p-8 text-center">
+            <BookOpen size={32} className="mx-auto mb-3 text-slate-400 dark:text-zinc-500" />
+            <h3 className="font-bold text-slate-900 dark:text-slate-900 dark:text-white text-base">No active subjects for this semester</h3>
+            <p className="text-xs text-slate-600 dark:text-zinc-400 mt-1 max-w-md mx-auto">
+              Add your current semester subjects and assessment schemes to start tracking your targets.
             </p>
-            <div className="flex flex-wrap items-center justify-center gap-3">
-              <Button variant="primary" size="sm" onClick={() => setAddSubjectModalOpen(true)} className="gap-1.5">
-                <Plus size={14} /> Add Subject
-              </Button>
-            </div>
+            <Button variant="primary" size="sm" onClick={() => setAddSubjectModalOpen(true)} className="mt-4 gap-2">
+              <Plus size={15} /> Add Current Subject
+            </Button>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {currentSemesterSubjects.map((subject: any, idx: number) => {
-              if (!subject) return null;
-              const isInProgress = subject.isInProgress || subject.calculatedPct === null || subject.calculatedPct === undefined || subject.letterGrade === "In Progress" || subject.status === "In Progress";
-              const pct = typeof subject.calculatedPct === "number" && !isNaN(subject.calculatedPct) ? subject.calculatedPct : 0;
-              const letter = isInProgress ? "In Progress" : (subject.letterGrade || "N/A");
-              const idKey = subject._id || subject.id || `subj-${idx}`;
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {currentSemesterSubjects.map((subject, idx) => {
+              const idKey = subject.id || subject._id || `subj-${idx}`;
+              const pct = typeof subject.currentScore === "number" ? subject.currentScore : 0;
+              const isInProgress = subject.currentScore === null || subject.currentScore === undefined;
+
               return (
                 <Link key={idKey} to={`/app/subjects`}>
                   <motion.div whileHover={{ y: -4 }} transition={{ duration: 0.2 }}>
-                    <Card className="group cursor-pointer border border-white/10 hover:border-purple-500/40 hover:shadow-[0_0_20px_rgba(124,58,237,0.15)] transition-all">
+                    <Card className="group cursor-pointer border border-slate-200 bg-white/90 hover:border-purple-300 hover:shadow-lg dark:border-white/10 dark:bg-zinc-900/80 dark:hover:border-purple-500/40 dark:hover:shadow-[0_0_20px_rgba(124,58,237,0.15)] transition-all">
                       <CardContent className="pt-6">
                         <div className="mb-4 flex items-center justify-between">
                           <div className="flex items-center gap-2.5">
                             <span
                               className="h-3 w-3 rounded-full shadow-sm"
-                              style={{ backgroundColor: subject.colorTag || "#3b82f6" }}
+                              style={{ backgroundColor: subject.colorTag || "#7c3aed" }}
                             />
-                            <span className="font-bold text-white text-base group-hover:text-purple-300 transition-colors">
+                            <span className="font-bold text-slate-900 dark:text-slate-900 dark:text-white text-base group-hover:text-purple-600 dark:group-hover:text-purple-600 dark:text-purple-300 transition-colors">
                               {subject.name || "Subject"}
                             </span>
                           </div>
-                          <Badge tone={isInProgress ? "warning" : "accent"}>{letter}</Badge>
                         </div>
 
                         <div className="mb-1.5 flex items-baseline justify-between text-xs">
-                          <span className="text-zinc-400 font-medium">Current Status</span>
-                          <span className="font-tabular font-bold text-amber-400 text-sm">
+                          <span className="text-slate-600 dark:text-zinc-400 font-medium">Current Status</span>
+                          <span className="font-tabular font-bold text-amber-600 dark:text-amber-400 text-sm">
                             {isInProgress ? "In Progress" : `${pct.toFixed(1)}%`}
                           </span>
                         </div>
                         <ProgressBar value={isInProgress ? 0 : pct} tone={isInProgress ? "warning" : "accent"} />
 
-                        <div className="mt-4 flex items-center justify-between text-xs text-zinc-400 border-t border-white/10 pt-3">
-                          <span className="font-medium text-zinc-300">Credits: {subject.credits ?? 0}</span>
-                          <span className="font-semibold text-purple-400 flex items-center gap-1 group-hover:text-purple-300">
+                        <div className="mt-4 flex items-center justify-between text-xs text-zinc-400 border-t border-slate-200 dark:border-white/10 pt-3">
+                          <span className="font-medium text-slate-700 dark:text-zinc-300">Credits: {subject.credits ?? 0}</span>
+                          <span className="font-semibold text-purple-400 flex items-center gap-1 group-hover:text-purple-600 dark:text-purple-300">
                             Details <ChevronRight size={13} />
                           </span>
                         </div>
@@ -633,14 +620,14 @@ export function DashboardPage() {
                 {activeAtRiskSubjects.map((r: any, i: number) => (
                   <div
                     key={r.subjectId || `risk-${i}`}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between rounded-xl border border-rose-500/30 bg-zinc-950/80 p-4 text-xs gap-3"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between rounded-xl border border-rose-500/30 bg-slate-50 dark:bg-zinc-950/80 p-4 text-xs gap-3"
                   >
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <p className="font-bold text-white text-sm">{r.subjectName}</p>
+                        <p className="font-bold text-slate-900 dark:text-white text-sm">{r.subjectName}</p>
                         <Badge tone={r.riskLevel === "Critical" ? "danger" : "warning"}>{r.riskLevel}</Badge>
                       </div>
-                      <p className="text-zinc-300 text-xs">{r.reason}</p>
+                      <p className="text-slate-700 dark:text-zinc-300 text-xs">{r.reason}</p>
                       {r.missingAssessments && r.missingAssessments.length > 0 && (
                         <p className="text-rose-300 text-[11px] mt-1 font-medium">
                           Missing: {r.missingAssessments.join(", ")}
@@ -672,18 +659,18 @@ export function DashboardPage() {
                 {activeAtRiskSubjects.map((r: any, i: number) => (
                   <div
                     key={r.subjectId || `risk-${i}`}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between rounded-xl border border-amber-500/20 bg-zinc-900/90 px-4 py-3 text-xs gap-3"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between rounded-xl border border-amber-500/20 bg-white/90 dark:bg-zinc-900/90 px-4 py-3 text-xs gap-3"
                   >
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <p className="font-bold text-white text-sm">{r.subjectName}</p>
+                        <p className="font-bold text-slate-900 dark:text-white text-sm">{r.subjectName}</p>
                         <Badge tone={r.riskLevel === "Critical" ? "danger" : "warning"}>{r.riskLevel}</Badge>
                       </div>
-                      <p className="text-zinc-300 text-xs">{r.reason}</p>
+                      <p className="text-slate-700 dark:text-zinc-300 text-xs">{r.reason}</p>
                       <div className="flex flex-wrap items-center gap-3 text-[11px] text-zinc-400 mt-1">
                         <span>Current Score: <strong className="text-amber-400 font-mono">{r.currentScore}</strong></span>
                         {r.missingAssessments && r.missingAssessments.length > 0 && (
-                          <span>• Missing: <strong className="text-zinc-300">{r.missingAssessments.join(", ")}</strong></span>
+                          <span>• Missing: <strong className="text-slate-700 dark:text-zinc-300">{r.missingAssessments.join(", ")}</strong></span>
                         )}
                       </div>
                     </div>
@@ -707,7 +694,7 @@ export function DashboardPage() {
       {/* ────────────────────────────────────────────────────────────────────────── */}
       {/* 6. QUICK ACTIONS SECTION */}
       {/* ────────────────────────────────────────────────────────────────────────── */}
-      <Card className="border border-white/10 bg-zinc-900/70 p-5">
+      <Card className="border border-slate-200 dark:border-white/10 bg-white/90 dark:bg-zinc-900/70 p-5">
         <CardHeader className="pb-3 px-0 pt-0">
           <CardTitle className="text-xs font-bold uppercase tracking-wider text-zinc-400">
             Quick Academic Shortcuts
@@ -715,35 +702,35 @@ export function DashboardPage() {
         </CardHeader>
         <CardContent className="px-0 pb-0 grid grid-cols-2 sm:grid-cols-4 gap-3">
           <Link to="/app/academic-planner">
-            <div className="flex flex-col items-center justify-center p-4 rounded-xl border border-white/10 bg-zinc-950/60 hover:border-purple-500/40 hover:bg-purple-500/10 transition-all text-center group cursor-pointer">
+            <div className="flex flex-col items-center justify-center p-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-zinc-950/60 hover:border-purple-500/40 hover:bg-purple-500/10 transition-all text-center group cursor-pointer">
               <Calculator size={20} className="text-purple-400 mb-2 group-hover:scale-110 transition-transform" />
-              <span className="text-xs font-bold text-white group-hover:text-purple-300">Academic Planner</span>
+              <span className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:text-purple-300">Academic Planner</span>
               <span className="text-[10px] text-zinc-500 mt-0.5">Goal CGPA & required marks</span>
             </div>
           </Link>
 
           <Link to="/app/analytics">
-            <div className="flex flex-col items-center justify-center p-4 rounded-xl border border-white/10 bg-zinc-950/60 hover:border-purple-500/40 hover:bg-purple-500/10 transition-all text-center group cursor-pointer">
+            <div className="flex flex-col items-center justify-center p-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-zinc-950/60 hover:border-purple-500/40 hover:bg-purple-500/10 transition-all text-center group cursor-pointer">
               <BarChart3 size={20} className="text-blue-400 mb-2 group-hover:scale-110 transition-transform" />
-              <span className="text-xs font-bold text-white group-hover:text-purple-300">Analytics</span>
+              <span className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:text-purple-300">Analytics</span>
               <span className="text-[10px] text-zinc-500 mt-0.5 font-sans">Deep performance trends</span>
             </div>
           </Link>
 
           <Link to="/app/subjects">
-            <div className="flex flex-col items-center justify-center p-4 rounded-xl border border-white/10 bg-zinc-950/60 hover:border-purple-500/40 hover:bg-purple-500/10 transition-all text-center group cursor-pointer">
+            <div className="flex flex-col items-center justify-center p-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-zinc-950/60 hover:border-purple-500/40 hover:bg-purple-500/10 transition-all text-center group cursor-pointer">
               <BookOpen size={20} className="text-emerald-400 mb-2 group-hover:scale-110 transition-transform" />
-              <span className="text-xs font-bold text-white group-hover:text-purple-300">Subject Details</span>
+              <span className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:text-purple-300">Subject Details</span>
               <span className="text-[10px] text-zinc-500 mt-0.5">Manage marks & scheme</span>
             </div>
           </Link>
 
           <div
             onClick={() => setUploadModalOpen(true)}
-            className="flex flex-col items-center justify-center p-4 rounded-xl border border-white/10 bg-zinc-950/60 hover:border-purple-500/40 hover:bg-purple-500/10 transition-all text-center group cursor-pointer"
+            className="flex flex-col items-center justify-center p-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-zinc-950/60 hover:border-purple-500/40 hover:bg-purple-500/10 transition-all text-center group cursor-pointer"
           >
             <Upload size={20} className="text-amber-400 mb-2 group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-bold text-white group-hover:text-purple-300">Upload PDF</span>
+            <span className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:text-purple-300">Upload PDF</span>
             <span className="text-[10px] text-zinc-500 mt-0.5">Import transcript</span>
           </div>
         </CardContent>

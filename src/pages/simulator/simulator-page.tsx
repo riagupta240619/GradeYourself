@@ -100,10 +100,10 @@ export function SimulatorPage() {
     return (
       <div className="flex max-w-3xl flex-col gap-6">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-700 dark:text-purple-300 mb-2">
+          <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-700 dark:text-purple-600 dark:text-purple-300 mb-2">
             <Wand2 size={12} className="text-purple-400" /> Grade Simulator
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">What-if Grade Simulator</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-900 dark:text-white">What-if Grade Simulator</h1>
         </div>
         <Card className="p-10 text-center">
           <h2 className="text-lg font-bold mb-2">No Active Subjects Available</h2>
@@ -121,10 +121,10 @@ export function SimulatorPage() {
   return (
     <div className="flex max-w-3xl flex-col gap-8 pb-10">
       <div>
-        <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-700 dark:text-purple-300 mb-2">
+        <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-700 dark:text-purple-600 dark:text-purple-300 mb-2">
           <Wand2 size={12} className="text-purple-400" /> Grade Simulator
         </div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">What-if Grade Simulator</h1>
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-900 dark:text-white">What-if Grade Simulator</h1>
         <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1">Adjust marks on upcoming exams to see immediate impact on overall course grade.</p>
       </div>
 
@@ -158,7 +158,7 @@ export function SimulatorPage() {
 
         <CardContent className="pt-2">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-slate-600 dark:text-zinc-300">Simulated Score</span>
+            <span className="text-xs font-medium text-slate-600 dark:text-slate-700 dark:text-zinc-300">Simulated Score</span>
             <span className="text-sm font-bold font-mono text-purple-400">
               {finalMarks} / {finalType.maxMarks} Marks
             </span>
@@ -174,10 +174,10 @@ export function SimulatorPage() {
           />
 
           {/* Results Comparison Grid */}
-          <div className="mt-6 grid grid-cols-2 gap-4 border-t border-white/10 pt-5">
+          <div className="mt-6 grid grid-cols-2 gap-4 border-t border-slate-200 dark:border-white/10 pt-5">
             <div className="rounded-xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-slate-50 dark:bg-zinc-950/60 p-4">
               <p className="text-xs text-zinc-400 font-medium">Resulting Grade</p>
-              <p className="text-3xl font-extrabold text-white mt-1">{pctToLetter(simulatedPct)}</p>
+              <p className="text-3xl font-extrabold text-slate-900 dark:text-white mt-1">{pctToLetter(simulatedPct)}</p>
               <p className="font-tabular text-xs text-purple-400 font-semibold mt-1">{simulatedPct.toFixed(1)}% Overall</p>
             </div>
 
@@ -214,7 +214,7 @@ export function SimulatorPage() {
                 className="flex items-center gap-2 rounded-xl border border-purple-300 bg-purple-50 dark:border-purple-500/30 dark:bg-purple-500/10 px-3.5 py-2 text-xs font-semibold text-zinc-200"
               >
                 <span>{s.label}</span>
-                <span className="font-mono text-purple-300 font-bold bg-purple-500/20 px-2 py-0.5 rounded-lg border border-purple-500/30">
+                <span className="font-mono text-purple-600 dark:text-purple-300 font-bold bg-purple-500/20 px-2 py-0.5 rounded-lg border border-purple-500/30">
                   {s.pct.toFixed(1)}%
                 </span>
               </div>

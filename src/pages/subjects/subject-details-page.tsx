@@ -158,7 +158,7 @@ export function SubjectDetailsPage() {
   if (loading && subjects.length === 0) {
     return (
       <div className="flex max-w-4xl flex-col gap-6">
-        <Link to="/app/dashboard" className="flex w-fit items-center gap-1.5 text-xs text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+        <Link to="/app/dashboard" className="flex w-fit items-center gap-1.5 text-xs text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-slate-900 dark:text-white transition-colors">
           <ChevronLeft size={16} /> Back to Dashboard
         </Link>
         <Card className="p-8 text-center text-xs text-slate-500 dark:text-zinc-400">Loading course details...</Card>
@@ -169,7 +169,7 @@ export function SubjectDetailsPage() {
   if (!subject) {
     return (
       <div className="flex max-w-4xl flex-col gap-6">
-        <Link to="/app/dashboard" className="flex w-fit items-center gap-1.5 text-xs text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+        <Link to="/app/dashboard" className="flex w-fit items-center gap-1.5 text-xs text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-slate-900 dark:text-white transition-colors">
           <ChevronLeft size={16} /> Back to Dashboard
         </Link>
         <Card className="p-10 text-center">
@@ -202,7 +202,7 @@ export function SubjectDetailsPage() {
     <div className="flex max-w-4xl flex-col gap-8 pb-10">
       {/* Top Header Actions */}
       <div className="flex items-center justify-between">
-        <Link to="/app/dashboard" className="flex w-fit items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+        <Link to="/app/dashboard" className="flex w-fit items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-slate-900 dark:text-white transition-colors">
           <ChevronLeft size={16} /> Back to Dashboard
         </Link>
         <Button variant="outline" size="sm" onClick={() => setAddSubjectModalOpen(true)} className="gap-1.5">
@@ -241,7 +241,7 @@ export function SubjectDetailsPage() {
               <div className="flex flex-wrap items-center gap-3">
                 <span className="h-4 w-4 shrink-0 rounded-full shadow-sm" style={{ backgroundColor: subject.colorTag || "#3b82f6" }} />
                 <h1
-                  className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white truncate max-w-full"
+                  className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white truncate max-w-full"
                   title={subject.name}
                 >
                   {subject.name}
@@ -261,8 +261,8 @@ export function SubjectDetailsPage() {
                 <div className="flex items-center gap-1.5 text-zinc-400">
                   <span>Current Score:</span>
                   {hasMarks ? (
-                    <span className="font-mono font-bold text-slate-900 dark:text-white text-sm">
-                      {pct.toFixed(1)}% <span className="text-xs font-semibold text-purple-300">({pctToLetter(pct)})</span>
+                    <span className="font-mono font-bold text-slate-900 dark:text-slate-900 dark:text-white text-sm">
+                      {pct.toFixed(1)}% <span className="text-xs font-semibold text-purple-600 dark:text-purple-300">({pctToLetter(pct)})</span>
                     </span>
                   ) : (
                     <span className="font-semibold text-zinc-400">Unavailable</span>
@@ -288,7 +288,7 @@ export function SubjectDetailsPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => setEditSchemeModalOpen(true)}
-                className="gap-1.5 border-purple-500/30 text-purple-300 hover:border-purple-500"
+                className="gap-1.5 border-purple-500/30 text-purple-600 dark:text-purple-300 hover:border-purple-500"
                 title="Edit Evaluation Scheme"
               >
                 <Layers size={15} /> Edit Scheme
@@ -311,7 +311,7 @@ export function SubjectDetailsPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <BookOpen size={18} className="text-purple-400" />
-            <h2 className="text-lg font-bold text-white">Hierarchical Assessment Breakdown</h2>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Hierarchical Assessment Breakdown</h2>
           </div>
           <span className="text-xs text-slate-400 dark:text-zinc-500 font-semibold">Live Weightage Math</span>
         </div>
@@ -323,14 +323,14 @@ export function SubjectDetailsPage() {
           return (
             <Card key={comp.id} className="border border-slate-200 bg-white/90 dark:border-white/10 dark:bg-zinc-900/90 overflow-hidden shadow-lg">
               {/* Component Header */}
-              <CardHeader className="bg-zinc-950/70 border-b border-white/5 py-3 px-5 flex flex-wrap items-center justify-between gap-3">
+              <CardHeader className="bg-white dark:bg-zinc-950/70 border-b border-slate-200 dark:border-white/5 py-3 px-5 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <Layers size={16} className="text-purple-400" />
-                  <span className="font-bold text-slate-900 dark:text-white text-sm">{comp.name}</span>
+                  <span className="font-bold text-slate-900 dark:text-slate-900 dark:text-white text-sm">{comp.name}</span>
                   <Badge tone="accent" className="text-[10px] uppercase font-mono tracking-wider">
                     Weight: {comp.weightPct}%
                   </Badge>
-                  <span className="text-[11px] font-mono text-purple-300 font-semibold bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded-md">
+                  <span className="text-[11px] font-mono text-purple-600 dark:text-purple-300 font-semibold bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded-md">
                     Rule: {ruleLabel} {comp.rule === "best_n" ? `(${comp.bestN || 1})` : ""}
                   </span>
                 </div>
@@ -339,7 +339,7 @@ export function SubjectDetailsPage() {
                   <span className="text-zinc-400">
                     Component Score:{" "}
                     {evalRes.hasEntered ? (
-                      <span className="font-bold text-white">{evalRes.compPct}%</span>
+                      <span className="font-bold text-slate-900 dark:text-white">{evalRes.compPct}%</span>
                     ) : (
                       <span className="text-zinc-500">—</span>
                     )}
@@ -355,7 +355,7 @@ export function SubjectDetailsPage() {
               <CardContent className="p-0 overflow-x-auto min-w-full">
                 <table className="w-full min-w-[500px] text-xs text-left">
                   <thead>
-                    <tr className="border-b border-white/5 bg-zinc-950/40 text-zinc-400 font-semibold uppercase tracking-wider text-[11px]">
+                    <tr className="border-b border-slate-200 dark:border-white/5 bg-slate-100 dark:bg-zinc-950/40 text-zinc-400 font-semibold uppercase tracking-wider text-[11px]">
                       <th className="px-6 py-2.5">Assessment Name</th>
                       <th className="px-6 py-2.5">Marks Obtained</th>
                       <th className="px-6 py-2.5">Score %</th>
@@ -369,12 +369,12 @@ export function SubjectDetailsPage() {
 
                       return (
                         <tr key={ast.id} className="hover:bg-purple-500/5 transition-colors">
-                          <td className="px-6 py-3.5 font-bold text-white">{ast.name}</td>
+                          <td className="px-6 py-3.5 font-bold text-slate-900 dark:text-white">{ast.name}</td>
                           <td className="px-6 py-3.5">
                             <div className="flex items-center gap-2">
                               <input
                                 type="number"
-                                className="w-24 rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-3 py-1.5 font-mono text-sm font-bold text-white placeholder-zinc-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                                className="w-24 rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-3 py-1.5 font-mono text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                                 placeholder="—"
                                 value={raw ?? ""}
                                 max={ast.maxMarks}
@@ -384,7 +384,7 @@ export function SubjectDetailsPage() {
                               {savedFlash === ast.id && <Check size={16} className="text-emerald-400 animate-pulse" />}
                             </div>
                           </td>
-                          <td className="px-6 py-3.5 font-mono font-bold text-purple-300">
+                          <td className="px-6 py-3.5 font-mono font-bold text-purple-600 dark:text-purple-300">
                             {hasVal ? `${astPct}%` : "—"}
                           </td>
                         </tr>

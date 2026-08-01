@@ -257,14 +257,14 @@ export function OnboardingPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen w-full items-center justify-center bg-[#09090b] text-white p-4 sm:p-6 overflow-hidden">
+    <div className="relative flex min-h-screen w-full items-center justify-center bg-[#09090b] text-slate-900 dark:text-white p-4 sm:p-6 overflow-hidden">
       {/* Radial Glow */}
       <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-[500px] w-[700px] rounded-full bg-purple-600/15 blur-[120px] opacity-70" />
 
       <div className="w-full max-w-xl">
         {/* Header Logo */}
         <div className="mb-6 flex items-center justify-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-purple-600 to-blue-600 font-bold text-white shadow-lg">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-purple-600 to-blue-600 font-bold text-slate-900 dark:text-white shadow-lg">
             <GraduationCap size={22} />
           </div>
           <span className="text-xl font-bold tracking-tight">
@@ -314,13 +314,13 @@ export function OnboardingPage() {
                   <div className="flex flex-col gap-4">
                     {/* College Input / Select */}
                     <div>
-                      <label className="mb-1.5 block text-xs font-medium text-slate-600 dark:text-zinc-300">University / Institution Name *</label>
+                      <label className="mb-1.5 block text-xs font-medium text-slate-600 dark:text-slate-700 dark:text-zinc-300">University / Institution Name *</label>
                       <input
                         list="college-suggestions"
                         value={college}
                         onChange={(e) => setCollege(e.target.value)}
                         placeholder="e.g. Stanford University or Chitkara University"
-                        className="w-full rounded-xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-slate-50 dark:bg-zinc-950/60 px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-slate-50 dark:bg-zinc-950/60 px-4 py-2.5 text-sm text-slate-900 dark:text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-400 dark:placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                       />
                       <datalist id="college-suggestions">
                         {PRESET_COLLEGES.map((c) => (
@@ -332,13 +332,13 @@ export function OnboardingPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {/* Course / Degree */}
                       <div>
-                        <label className="mb-1.5 block text-xs font-medium text-slate-600 dark:text-zinc-300">Course / Degree *</label>
+                        <label className="mb-1.5 block text-xs font-medium text-slate-600 dark:text-slate-700 dark:text-zinc-300">Course / Degree *</label>
                         <input
                           list="course-suggestions"
                           value={course}
                           onChange={(e) => setCourse(e.target.value)}
                           placeholder="e.g. B.Tech / B.S."
-                          className="w-full rounded-xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-slate-50 dark:bg-zinc-950/60 px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                          className="w-full rounded-xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-slate-50 dark:bg-zinc-950/60 px-4 py-2.5 text-sm text-slate-900 dark:text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-400 dark:placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                         />
                         <datalist id="course-suggestions">
                           {PRESET_COURSES.map((c) => (
@@ -349,13 +349,13 @@ export function OnboardingPage() {
 
                       {/* Branch / Department */}
                       <div>
-                        <label className="mb-1.5 block text-xs font-medium text-slate-600 dark:text-zinc-300">Branch / Department *</label>
+                        <label className="mb-1.5 block text-xs font-medium text-slate-600 dark:text-slate-700 dark:text-zinc-300">Branch / Department *</label>
                         <input
                           list="branch-suggestions"
                           value={branch}
                           onChange={(e) => setBranch(e.target.value)}
                           placeholder="e.g. Computer Science"
-                          className="w-full rounded-xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-slate-50 dark:bg-zinc-950/60 px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                          className="w-full rounded-xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-slate-50 dark:bg-zinc-950/60 px-4 py-2.5 text-sm text-slate-900 dark:text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-400 dark:placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                         />
                         <datalist id="branch-suggestions">
                           {PRESET_BRANCHES.map((b) => (
@@ -368,27 +368,27 @@ export function OnboardingPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {/* Current Semester */}
                       <div>
-                        <label className="mb-1.5 block text-xs font-medium text-slate-600 dark:text-zinc-300">Current Semester *</label>
+                        <label className="mb-1.5 block text-xs font-medium text-slate-600 dark:text-slate-700 dark:text-zinc-300">Current Semester *</label>
                         <select
                           value={semesterSystem}
                           onChange={(e) => setSemesterSystem(e.target.value)}
-                          className="w-full rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all cursor-pointer"
+                          className="w-full rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all cursor-pointer"
                         >
                           {PRESET_SEMESTERS.map((s) => (
-                            <option key={s} value={s} className="bg-zinc-900 text-white">{s}</option>
+                            <option key={s} value={s} className="bg-white dark:bg-zinc-900 text-slate-900 dark:text-white">{s}</option>
                           ))}
                         </select>
                       </div>
 
                       {/* Academic Session */}
                       <div>
-                        <label className="mb-1.5 block text-xs font-medium text-slate-600 dark:text-zinc-300">Academic Session / Batch *</label>
+                        <label className="mb-1.5 block text-xs font-medium text-slate-600 dark:text-slate-700 dark:text-zinc-300">Academic Session / Batch *</label>
                         <input
                           list="session-suggestions"
                           value={academicSession}
                           onChange={(e) => setAcademicSession(e.target.value)}
                           placeholder="e.g. 2025 - 2026"
-                          className="w-full rounded-xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-slate-50 dark:bg-zinc-950/60 px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                          className="w-full rounded-xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-slate-50 dark:bg-zinc-950/60 px-4 py-2.5 text-sm text-slate-900 dark:text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-400 dark:placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                         />
                         <datalist id="session-suggestions">
                           {PRESET_SESSIONS.map((s) => (
@@ -409,7 +409,7 @@ export function OnboardingPage() {
 
                   <div className="flex flex-col gap-5">
                     <div>
-                      <label className="mb-3 block text-sm font-semibold text-white">
+                      <label className="mb-3 block text-sm font-semibold text-slate-900 dark:text-white">
                         Have you already completed previous semesters?
                       </label>
 
@@ -431,7 +431,7 @@ export function OnboardingPage() {
                               : "border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-zinc-950/60 hover:border-purple-500/40 hover:bg-purple-500/5"
                           }`}
                         >
-                          <span className="text-sm font-bold text-white">Yes, I have completed past semesters</span>
+                          <span className="text-sm font-bold text-slate-900 dark:text-white">Yes, I have completed past semesters</span>
                           {completedPrevious === "yes" && <CheckCircle2 size={18} className="text-purple-400 shrink-0" />}
                         </div>
 
@@ -458,7 +458,7 @@ export function OnboardingPage() {
                               : "border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-zinc-950/60 hover:border-purple-500/40 hover:bg-purple-500/5"
                           }`}
                         >
-                          <span className="text-sm font-bold text-white">No, this is my 1st semester</span>
+                          <span className="text-sm font-bold text-slate-900 dark:text-white">No, this is my 1st semester</span>
                           {completedPrevious === "no" && <CheckCircle2 size={18} className="text-purple-400 shrink-0" />}
                         </div>
                       </div>
@@ -472,7 +472,7 @@ export function OnboardingPage() {
                         className="rounded-2xl border border-purple-500/30 bg-purple-500/10 p-5 mt-2"
                       >
                         <div className="flex items-center justify-between mb-1.5">
-                          <label className="text-xs font-semibold uppercase tracking-wider text-purple-300">
+                          <label className="text-xs font-semibold uppercase tracking-wider text-purple-600 dark:text-purple-300">
                             Current Cumulative CGPA (Optional)
                           </label>
                           <span className="text-[11px] font-mono text-purple-400">Scale: 0.00 – 10.00</span>
@@ -486,7 +486,7 @@ export function OnboardingPage() {
                           value={cgpaInput}
                           onChange={(e) => handleCgpaChange(e.target.value)}
                           placeholder="e.g. 8.45"
-                          className="w-full rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-4 py-2.5 text-base font-mono font-bold text-white placeholder-zinc-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                          className="w-full rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-4 py-2.5 text-base font-mono font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                         />
 
                         <p className="mt-2 text-xs text-zinc-400 flex items-center gap-1.5">
@@ -528,7 +528,7 @@ export function OnboardingPage() {
                       }`}
                     >
                       {selectedImportMethod === "upload" && (
-                        <div className="absolute top-3 right-3 flex h-6 w-6 items-center justify-center rounded-full bg-purple-500 text-white shadow-sm">
+                        <div className="absolute top-3 right-3 flex h-6 w-6 items-center justify-center rounded-full bg-purple-500 text-slate-900 dark:text-white shadow-sm">
                           <CheckCircle2 size={16} />
                         </div>
                       )}
@@ -538,7 +538,7 @@ export function OnboardingPage() {
                         <Upload size={24} />
                       </div>
                       <div>
-                        <span className="text-sm font-semibold text-white block">Upload Academic Document</span>
+                        <span className="text-sm font-semibold text-slate-900 dark:text-white block">Upload Academic Document</span>
                         <span className="text-xs text-slate-500 dark:text-zinc-400">AI automatically extracts weights from PDF or images</span>
                       </div>
                     </div>
@@ -565,7 +565,7 @@ export function OnboardingPage() {
                       }`}
                     >
                       {selectedImportMethod === "manual" && (
-                        <div className="absolute top-3 right-3 flex h-6 w-6 items-center justify-center rounded-full bg-blue-500 text-white shadow-sm">
+                        <div className="absolute top-3 right-3 flex h-6 w-6 items-center justify-center rounded-full bg-blue-500 text-slate-900 dark:text-white shadow-sm">
                           <CheckCircle2 size={16} />
                         </div>
                       )}
@@ -575,7 +575,7 @@ export function OnboardingPage() {
                         <PenLine size={24} />
                       </div>
                       <div>
-                        <span className="text-sm font-semibold text-white block">Enter Manually</span>
+                        <span className="text-sm font-semibold text-slate-900 dark:text-white block">Enter Manually</span>
                         <span className="text-xs text-slate-500 dark:text-zinc-400">Quick profile setup, add subjects anytime</span>
                       </div>
                     </div>
@@ -599,7 +599,7 @@ export function OnboardingPage() {
                         ? "border-purple-500 bg-purple-500/15"
                         : uploadFile
                         ? "border-emerald-500/50 bg-emerald-500/5"
-                        : "border-white/15 bg-zinc-950/60 hover:border-purple-500/50 hover:bg-purple-500/5"
+                        : "border-white/15 bg-slate-50 dark:bg-zinc-950/60 hover:border-purple-500/50 hover:bg-purple-500/5"
                     }`}
                   >
                     <input
@@ -622,7 +622,7 @@ export function OnboardingPage() {
                       </div>
                     )}
 
-                    <p className="text-sm font-semibold text-white mb-1">
+                    <p className="text-sm font-semibold text-slate-900 dark:text-white mb-1">
                       {uploadFile ? `${uploadFile.name}` : "Click to browse or drag & drop Academic Document"}
                     </p>
                     <p className="text-xs text-slate-500 dark:text-zinc-400">
@@ -632,7 +632,7 @@ export function OnboardingPage() {
                     {uploadFile && (
                       <div
                         onClick={(e) => e.stopPropagation()}
-                        className="mt-4 flex items-center gap-2 rounded-xl bg-purple-500/20 border border-purple-500/30 px-3.5 py-2 text-xs text-purple-300 font-mono font-semibold"
+                        className="mt-4 flex items-center gap-2 rounded-xl bg-purple-500/20 border border-purple-500/30 px-3.5 py-2 text-xs text-purple-600 dark:text-purple-300 font-mono font-semibold"
                       >
                         <Sparkles size={14} className="text-purple-400" />
                         <span className="truncate max-w-[200px]">{uploadFile.name}</span>
@@ -651,8 +651,8 @@ export function OnboardingPage() {
                     )}
                   </div>
 
-                  <div className="mt-8 flex items-center justify-between border-t border-white/10 pt-5">
-                    <Button variant="ghost" size="sm" onClick={handleBackStep} className="gap-1 text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white">
+                  <div className="mt-8 flex items-center justify-between border-t border-slate-200 dark:border-white/10 pt-5">
+                    <Button variant="ghost" size="sm" onClick={handleBackStep} className="gap-1 text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-slate-900 dark:text-white">
                       <ArrowLeft size={14} /> Back
                     </Button>
                     <Button
@@ -701,7 +701,7 @@ export function OnboardingPage() {
                         <div className="flex items-center gap-2">
                           <input
                             defaultValue={f.value}
-                            className="w-16 rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-900 px-2 py-1 text-right font-mono font-semibold text-white outline-none"
+                            className="w-16 rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-900 px-2 py-1 text-right font-mono font-semibold text-slate-900 dark:text-white outline-none"
                           />
                           {f.flagged ? <AlertTriangle size={14} className="text-amber-400" /> : <CheckCircle2 size={14} className="text-emerald-400" />}
                         </div>
@@ -722,9 +722,9 @@ export function OnboardingPage() {
 
               {/* NAVIGATION FOOTER FOR STEPS 0-2 (in mode === "choose") */}
               {mode === "choose" && (
-                <div className="mt-8 flex items-center justify-between border-t border-white/10 pt-5">
+                <div className="mt-8 flex items-center justify-between border-t border-slate-200 dark:border-white/10 pt-5">
                   {step > 0 ? (
-                    <Button variant="ghost" size="sm" onClick={handleBackStep} className="gap-1 text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white">
+                    <Button variant="ghost" size="sm" onClick={handleBackStep} className="gap-1 text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-slate-900 dark:text-white">
                       <ArrowLeft size={14} /> Back
                     </Button>
                   ) : <div />}

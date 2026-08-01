@@ -117,14 +117,14 @@ export function DeleteAccountModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
           transition={{ type: "spring", duration: 0.25 }}
-          className="relative w-full max-w-md rounded-2xl border border-rose-500/30 bg-white dark:bg-zinc-900/95 p-6 shadow-2xl backdrop-blur-xl sm:p-7 text-white z-10 max-h-[90vh] overflow-y-auto"
+          className="relative w-full max-w-md rounded-2xl border border-rose-500/30 bg-white dark:bg-zinc-900/95 p-6 shadow-2xl backdrop-blur-xl sm:p-7 text-slate-900 dark:text-white z-10 max-h-[90vh] overflow-y-auto"
         >
           {/* Header Icon */}
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-500/20 text-rose-400 border border-rose-500/30 shadow-[0_0_20px_rgba(244,63,94,0.25)]">
             <AlertTriangle size={24} />
           </div>
 
-          <h2 id="delete-dialog-title" className="text-xl font-bold tracking-tight text-white mb-1">
+          <h2 id="delete-dialog-title" className="text-xl font-bold tracking-tight text-slate-900 dark:text-white mb-1">
             {step === 1 ? "Delete Account?" : "Are you absolutely sure?"}
           </h2>
 
@@ -145,7 +145,7 @@ export function DeleteAccountModal({
           {step === 1 && (
             <form onSubmit={handleStepOneSubmit} className="flex flex-col gap-4">
               <div>
-                <label className="mb-1.5 block text-xs font-semibold text-zinc-300">
+                <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-zinc-300">
                   Re-enter Password to Verify *
                 </label>
                 <div className="relative">
@@ -156,19 +156,19 @@ export function DeleteAccountModal({
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter current password"
-                    className="w-full rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950/80 pl-10 pr-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 outline-none transition-all"
+                    className="w-full rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950/80 pl-10 pr-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 outline-none transition-all"
                   />
                 </div>
               </div>
 
-              <div className="mt-2 flex items-center justify-end gap-3 border-t border-white/10 pt-4">
+              <div className="mt-2 flex items-center justify-end gap-3 border-t border-slate-200 dark:border-white/10 pt-4">
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
                   onClick={onClose}
                   disabled={isLoading}
-                  className="text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
+                  className="text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-slate-900 dark:text-white"
                 >
                   Cancel
                 </Button>
@@ -177,7 +177,7 @@ export function DeleteAccountModal({
                   variant="danger"
                   size="sm"
                   disabled={!password.trim() || isLoading}
-                  className="gap-1.5 bg-rose-600 hover:bg-rose-700 text-white"
+                  className="gap-1.5 bg-rose-600 hover:bg-rose-700 text-slate-900 dark:text-white"
                 >
                   Continue <ArrowRight size={14} />
                 </Button>
@@ -198,18 +198,18 @@ export function DeleteAccountModal({
                   value={confirmText}
                   onChange={(e) => setConfirmText(e.target.value)}
                   placeholder="Type DELETE"
-                  className="w-full rounded-xl border border-rose-500/40 bg-zinc-950/80 px-4 py-2.5 text-center font-mono text-base font-extrabold tracking-widest text-rose-400 placeholder-zinc-600 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 outline-none transition-all"
+                  className="w-full rounded-xl border border-rose-500/40 bg-slate-50 dark:bg-zinc-950/80 px-4 py-2.5 text-center font-mono text-base font-extrabold tracking-widest text-rose-400 placeholder-slate-400 dark:placeholder-zinc-500 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 outline-none transition-all"
                 />
               </div>
 
-              <div className="mt-2 flex items-center justify-between border-t border-white/10 pt-4">
+              <div className="mt-2 flex items-center justify-between border-t border-slate-200 dark:border-white/10 pt-4">
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
                   onClick={() => setStep(1)}
                   disabled={isLoading}
-                  className="text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white text-xs"
+                  className="text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-slate-900 dark:text-white text-xs"
                 >
                   ← Back
                 </Button>
@@ -220,7 +220,7 @@ export function DeleteAccountModal({
                     size="sm"
                     onClick={onClose}
                     disabled={isLoading}
-                    className="text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
+                    className="text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-slate-900 dark:text-white"
                   >
                     Cancel
                   </Button>
@@ -229,7 +229,7 @@ export function DeleteAccountModal({
                     variant="danger"
                     size="sm"
                     disabled={confirmText !== "DELETE" || isLoading}
-                    className="gap-1.5 bg-rose-600 hover:bg-rose-700 text-white shadow-lg shadow-rose-600/30"
+                    className="gap-1.5 bg-rose-600 hover:bg-rose-700 text-slate-900 dark:text-white shadow-lg shadow-rose-600/30"
                   >
                     {isLoading ? (
                       <>

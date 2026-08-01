@@ -30,14 +30,14 @@ export function AdminPanelPage() {
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           {pending.map((p) => (
-            <div key={p.id} className="rounded-xl border border-white/10 bg-zinc-950/60 p-4 text-xs">
+            <div key={p.id} className="rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-zinc-950/60 p-4 text-xs">
               <div className="mb-2 flex items-center justify-between">
-                <h3 className="font-bold text-white text-sm">{p.university}</h3>
+                <h3 className="font-bold text-slate-900 dark:text-white text-sm">{p.university}</h3>
                 <Badge tone="warning">Pending Verification</Badge>
               </div>
 
               <p className="mb-2 text-zinc-500 font-mono">Submitted by {p.submittedBy}</p>
-              <p className="mb-4 text-purple-300 font-medium bg-purple-500/10 p-3 rounded-lg border border-purple-500/20">{p.weights}</p>
+              <p className="mb-4 text-purple-600 dark:text-purple-300 font-medium bg-purple-500/10 p-3 rounded-lg border border-purple-500/20">{p.weights}</p>
 
               <div className="flex flex-wrap gap-2">
                 <Button size="sm" variant="primary" className="gap-1.5" onClick={() => toast.success(`Approved ${p.university}`)}>
@@ -63,11 +63,11 @@ export function AdminPanelPage() {
           </div>
         </CardHeader>
         <CardContent className="flex flex-col gap-3 text-xs">
-          <div className="flex items-center justify-between rounded-xl border border-white/10 bg-zinc-950/40 p-3 text-zinc-300">
+          <div className="flex items-center justify-between rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-zinc-950/40 p-3 text-slate-700 dark:text-zinc-300">
             <span>Approved "XYZ University — Standard Scheme"</span>
             <span className="text-zinc-500 font-mono">2 days ago</span>
           </div>
-          <div className="flex items-center justify-between rounded-xl border border-white/10 bg-zinc-950/40 p-3 text-zinc-300">
+          <div className="flex items-center justify-between rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-zinc-950/40 p-3 text-slate-700 dark:text-zinc-300">
             <span>Rejected "Fake Test University"</span>
             <span className="text-zinc-500 font-mono">5 days ago</span>
           </div>

@@ -168,7 +168,7 @@ export function SettingsPage() {
   return (
     <div className="flex max-w-3xl flex-col gap-8 pb-10">
       <div>
-        <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-300 mb-2">
+        <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-600 dark:text-purple-300 mb-2">
           <Settings size={12} className="text-purple-400" /> Account Configuration
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">System Settings</h1>
@@ -176,7 +176,7 @@ export function SettingsPage() {
       </div>
 
       {/* Tabs Bar */}
-      <div className="flex rounded-2xl border border-white/10 bg-zinc-900/90 p-1.5 gap-1 overflow-x-auto">
+      <div className="flex rounded-2xl border border-slate-200 dark:border-white/10 bg-white/90 dark:bg-zinc-900/90 p-1.5 gap-1 overflow-x-auto">
         {tabs.map((t) => (
           <button
             key={t.name}
@@ -217,18 +217,18 @@ export function SettingsPage() {
                 )}
 
                 <div>
-                  <label className="mb-1.5 block text-xs font-medium text-zinc-300">Full Name</label>
+                  <label className="mb-1.5 block text-xs font-medium text-slate-700 dark:text-zinc-300">Full Name</label>
                   <input
-                    className="w-full rounded-xl border border-white/10 bg-zinc-950/60 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                    className="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-zinc-950/60 px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                   />
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-xs font-medium text-zinc-300">Email Address (Read Only)</label>
+                  <label className="mb-1.5 block text-xs font-medium text-slate-700 dark:text-zinc-300">Email Address (Read Only)</label>
                   <input
-                    className="w-full rounded-xl border border-white/10 bg-zinc-950/40 px-4 py-2.5 text-sm text-zinc-500 cursor-not-allowed outline-none"
+                    className="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-zinc-950/40 px-4 py-2.5 text-sm text-zinc-500 cursor-not-allowed outline-none"
                     value={user?.email || ""}
                     disabled
                   />
@@ -236,9 +236,9 @@ export function SettingsPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="mb-1.5 block text-xs font-medium text-zinc-300">University / College</label>
+                    <label className="mb-1.5 block text-xs font-medium text-slate-700 dark:text-zinc-300">University / College</label>
                     <input
-                      className="w-full rounded-xl border border-white/10 bg-zinc-950/60 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                      className="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-zinc-950/60 px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                       value={college}
                       placeholder="e.g. Stanford University"
                       onChange={(e) => setCollege(e.target.value)}
@@ -246,9 +246,9 @@ export function SettingsPage() {
                   </div>
 
                   <div>
-                    <label className="mb-1.5 block text-xs font-medium text-zinc-300">Course / Degree</label>
+                    <label className="mb-1.5 block text-xs font-medium text-slate-700 dark:text-zinc-300">Course / Degree</label>
                     <input
-                      className="w-full rounded-xl border border-white/10 bg-zinc-950/60 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                      className="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-zinc-950/60 px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                       value={course}
                       placeholder="e.g. B.Tech / B.E."
                       onChange={(e) => setCourse(e.target.value)}
@@ -256,9 +256,9 @@ export function SettingsPage() {
                   </div>
 
                   <div>
-                    <label className="mb-1.5 block text-xs font-medium text-zinc-300">Branch / Major</label>
+                    <label className="mb-1.5 block text-xs font-medium text-slate-700 dark:text-zinc-300">Branch / Major</label>
                     <input
-                      className="w-full rounded-xl border border-white/10 bg-zinc-950/60 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                      className="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-zinc-950/60 px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                       value={branch}
                       placeholder="e.g. Computer Science"
                       onChange={(e) => setBranch(e.target.value)}
@@ -266,9 +266,9 @@ export function SettingsPage() {
                   </div>
 
                   <div>
-                    <label className="mb-1.5 block text-xs font-medium text-zinc-300">Current Semester</label>
+                    <label className="mb-1.5 block text-xs font-medium text-slate-700 dark:text-zinc-300">Current Semester</label>
                     <input
-                      className="w-full rounded-xl border border-white/10 bg-zinc-950/60 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                      className="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-zinc-950/60 px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                       value={currentSemester}
                       placeholder="e.g. Semester 4"
                       onChange={(e) => setCurrentSemester(e.target.value)}
@@ -276,9 +276,9 @@ export function SettingsPage() {
                   </div>
 
                   <div>
-                    <label className="mb-1.5 block text-xs font-medium text-zinc-300">Academic Session / Batch</label>
+                    <label className="mb-1.5 block text-xs font-medium text-slate-700 dark:text-zinc-300">Academic Session / Batch</label>
                     <input
-                      className="w-full rounded-xl border border-white/10 bg-zinc-950/60 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                      className="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-zinc-950/60 px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                       value={academicSession}
                       placeholder="e.g. 2025 - 2026"
                       onChange={(e) => setAcademicSession(e.target.value)}
@@ -286,13 +286,13 @@ export function SettingsPage() {
                   </div>
 
                   <div>
-                    <label className="mb-1.5 block text-xs font-medium text-purple-300">Current CGPA (Baseline)</label>
+                    <label className="mb-1.5 block text-xs font-medium text-purple-600 dark:text-purple-300">Current CGPA (Baseline)</label>
                     <input
                       type="number"
                       step="0.01"
                       min="0"
                       max="10"
-                      className="w-full rounded-xl border border-white/10 bg-zinc-950/60 px-4 py-2.5 text-sm font-mono font-bold text-white placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                      className="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-zinc-950/60 px-4 py-2.5 text-sm font-mono font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                       value={cgpaInput}
                       placeholder="e.g. 8.45"
                       onChange={(e) => setCgpaInput(e.target.value)}
@@ -327,10 +327,10 @@ export function SettingsPage() {
                 )}
 
                 <div>
-                  <label className="mb-1.5 block text-xs font-medium text-zinc-300">Current Password *</label>
+                  <label className="mb-1.5 block text-xs font-medium text-slate-700 dark:text-zinc-300">Current Password *</label>
                   <input
                     type="password"
-                    className="w-full rounded-xl border border-white/10 bg-zinc-950/60 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                    className="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-zinc-950/60 px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     placeholder="Enter current password"
@@ -339,10 +339,10 @@ export function SettingsPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="mb-1.5 block text-xs font-medium text-zinc-300">New Password *</label>
+                    <label className="mb-1.5 block text-xs font-medium text-slate-700 dark:text-zinc-300">New Password *</label>
                     <input
                       type="password"
-                      className="w-full rounded-xl border border-white/10 bg-zinc-950/60 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                      className="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-zinc-950/60 px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       placeholder="Min 8 characters"
@@ -350,10 +350,10 @@ export function SettingsPage() {
                   </div>
 
                   <div>
-                    <label className="mb-1.5 block text-xs font-medium text-zinc-300">Confirm New Password *</label>
+                    <label className="mb-1.5 block text-xs font-medium text-slate-700 dark:text-zinc-300">Confirm New Password *</label>
                     <input
                       type="password"
-                      className="w-full rounded-xl border border-white/10 bg-zinc-950/60 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                      className="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-zinc-950/60 px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Re-enter new password"
@@ -388,7 +388,7 @@ export function SettingsPage() {
                   variant="danger"
                   size="sm"
                   onClick={() => setShowDeleteAccountModal(true)}
-                  className="gap-1.5 bg-rose-600 hover:bg-rose-700 text-white font-semibold shadow-lg shadow-rose-600/20"
+                  className="gap-1.5 bg-rose-600 hover:bg-rose-700 text-slate-900 dark:text-white font-semibold shadow-lg shadow-rose-600/20"
                 >
                   <Trash2 size={15} /> Delete Account
                 </Button>
@@ -399,7 +399,7 @@ export function SettingsPage() {
           {activeTab === "Grade Scale" && (
             <div className="flex flex-col gap-4">
               <p className="text-xs text-zinc-400">Selecting a scale automatically recalculates historical transcripts and predictions.</p>
-              <select className="w-fit rounded-xl border border-white/10 bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-purple-500 outline-none">
+              <select className="w-fit rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-zinc-950 px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-purple-500 outline-none">
                 <option>10.0 CGPA System</option>
                 <option>4.0 GPA System</option>
                 <option>Percentage (100%)</option>
@@ -415,8 +415,8 @@ export function SettingsPage() {
                 "Target grade prediction updates",
                 "Community scheme template approvals",
               ].map((n) => (
-                <label key={n} className="flex items-center justify-between rounded-xl border border-white/10 bg-zinc-950/60 p-4">
-                  <span className="text-zinc-300">{n}</span>
+                <label key={n} className="flex items-center justify-between rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-zinc-950/60 p-4">
+                  <span className="text-slate-700 dark:text-zinc-300">{n}</span>
                   <input type="checkbox" defaultChecked className="h-4 w-4 rounded accent-purple-600 cursor-pointer" />
                 </label>
               ))}
@@ -433,7 +433,7 @@ export function SettingsPage() {
                   className={`flex flex-col items-center gap-3 rounded-2xl border p-5 text-center transition-all ${
                     theme === "dark"
                       ? "border-purple-500 bg-purple-500/20 text-purple-300 shadow-[0_0_20px_rgba(124,58,237,0.3)]"
-                      : "border-white/10 bg-zinc-950/60 text-zinc-400 hover:border-white/20"
+                      : "border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-zinc-950/60 text-zinc-400 hover:border-white/20"
                   }`}
                 >
                   <Moon size={24} />
@@ -445,7 +445,7 @@ export function SettingsPage() {
                   className={`flex flex-col items-center gap-3 rounded-2xl border p-5 text-center transition-all ${
                     theme !== "dark"
                       ? "border-purple-500 bg-purple-500/20 text-purple-300 shadow-[0_0_20px_rgba(124,58,237,0.3)]"
-                      : "border-white/10 bg-zinc-950/60 text-zinc-400 hover:border-white/20"
+                      : "border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-zinc-950/60 text-zinc-400 hover:border-white/20"
                   }`}
                 >
                   <Sun size={24} />
@@ -453,7 +453,7 @@ export function SettingsPage() {
                 </button>
 
                 <button
-                  className="flex flex-col items-center gap-3 rounded-2xl border border-white/10 bg-zinc-950/60 p-5 text-center text-zinc-400 hover:border-white/20 transition-all opacity-60"
+                  className="flex flex-col items-center gap-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-zinc-950/60 p-5 text-center text-zinc-400 hover:border-white/20 transition-all opacity-60"
                 >
                   <Monitor size={24} />
                   <span className="text-xs font-bold">System Default</span>

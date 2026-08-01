@@ -297,7 +297,7 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess }: UploadResults
               <Cpu className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white tracking-tight flex items-center gap-2">
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
                 AI Academic Document Understanding Studio
                 <span className="px-2 py-0.5 text-xs font-medium bg-indigo-500/20 text-indigo-300 rounded-full border border-indigo-500/30">
                   Zero-Template Engine
@@ -314,7 +314,7 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess }: UploadResults
               resetState();
               onClose();
             }}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 dark:text-white hover:bg-slate-800 transition"
           >
             <X className="w-5 h-5" />
           </button>
@@ -369,14 +369,14 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess }: UploadResults
                   <Upload className="w-7 h-7" />
                 </div>
 
-                <h3 className="text-base font-medium text-white mb-1">
+                <h3 className="text-base font-medium text-slate-900 dark:text-white mb-1">
                   Upload University Mark Sheet / Transcript
                 </h3>
                 <p className="text-xs text-slate-400 max-w-md mx-auto mb-4">
                   Supports PDFs, PNG, JPG, mobile photographs, screenshots & cropped documents. Works for Chitkara, VTU, Anna Univ, IPU, AKTU, Mumbai Univ, SRM, VIT, NITs, IITs & international universities.
                 </p>
 
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium transition shadow-lg shadow-indigo-600/20">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-slate-900 dark:text-white text-xs font-medium transition shadow-lg shadow-indigo-600/20">
                   <FileText className="w-4 h-4" /> Select Document
                 </div>
               </div>
@@ -424,7 +424,7 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess }: UploadResults
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold text-white mb-2">
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
                   Processing Academic Transcript
                 </h3>
                 <p className="text-sm text-indigo-300 animate-pulse font-mono">
@@ -462,7 +462,7 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess }: UploadResults
                       value={validatedDoc.university}
                       onChange={(e) => updateMetadata("university", e.target.value)}
                       placeholder="University Name"
-                      className="bg-transparent text-base font-semibold text-white border-b border-dashed border-slate-700 hover:border-indigo-400 focus:outline-none focus:border-indigo-500 transition px-1"
+                      className="bg-transparent text-base font-semibold text-slate-900 dark:text-white border-b border-dashed border-slate-700 hover:border-indigo-400 focus:outline-none focus:border-indigo-500 transition px-1"
                     />
                     <span className="text-xs text-slate-500">(Click to edit name)</span>
                   </div>
@@ -586,7 +586,7 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess }: UploadResults
                                   className={issue ? "bg-amber-500/10" : "hover:bg-slate-900/50"}
                                 >
                                   <td className="p-1.5 text-indigo-300 font-bold">{sub.code}</td>
-                                  <td className="p-1.5 text-white">{sub.name}</td>
+                                  <td className="p-1.5 text-slate-900 dark:text-white">{sub.name}</td>
                                   <td className={`p-1.5 text-center ${hasCreditIssue ? "text-amber-400 font-bold bg-amber-500/20" : "text-slate-300"}`}>
                                     {sub.credits ?? "Req"}
                                   </td>
@@ -808,7 +808,7 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess }: UploadResults
                           type="text"
                           value={sem.semesterName}
                           onChange={(e) => updateSemesterField(sIdx, "semesterName", e.target.value)}
-                          className="bg-transparent font-semibold text-white text-base focus:outline-none border-b border-slate-700 focus:border-indigo-500 px-1"
+                          className="bg-transparent font-semibold text-slate-900 dark:text-white text-base focus:outline-none border-b border-slate-700 focus:border-indigo-500 px-1"
                         />
                       </div>
 
@@ -824,7 +824,7 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess }: UploadResults
                             value={sem.sgpa ?? ""}
                             onChange={(e) => updateSemesterField(sIdx, "sgpa", e.target.value)}
                             placeholder="0.00"
-                            className="w-20 px-2 py-1 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono text-sm text-center focus:border-indigo-500 focus:outline-none"
+                            className="w-20 px-2 py-1 rounded-lg bg-slate-900 border border-slate-700 text-slate-900 dark:text-white font-mono text-sm text-center focus:border-indigo-500 focus:outline-none"
                           />
                         </div>
 
@@ -838,7 +838,7 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess }: UploadResults
                             value={sem.cgpa ?? ""}
                             onChange={(e) => updateSemesterField(sIdx, "cgpa", e.target.value)}
                             placeholder="0.00"
-                            className="w-20 px-2 py-1 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono text-sm text-center focus:border-indigo-500 focus:outline-none"
+                            className="w-20 px-2 py-1 rounded-lg bg-slate-900 border border-slate-700 text-slate-900 dark:text-white font-mono text-sm text-center focus:border-indigo-500 focus:outline-none"
                           />
                         </div>
 
@@ -896,7 +896,7 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess }: UploadResults
                                     type="text"
                                     value={sub.name}
                                     onChange={(e) => updateSubject(sIdx, subIdx, "name", e.target.value)}
-                                    className="w-full bg-transparent text-white focus:outline-none focus:border-b focus:border-indigo-500"
+                                    className="w-full bg-transparent text-slate-900 dark:text-white focus:outline-none focus:border-b focus:border-indigo-500"
                                     placeholder="Subject Title"
                                   />
                                 </td>
@@ -1025,7 +1025,7 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess }: UploadResults
             {pipelineStep === "review" && (
               <Button
                 onClick={handleSaveToDatabase}
-                className="bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs px-5 shadow-lg shadow-indigo-600/25"
+                className="bg-indigo-600 hover:bg-indigo-500 text-slate-900 dark:text-white font-medium text-xs px-5 shadow-lg shadow-indigo-600/25"
               >
                 <Check className="w-4 h-4 mr-1.5" /> Save Academic Record to Database
               </Button>

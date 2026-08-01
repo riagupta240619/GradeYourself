@@ -35,7 +35,7 @@ export function AdvisorPage() {
   return (
     <div className="flex max-w-3xl flex-col gap-8 pb-10">
       <div>
-        <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-300 mb-2">
+        <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-600 dark:text-purple-300 mb-2">
           <Bot size={12} className="text-purple-400" /> AI Academic Assistant
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">AI Academic Advisor</h1>
@@ -48,7 +48,7 @@ export function AdvisorPage() {
             <Sparkles size={24} />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-white">Automated Study Optimization Active</h3>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Automated Study Optimization Active</h3>
             <p className="text-xs text-zinc-400 mt-0.5">Engine analyzed 4 active subjects and identified 3 high-impact action items for this semester.</p>
           </div>
         </CardContent>
@@ -70,7 +70,7 @@ export function AdvisorPage() {
                 </div>
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="text-sm font-bold text-white">{s.title}</h3>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">{s.title}</h3>
                     <Badge tone={s.tone}>{s.tone.toUpperCase()}</Badge>
                   </div>
                   <p className="text-xs text-zinc-400 leading-relaxed max-w-xl">{s.text}</p>

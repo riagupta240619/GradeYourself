@@ -254,13 +254,13 @@ export function EditSchemeModal({ isOpen, onClose, subject, onSchemeUpdated }: E
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm overflow-y-auto">
-      <div className="relative w-full max-w-4xl max-h-[90vh] flex flex-col rounded-2xl border border-white/10 bg-zinc-900 shadow-2xl overflow-hidden my-auto">
+      <div className="relative w-full max-w-4xl max-h-[90vh] flex flex-col rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-zinc-900 shadow-2xl overflow-hidden my-auto">
         {/* Modal Header */}
-        <div className="flex items-center justify-between border-b border-white/10 bg-zinc-950 px-6 py-4">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/10 bg-white dark:bg-zinc-950 px-6 py-4">
           <div className="flex items-center gap-3">
             <Layers size={20} className="text-purple-400" />
             <div>
-              <h2 className="text-lg font-bold text-white leading-tight">Edit Evaluation Scheme</h2>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white leading-tight">Edit Evaluation Scheme</h2>
               <p className="text-xs text-zinc-400">{subject.name} • Configure components, weights, & rules</p>
             </div>
           </div>
@@ -269,7 +269,7 @@ export function EditSchemeModal({ isOpen, onClose, subject, onSchemeUpdated }: E
             <Badge tone={weightValid ? "success" : "danger"}>
               Total: {totalWeight}% {weightValid ? "✓ Valid" : "(Must equal 100%)"}
             </Badge>
-            <button onClick={onClose} className="rounded-lg p-1.5 text-zinc-400 hover:bg-white/10 hover:text-white transition-all">
+            <button onClick={onClose} className="rounded-lg p-1.5 text-zinc-400 hover:bg-white/10 hover:text-slate-900 dark:text-white transition-all">
               <X size={18} />
             </button>
           </div>
@@ -291,7 +291,7 @@ export function EditSchemeModal({ isOpen, onClose, subject, onSchemeUpdated }: E
                   if (tmpl) applyTemplate(tmpl);
                 }}
                 defaultValue=""
-                className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-1 text-xs text-white outline-none focus:border-purple-500"
+                className="rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-zinc-950 px-3 py-1 text-xs text-slate-900 dark:text-white outline-none focus:border-purple-500"
               >
                 <option value="" disabled>
                   Select University / Custom Template...
@@ -303,7 +303,7 @@ export function EditSchemeModal({ isOpen, onClose, subject, onSchemeUpdated }: E
                 ))}
               </select>
 
-              <Button variant="outline" size="sm" className="gap-1.5 text-xs text-purple-300 border-purple-500/30" onClick={() => setShowSaveTemplateModal(true)}>
+              <Button variant="outline" size="sm" className="gap-1.5 text-xs text-purple-600 dark:text-purple-300 border-purple-500/30" onClick={() => setShowSaveTemplateModal(true)}>
                 <BookmarkPlus size={14} /> Save As Template
               </Button>
             </div>
@@ -323,14 +323,14 @@ export function EditSchemeModal({ isOpen, onClose, subject, onSchemeUpdated }: E
               const isCollapsed = collapsedMap[comp.id];
 
               return (
-                <Card key={comp.id} className="border border-white/10 bg-zinc-950/70 overflow-hidden shadow-lg">
-                  <CardHeader className="bg-zinc-950 p-4 flex flex-wrap items-center justify-between gap-3 border-b border-white/5">
+                <Card key={comp.id} className="border border-slate-200 dark:border-white/10 bg-white dark:bg-zinc-950/70 overflow-hidden shadow-lg">
+                  <CardHeader className="bg-white dark:bg-zinc-950 p-4 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-white/5">
                     <div className="flex items-center gap-2 flex-1 min-w-[200px]">
-                      <button onClick={() => toggleCollapse(comp.id)} className="text-zinc-400 hover:text-white p-1">
+                      <button onClick={() => toggleCollapse(comp.id)} className="text-zinc-400 hover:text-slate-900 dark:text-white p-1">
                         {isCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
                       </button>
                       <input
-                        className="bg-transparent font-extrabold text-white text-sm focus:outline-none placeholder-zinc-500 w-full"
+                        className="bg-transparent font-extrabold text-slate-900 dark:text-white text-sm focus:outline-none placeholder-slate-400 dark:placeholder-zinc-500 w-full"
                         value={comp.name}
                         onChange={(e) => updateComponent(comp.id, "name", e.target.value)}
                         placeholder="Component Name..."
@@ -342,7 +342,7 @@ export function EditSchemeModal({ isOpen, onClose, subject, onSchemeUpdated }: E
                       <select
                         value={comp.rule}
                         onChange={(e) => updateComponent(comp.id, "rule", e.target.value as AggregationRule)}
-                        className="rounded-lg border border-white/10 bg-zinc-900 px-2.5 py-1 text-xs font-semibold text-purple-300 outline-none focus:border-purple-500"
+                        className="rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-zinc-900 px-2.5 py-1 text-xs font-semibold text-purple-600 dark:text-purple-300 outline-none focus:border-purple-500"
                       >
                         <option value="average">Average</option>
                         <option value="sum">Sum Marks</option>
@@ -358,7 +358,7 @@ export function EditSchemeModal({ isOpen, onClose, subject, onSchemeUpdated }: E
                           max={comp.assessments.length}
                           value={comp.bestN || 1}
                           onChange={(e) => updateComponent(comp.id, "bestN", Math.max(1, Number(e.target.value)))}
-                          className="w-12 rounded-lg border border-white/10 bg-zinc-900 px-2 py-1 text-center font-mono font-bold text-emerald-400 outline-none"
+                          className="w-12 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-zinc-900 px-2 py-1 text-center font-mono font-bold text-emerald-400 outline-none"
                           title="Best N count"
                         />
                       )}
@@ -370,20 +370,20 @@ export function EditSchemeModal({ isOpen, onClose, subject, onSchemeUpdated }: E
                           type="number"
                           value={comp.weightPct}
                           onChange={(e) => updateComponent(comp.id, "weightPct", Number(e.target.value))}
-                          className="w-14 rounded-lg border border-white/10 bg-zinc-900 px-2 py-1 text-center font-mono font-bold text-purple-400 focus:border-purple-500 outline-none"
+                          className="w-14 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-zinc-900 px-2 py-1 text-center font-mono font-bold text-purple-400 focus:border-purple-500 outline-none"
                         />
-                        <span className="font-mono text-purple-300 font-bold">%</span>
+                        <span className="font-mono text-purple-600 dark:text-purple-300 font-bold">%</span>
                       </div>
 
                       {/* Action buttons: Move Up, Move Down, Duplicate, Remove */}
-                      <div className="flex items-center gap-1 border-l border-white/10 pl-2">
-                        <button onClick={() => moveComponent(compIdx, "up")} disabled={compIdx === 0} className="p-1 text-zinc-500 hover:text-white disabled:opacity-30">
+                      <div className="flex items-center gap-1 border-l border-slate-200 dark:border-white/10 pl-2">
+                        <button onClick={() => moveComponent(compIdx, "up")} disabled={compIdx === 0} className="p-1 text-zinc-500 hover:text-slate-900 dark:text-white disabled:opacity-30">
                           <ArrowUp size={14} />
                         </button>
-                        <button onClick={() => moveComponent(compIdx, "down")} disabled={compIdx === components.length - 1} className="p-1 text-zinc-500 hover:text-white disabled:opacity-30">
+                        <button onClick={() => moveComponent(compIdx, "down")} disabled={compIdx === components.length - 1} className="p-1 text-zinc-500 hover:text-slate-900 dark:text-white disabled:opacity-30">
                           <ArrowDown size={14} />
                         </button>
-                        <button onClick={() => duplicateComponent(comp)} className="p-1 text-zinc-500 hover:text-purple-300" title="Duplicate Component">
+                        <button onClick={() => duplicateComponent(comp)} className="p-1 text-zinc-500 hover:text-purple-600 dark:text-purple-300" title="Duplicate Component">
                           <Copy size={14} />
                         </button>
                         <button onClick={() => removeComponent(comp.id)} className="p-1 text-zinc-500 hover:text-rose-400" title="Delete Component">
@@ -394,12 +394,12 @@ export function EditSchemeModal({ isOpen, onClose, subject, onSchemeUpdated }: E
                   </CardHeader>
 
                   {!isCollapsed && (
-                    <CardContent className="p-4 flex flex-col gap-2 bg-zinc-900/60">
+                    <CardContent className="p-4 flex flex-col gap-2 bg-white/80 dark:bg-zinc-900/60">
                       {comp.assessments.map((ast, astIdx) => (
-                        <div key={ast.id} className="flex items-center gap-3 rounded-lg border border-white/5 bg-zinc-950/80 px-3.5 py-2 text-xs">
+                        <div key={ast.id} className="flex items-center gap-3 rounded-lg border border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-zinc-950/80 px-3.5 py-2 text-xs">
                           <input
                             type="text"
-                            className="flex-1 bg-transparent font-semibold text-white placeholder-zinc-600 outline-none text-xs"
+                            className="flex-1 bg-transparent font-semibold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 outline-none text-xs"
                             value={ast.name}
                             onChange={(e) => updateAssessment(compIdx, ast.id, "name", e.target.value)}
                             placeholder="Assessment Name (ST1, Quiz 1...)"
@@ -409,20 +409,20 @@ export function EditSchemeModal({ isOpen, onClose, subject, onSchemeUpdated }: E
                             <span className="text-[10px] text-zinc-400 font-semibold uppercase">Max Marks:</span>
                             <input
                               type="number"
-                              className="w-16 rounded-lg border border-white/10 bg-zinc-900 px-2 py-1 text-center font-mono font-bold text-white focus:border-purple-500 outline-none"
+                              className="w-16 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-zinc-900 px-2 py-1 text-center font-mono font-bold text-slate-900 dark:text-white focus:border-purple-500 outline-none"
                               value={ast.maxMarks}
                               onChange={(e) => updateAssessment(compIdx, ast.id, "maxMarks", Number(e.target.value))}
                             />
                           </div>
 
-                          <div className="flex items-center gap-1 border-l border-white/10 pl-2">
-                            <button onClick={() => moveAssessment(compIdx, astIdx, "up")} disabled={astIdx === 0} className="p-1 text-zinc-500 hover:text-white disabled:opacity-30">
+                          <div className="flex items-center gap-1 border-l border-slate-200 dark:border-white/10 pl-2">
+                            <button onClick={() => moveAssessment(compIdx, astIdx, "up")} disabled={astIdx === 0} className="p-1 text-zinc-500 hover:text-slate-900 dark:text-white disabled:opacity-30">
                               <ArrowUp size={13} />
                             </button>
-                            <button onClick={() => moveAssessment(compIdx, astIdx, "down")} disabled={astIdx === comp.assessments.length - 1} className="p-1 text-zinc-500 hover:text-white disabled:opacity-30">
+                            <button onClick={() => moveAssessment(compIdx, astIdx, "down")} disabled={astIdx === comp.assessments.length - 1} className="p-1 text-zinc-500 hover:text-slate-900 dark:text-white disabled:opacity-30">
                               <ArrowDown size={13} />
                             </button>
-                            <button onClick={() => duplicateAssessment(compIdx, ast)} className="p-1 text-zinc-500 hover:text-purple-300">
+                            <button onClick={() => duplicateAssessment(compIdx, ast)} className="p-1 text-zinc-500 hover:text-purple-600 dark:text-purple-300">
                               <Copy size={13} />
                             </button>
                             <button onClick={() => removeAssessment(compIdx, ast.id)} className="p-1 text-zinc-500 hover:text-rose-400">
@@ -432,7 +432,7 @@ export function EditSchemeModal({ isOpen, onClose, subject, onSchemeUpdated }: E
                         </div>
                       ))}
 
-                      <Button variant="outline" size="sm" className="mt-2 w-fit gap-1 text-xs text-purple-300 border-purple-500/20" onClick={() => addAssessment(compIdx)}>
+                      <Button variant="outline" size="sm" className="mt-2 w-fit gap-1 text-xs text-purple-600 dark:text-purple-300 border-purple-500/20" onClick={() => addAssessment(compIdx)}>
                         <Plus size={13} /> Add Assessment
                       </Button>
                     </CardContent>
@@ -448,7 +448,7 @@ export function EditSchemeModal({ isOpen, onClose, subject, onSchemeUpdated }: E
         </div>
 
         {/* Modal Footer */}
-        <div className="flex items-center justify-between border-t border-white/10 bg-zinc-950 px-6 py-4">
+        <div className="flex items-center justify-between border-t border-slate-200 dark:border-white/10 bg-white dark:bg-zinc-950 px-6 py-4">
           <Button variant="ghost" size="sm" onClick={onClose} disabled={saving}>
             Cancel
           </Button>
@@ -462,15 +462,15 @@ export function EditSchemeModal({ isOpen, onClose, subject, onSchemeUpdated }: E
       {/* Save Template Nested Sub-Modal */}
       {showSaveTemplateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4">
-          <div className="w-full max-w-md rounded-xl border border-white/10 bg-zinc-900 p-6 flex flex-col gap-4 shadow-2xl">
-            <h3 className="text-base font-bold text-white">Save Scheme as Reusable Template</h3>
+          <div className="w-full max-w-md rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-zinc-900 p-6 flex flex-col gap-4 shadow-2xl">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">Save Scheme as Reusable Template</h3>
             <p className="text-xs text-zinc-400">Enter a descriptive name for this evaluation scheme template.</p>
             <input
               type="text"
               placeholder="e.g. Chitkara ST + ETE Scheme"
               value={templateName}
               onChange={(e) => setTemplateName(e.target.value)}
-              className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-2 text-xs font-semibold text-white outline-none focus:border-purple-500"
+              className="rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-zinc-950 px-3 py-2 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-purple-500"
             />
             <div className="flex items-center justify-end gap-2 mt-2">
               <Button variant="ghost" size="sm" onClick={() => setShowSaveTemplateModal(false)}>

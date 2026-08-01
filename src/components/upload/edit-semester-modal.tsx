@@ -157,9 +157,9 @@ export function EditSemesterModal({ isOpen, semester, onClose, onSuccess }: Edit
         {/* Modal Header */}
         <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/80">
           <div>
-            <h2 className="text-lg font-semibold text-white tracking-tight flex items-center gap-2">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
               Edit Completed Semester Snapshot
-              <span className="px-2.5 py-0.5 text-xs font-semibold bg-purple-500/20 text-purple-300 rounded-full border border-purple-500/30">
+              <span className="px-2.5 py-0.5 text-xs font-semibold bg-purple-500/20 text-purple-600 dark:text-purple-300 rounded-full border border-purple-500/30">
                 Semester {semester.semesterNumber}
               </span>
             </h2>
@@ -170,7 +170,7 @@ export function EditSemesterModal({ isOpen, semester, onClose, onSuccess }: Edit
 
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 dark:text-white hover:bg-slate-800 transition"
           >
             <X className="w-5 h-5" />
           </button>
@@ -192,7 +192,7 @@ export function EditSemesterModal({ isOpen, semester, onClose, onSuccess }: Edit
                 type="text"
                 value={semesterName}
                 onChange={(e) => setSemesterName(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-indigo-500"
+                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500"
                 placeholder="e.g. Semester 1"
               />
             </div>
@@ -204,7 +204,7 @@ export function EditSemesterModal({ isOpen, semester, onClose, onSuccess }: Edit
                 max="50"
                 value={credits}
                 onChange={(e) => setCredits(Number(e.target.value) || 20)}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-indigo-500"
+                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500"
               />
             </div>
           </div>
@@ -212,7 +212,7 @@ export function EditSemesterModal({ isOpen, semester, onClose, onSuccess }: Edit
           {/* Subject List & Assessment Details */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-white">Subjects ({subjects.length})</h3>
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Subjects ({subjects.length})</h3>
               <Button
                 variant="outline"
                 size="sm"
@@ -236,7 +236,7 @@ export function EditSemesterModal({ isOpen, semester, onClose, onSuccess }: Edit
                       type="text"
                       value={sub.subjectName || sub.name}
                       onChange={(e) => handleUpdateSubjectField(sIdx, "subjectName", e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-indigo-500"
+                      className="w-full px-2.5 py-1.5 rounded bg-slate-900 border border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500"
                     />
                   </div>
 
@@ -260,13 +260,13 @@ export function EditSemesterModal({ isOpen, semester, onClose, onSuccess }: Edit
                       max="10"
                       value={sub.credits}
                       onChange={(e) => handleUpdateSubjectField(sIdx, "credits", Number(e.target.value) || 3)}
-                      className="w-full px-2.5 py-1.5 rounded bg-slate-900 border border-slate-700 text-white font-mono text-center focus:outline-none"
+                      className="w-full px-2.5 py-1.5 rounded bg-slate-900 border border-slate-700 text-slate-900 dark:text-white font-mono text-center focus:outline-none"
                     />
                   </div>
 
                   {/* Final Percentage */}
                   <div>
-                    <label className="block text-[10px] text-purple-300 mb-0.5 font-bold">Final Pct (%)</label>
+                    <label className="block text-[10px] text-purple-600 dark:text-purple-300 mb-0.5 font-bold">Final Pct (%)</label>
                     <input
                       type="number"
                       step="0.1"
@@ -275,7 +275,7 @@ export function EditSemesterModal({ isOpen, semester, onClose, onSuccess }: Edit
                       value={sub.finalPercentage ?? sub.pct ?? ""}
                       onChange={(e) => handleUpdateSubjectField(sIdx, "finalPercentage", e.target.value === "" ? null : Number(e.target.value))}
                       placeholder="85.0"
-                      className="w-full px-2.5 py-1.5 rounded bg-purple-950/40 border border-purple-500/40 text-purple-300 font-mono text-center font-bold focus:outline-none"
+                      className="w-full px-2.5 py-1.5 rounded bg-purple-950/40 border border-purple-500/40 text-purple-600 dark:text-purple-300 font-mono text-center font-bold focus:outline-none"
                     />
                   </div>
 
@@ -323,7 +323,7 @@ export function EditSemesterModal({ isOpen, semester, onClose, onSuccess }: Edit
                             value={ast.name}
                             onChange={(e) => handleUpdateAssessment(sIdx, aIdx, "name", e.target.value)}
                             placeholder="Component Name"
-                            className="w-28 bg-transparent text-[11px] font-medium text-white border-b border-slate-700 focus:outline-none"
+                            className="w-28 bg-transparent text-[11px] font-medium text-slate-900 dark:text-white border-b border-slate-700 focus:outline-none"
                           />
                           <div className="flex items-center gap-1 text-[11px] font-mono">
                             <input
@@ -331,7 +331,7 @@ export function EditSemesterModal({ isOpen, semester, onClose, onSuccess }: Edit
                               value={ast.marksObtained ?? ""}
                               onChange={(e) => handleUpdateAssessment(sIdx, aIdx, "marksObtained", e.target.value === "" ? null : Number(e.target.value))}
                               placeholder="Marks"
-                              className="w-12 px-1 py-0.5 rounded bg-slate-950 text-center text-white border border-slate-800"
+                              className="w-12 px-1 py-0.5 rounded bg-slate-950 text-center text-slate-900 dark:text-white border border-slate-800"
                             />
                             <span className="text-slate-500">/</span>
                             <input
@@ -372,7 +372,7 @@ export function EditSemesterModal({ isOpen, semester, onClose, onSuccess }: Edit
 
           <Button
             onClick={() => setShowConfirmation(true)}
-            className="bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs px-5 shadow-lg shadow-indigo-600/25"
+            className="bg-indigo-600 hover:bg-indigo-500 text-slate-900 dark:text-white font-medium text-xs px-5 shadow-lg shadow-indigo-600/25"
           >
             <Save className="w-4 h-4 mr-1.5" /> Save Completed Semester
           </Button>
@@ -387,11 +387,11 @@ export function EditSemesterModal({ isOpen, semester, onClose, onSuccess }: Edit
               <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20">
                 <AlertTriangle className="w-6 h-6 text-amber-400" />
               </div>
-              <h3 className="text-base font-bold text-white">Confirm Snapshot Update</h3>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">Confirm Snapshot Update</h3>
             </div>
 
             <p className="text-xs text-slate-300 leading-relaxed">
-              Are you sure you want to save these edits to <strong className="text-white">{semesterName}</strong>?
+              Are you sure you want to save these edits to <strong className="text-slate-900 dark:text-white">{semesterName}</strong>?
               This action will update your stored historical record, recalculate your **Semester SGPA**, **Overall CGPA**, and update your **Analytics Graphs**.
             </p>
 
@@ -408,7 +408,7 @@ export function EditSemesterModal({ isOpen, semester, onClose, onSuccess }: Edit
               <Button
                 onClick={handleConfirmSave}
                 disabled={isSaving}
-                className="bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold px-4 shadow-lg shadow-amber-600/25 flex items-center gap-1.5"
+                className="bg-amber-600 hover:bg-amber-500 text-slate-900 dark:text-white text-xs font-semibold px-4 shadow-lg shadow-amber-600/25 flex items-center gap-1.5"
               >
                 {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                 Confirm & Recalculate

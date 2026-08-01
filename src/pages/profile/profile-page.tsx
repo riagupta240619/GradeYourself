@@ -131,15 +131,15 @@ export function ProfilePage() {
     <div className="flex max-w-4xl flex-col gap-8 pb-10">
       <div className="flex items-center justify-between">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-700 dark:text-purple-300 mb-2">
+          <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-700 dark:text-purple-600 dark:text-purple-300 mb-2">
             <GraduationCap size={12} className="text-purple-400" /> Permanent Academic Profile
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Student Academic Profile</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-900 dark:text-white">Student Academic Profile</h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1">Manage and update your university details, degree program, and academic baseline.</p>
         </div>
 
         {!isEditing && (
-          <Button variant="outline" size="sm" onClick={() => setIsEditing(true)} className="gap-1.5 border-purple-500/30 text-purple-300 hover:bg-purple-500/10">
+          <Button variant="outline" size="sm" onClick={() => setIsEditing(true)} className="gap-1.5 border-purple-500/30 text-purple-600 dark:text-purple-300 hover:bg-purple-500/10">
             <Edit3 size={15} /> Edit Profile
           </Button>
         )}
@@ -154,17 +154,17 @@ export function ProfilePage() {
       {/* User Header Profile Banner */}
       <Card className="glow-purple border-purple-500/30 bg-gradient-to-br from-zinc-900 via-zinc-900 to-purple-950/30 shadow-xl">
         <CardContent className="pt-6 flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
-          <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-purple-600 to-blue-600 text-3xl font-bold text-white shadow-xl">
+          <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-purple-600 to-blue-600 text-3xl font-bold text-slate-900 dark:text-white shadow-xl">
             {initial}
             <span className="absolute -bottom-1 -right-1 h-4.5 w-4.5 rounded-full bg-emerald-500 ring-4 ring-zinc-950" />
           </div>
 
           <div className="flex flex-col gap-1 flex-1">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <h2 className="text-2xl font-extrabold text-white tracking-tight">{user?.name || "Student User"}</h2>
+              <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">{user?.name || "Student User"}</h2>
               <span className="text-xs text-zinc-400 font-mono">{user?.email}</span>
             </div>
-            <p className="text-xs text-purple-300 font-medium">{user?.college || "University Institution"}</p>
+            <p className="text-xs text-purple-600 dark:text-purple-300 font-medium">{user?.college || "University Institution"}</p>
             
             <div className="mt-3 flex flex-wrap justify-center sm:justify-start gap-2 text-xs">
               <Badge tone="accent">{user?.course || "Course / Degree"}</Badge>
@@ -178,10 +178,10 @@ export function ProfilePage() {
 
       {/* EDIT MODE FORM vs DISPLAY MODE */}
       {isEditing ? (
-        <Card className="border border-purple-500/30 bg-zinc-900/90 shadow-2xl p-6">
+        <Card className="border border-purple-500/30 bg-white/90 dark:bg-zinc-900/90 shadow-2xl p-6">
           <form onSubmit={handleSaveProfile} className="flex flex-col gap-6">
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/10 pb-3">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Edit3 size={18} className="text-purple-400" /> Edit Academic Profile Details
               </h3>
               <span className="text-xs text-slate-500 dark:text-zinc-400">Updates sync to Database & Global State</span>
@@ -190,106 +190,106 @@ export function ProfilePage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               {/* Name */}
               <div>
-                <label className="mb-1.5 block text-xs font-semibold text-zinc-300">Full Name *</label>
+                <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-zinc-300">Full Name *</label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                  className="w-full rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                   placeholder="Enter full name"
                 />
               </div>
 
               {/* Email (Read only) */}
               <div>
-                <label className="mb-1.5 block text-xs font-semibold text-zinc-300">Email Address (Read Only)</label>
+                <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-zinc-300">Email Address (Read Only)</label>
                 <input
                   type="text"
                   value={user?.email || ""}
                   disabled
-                  className="w-full rounded-xl border border-white/10 bg-zinc-950/40 px-4 py-2.5 text-sm text-zinc-500 cursor-not-allowed outline-none"
+                  className="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-zinc-950/40 px-4 py-2.5 text-sm text-zinc-500 cursor-not-allowed outline-none"
                 />
               </div>
 
               {/* College */}
               <div>
-                <label className="mb-1.5 block text-xs font-semibold text-zinc-300">College / University *</label>
+                <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-zinc-300">College / University *</label>
                 <input
                   type="text"
                   value={college}
                   onChange={(e) => setCollege(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                  className="w-full rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                   placeholder="e.g. Stanford University"
                 />
               </div>
 
               {/* Course */}
               <div>
-                <label className="mb-1.5 block text-xs font-semibold text-zinc-300">Course / Degree *</label>
+                <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-zinc-300">Course / Degree *</label>
                 <input
                   type="text"
                   value={course}
                   onChange={(e) => setCourse(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                  className="w-full rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                   placeholder="e.g. B.Tech / B.E."
                 />
               </div>
 
               {/* Branch / Department */}
               <div>
-                <label className="mb-1.5 block text-xs font-semibold text-zinc-300">Branch / Department *</label>
+                <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-zinc-300">Branch / Department *</label>
                 <input
                   type="text"
                   value={branch}
                   onChange={(e) => setBranch(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                  className="w-full rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                   placeholder="e.g. Computer Science & Engineering"
                 />
               </div>
 
               {/* Current Semester */}
               <div>
-                <label className="mb-1.5 block text-xs font-semibold text-zinc-300">Current Semester *</label>
+                <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-zinc-300">Current Semester *</label>
                 <select
                   value={currentSemester}
                   onChange={(e) => setCurrentSemester(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all cursor-pointer"
+                  className="w-full rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all cursor-pointer"
                 >
                   {PRESET_SEMESTERS.map((s) => (
-                    <option key={s} value={s} className="bg-zinc-900 text-white">{s}</option>
+                    <option key={s} value={s} className="bg-white dark:bg-zinc-900 text-slate-900 dark:text-white">{s}</option>
                   ))}
                 </select>
               </div>
 
               {/* Academic Session / Batch */}
               <div>
-                <label className="mb-1.5 block text-xs font-semibold text-zinc-300">Academic Session / Batch *</label>
+                <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-zinc-300">Academic Session / Batch *</label>
                 <input
                   type="text"
                   value={academicSession}
                   onChange={(e) => setAcademicSession(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                  className="w-full rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                   placeholder="e.g. 2025 - 2026"
                 />
               </div>
 
               {/* Academic Status */}
               <div>
-                <label className="mb-1.5 block text-xs font-semibold text-zinc-300">Academic Status *</label>
+                <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-zinc-300">Academic Status *</label>
                 <select
                   value={academicStatus}
                   onChange={(e) => setAcademicStatus(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all cursor-pointer"
+                  className="w-full rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all cursor-pointer"
                 >
                   {STATUS_OPTIONS.map((st) => (
-                    <option key={st} value={st} className="bg-zinc-900 text-white">{st}</option>
+                    <option key={st} value={st} className="bg-white dark:bg-zinc-900 text-slate-900 dark:text-white">{st}</option>
                   ))}
                 </select>
               </div>
 
               {/* Current CGPA (Optional) */}
               <div className="sm:col-span-2">
-                <label className="mb-1.5 block text-xs font-semibold text-purple-300">
+                <label className="mb-1.5 block text-xs font-semibold text-purple-600 dark:text-purple-300">
                   Current Cumulative CGPA (Optional Baseline)
                 </label>
                 <input
@@ -299,13 +299,13 @@ export function ProfilePage() {
                   max="10"
                   value={cgpaInput}
                   onChange={(e) => setCgpaInput(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-4 py-2.5 text-sm font-mono font-bold text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                  className="w-full rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-4 py-2.5 text-sm font-mono font-bold text-slate-900 dark:text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                   placeholder="e.g. 8.45"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-white/10">
               <Button type="button" variant="ghost" size="sm" onClick={handleCancelEdit} disabled={isSaving}>
                 <X size={14} className="mr-1" /> Cancel
               </Button>
@@ -319,15 +319,15 @@ export function ProfilePage() {
         /* DISPLAY ALL ONBOARDING INFORMATION */
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <Card>
-            <CardHeader className="pb-3 border-b border-white/10">
-              <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
+            <CardHeader className="pb-3 border-b border-slate-200 dark:border-white/10">
+              <CardTitle className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Building2 size={16} className="text-purple-400" /> Institution & Degree Program
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-4 flex flex-col gap-4 text-xs">
               <div>
                 <span className="text-zinc-400 uppercase text-[10px] font-bold tracking-wider block mb-1">College / University</span>
-                <span className="text-sm font-bold text-white">{user?.college || "Not set"}</span>
+                <span className="text-sm font-bold text-slate-900 dark:text-white">{user?.college || "Not set"}</span>
               </div>
 
               <div>
@@ -343,8 +343,8 @@ export function ProfilePage() {
           </Card>
 
           <Card>
-            <CardHeader className="pb-3 border-b border-white/10">
-              <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
+            <CardHeader className="pb-3 border-b border-slate-200 dark:border-white/10">
+              <CardTitle className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Layers size={16} className="text-blue-400" /> Academic Term & Baseline Status
               </CardTitle>
             </CardHeader>
@@ -369,7 +369,7 @@ export function ProfilePage() {
               <div>
                 <span className="text-zinc-400 uppercase text-[10px] font-bold tracking-wider block mb-1">Baseline Onboarding CGPA</span>
                 {typeof user?.currentCgpa === "number" ? (
-                  <span className="text-lg font-extrabold font-mono text-purple-300">{user.currentCgpa.toFixed(2)} / 10.00</span>
+                  <span className="text-lg font-extrabold font-mono text-purple-600 dark:text-purple-300">{user.currentCgpa.toFixed(2)} / 10.00</span>
                 ) : (
                   <span className="text-xs text-zinc-500 italic">No baseline CGPA provided during onboarding</span>
                 )}

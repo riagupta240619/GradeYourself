@@ -14,7 +14,7 @@ export function NotificationsPage() {
   return (
     <div className="flex max-w-2xl flex-col gap-8 pb-10">
       <div>
-        <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-300 mb-2">
+        <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-600 dark:text-purple-300 mb-2">
           <Bell size={12} className="text-purple-400" /> Notifications Feed
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Updates & Alerts</h1>
@@ -32,7 +32,7 @@ export function NotificationsPage() {
                   key={i}
                   className={`flex items-center gap-3.5 rounded-xl border p-4 text-xs transition-all ${
                     n.read
-                      ? "border-white/10 bg-zinc-950/40 text-zinc-400"
+                      ? "border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-zinc-950/40 text-zinc-400"
                       : "border-purple-500/30 bg-purple-500/10 text-white font-semibold shadow-[0_0_15px_rgba(124,58,237,0.1)]"
                   }`}
                 >

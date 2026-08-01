@@ -51,7 +51,7 @@ export function Sidebar() {
   }, [backendSemesters]);
 
   return (
-    <aside className="relative flex w-64 shrink-0 flex-col border-r border-white/10 bg-zinc-950/80 p-4 backdrop-blur-2xl transition-all duration-300 z-20 hidden md:flex">
+    <aside className="relative flex w-64 shrink-0 flex-col border-r border-slate-200 bg-white/90 dark:border-white/10 dark:bg-zinc-950/80 p-4 backdrop-blur-2xl transition-all duration-300 z-20 hidden md:flex">
       {/* Brand Header */}
       <div className="mb-6 flex items-center justify-between px-2 pt-1">
         <NavLink to="/app/dashboard" className="flex items-center gap-3 group">
@@ -63,10 +63,10 @@ export function Sidebar() {
             </span>
           </div>
           <div className="flex flex-col">
-            <span className="font-bold tracking-tight text-white text-base leading-tight group-hover:text-purple-300 transition-colors">
+            <span className="font-bold tracking-tight text-slate-900 dark:text-white text-base leading-tight group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors">
               GradeWise <span className="gradient-purple-text">AI</span>
             </span>
-            <span className="text-[10px] uppercase font-semibold text-zinc-500 tracking-wider">
+            <span className="text-[10px] uppercase font-semibold text-slate-400 dark:text-zinc-500 tracking-wider">
               Academic OS v2.4
             </span>
           </div>
@@ -77,7 +77,7 @@ export function Sidebar() {
       <div className="relative mb-5 px-1">
         <button
           onClick={() => backendSemesters.length > 0 && setSemesterOpen((o) => !o)}
-          className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-zinc-900/90 px-3.5 py-2.5 text-xs font-medium text-zinc-300 transition-all hover:bg-zinc-800/80 hover:border-white/20 hover:text-white shadow-sm"
+          className="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-zinc-900/90 px-3.5 py-2.5 text-xs font-medium text-slate-700 dark:text-zinc-300 transition-all hover:bg-slate-100 dark:hover:bg-zinc-800/80 hover:border-slate-300 dark:hover:border-white/20 hover:text-slate-900 dark:hover:text-white shadow-sm"
         >
           <div className="flex items-center gap-2 truncate">
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -86,7 +86,7 @@ export function Sidebar() {
           {backendSemesters.length > 0 && (
             <ChevronDown
               size={14}
-              className={cn("text-zinc-400 transition-transform duration-200", semesterOpen && "rotate-180")}
+              className={cn("text-slate-400 dark:text-zinc-400 transition-transform duration-200", semesterOpen && "rotate-180")}
             />
           )}
         </button>
@@ -98,17 +98,17 @@ export function Sidebar() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.15 }}
-              className="absolute left-1 right-1 z-30 mt-1.5 rounded-xl border border-white/10 bg-zinc-900/95 p-1.5 shadow-2xl backdrop-blur-xl"
+              className="absolute left-1 right-1 z-30 mt-1.5 rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-900/95 p-1.5 shadow-2xl backdrop-blur-xl"
             >
               {backendSemesters.map((s, idx) => (
                 <button
                   key={s.id || s._id || `sem-${idx}`}
-                  className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-xs text-zinc-300 transition-colors hover:bg-purple-500/10 hover:text-white"
+                  className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-xs text-slate-600 dark:text-zinc-300 transition-colors hover:bg-purple-50 dark:hover:bg-purple-500/10 hover:text-purple-700 dark:hover:text-white"
                   onClick={() => setSemesterOpen(false)}
                 >
                   <span className="truncate">{s.name}</span>
                   {s.finalizedSgpa !== null && s.finalizedSgpa !== undefined && (
-                    <span className="font-tabular text-[11px] font-semibold text-purple-400 bg-purple-500/10 px-1.5 py-0.5 rounded">
+                    <span className="font-tabular text-[11px] font-semibold text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-500/10 px-1.5 py-0.5 rounded">
                       SGPA: {s.finalizedSgpa}
                     </span>
                   )}
@@ -120,7 +120,7 @@ export function Sidebar() {
       </div>
 
       {/* Main Nav Items */}
-      <div className="px-1 mb-2 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+      <div className="px-1 mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500">
         Navigation
       </div>
 
@@ -135,8 +135,8 @@ export function Sidebar() {
                 cn(
                   "relative flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-medium transition-all duration-200 group",
                   isActive
-                    ? "bg-gradient-to-r from-purple-900/40 to-purple-800/20 text-white font-semibold border border-purple-500/30 shadow-[0_0_15px_rgba(124,58,237,0.15)]"
-                    : "text-zinc-400 hover:bg-zinc-900/80 hover:text-zinc-200 hover:border-white/5 border border-transparent"
+                    ? "bg-purple-50 text-purple-700 font-semibold border border-purple-200 shadow-sm dark:bg-gradient-to-r dark:from-purple-900/40 dark:to-purple-800/20 dark:text-white dark:border-purple-500/30 dark:shadow-[0_0_15px_rgba(124,58,237,0.15)]"
+                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-900/80 dark:hover:text-zinc-200 hover:border-slate-200 dark:hover:border-white/5 border border-transparent"
                 )
               }
             >
@@ -145,14 +145,14 @@ export function Sidebar() {
                   size={18}
                   className={cn(
                     "shrink-0 transition-colors duration-200",
-                    isActive ? "text-purple-400" : "text-zinc-500 group-hover:text-zinc-300"
+                    isActive ? "text-purple-600 dark:text-purple-400" : "text-slate-400 dark:text-zinc-500 group-hover:text-slate-600 dark:group-hover:text-zinc-300"
                   )}
                 />
                 <span className="whitespace-nowrap truncate">{item.label}</span>
               </div>
 
               {item.badge && (
-                <span className="shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                <span className="shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 border border-purple-200 dark:bg-purple-500/20 dark:text-purple-300 dark:border-purple-500/30">
                   {item.badge}
                 </span>
               )}
@@ -160,7 +160,7 @@ export function Sidebar() {
               {isActive && (
                 <motion.div
                   layoutId="activePill"
-                  className="absolute right-2 h-1.5 w-1.5 rounded-full bg-purple-400 shadow-[0_0_8px_#c084fc]"
+                  className="absolute right-2 h-1.5 w-1.5 rounded-full bg-purple-600 dark:bg-purple-400 shadow-[0_0_8px_#c084fc]"
                 />
               )}
             </NavLink>
@@ -169,19 +169,19 @@ export function Sidebar() {
       </nav>
 
       {/* Footer Navigation & Settings */}
-      <div className="mt-auto pt-4 border-t border-white/10 px-1">
+      <div className="mt-auto pt-4 border-t border-slate-200 dark:border-white/10 px-1">
         <NavLink
           to="/app/settings"
           className={({ isActive }) =>
             cn(
               "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-medium transition-all duration-200",
               isActive
-                ? "bg-zinc-800 text-white font-semibold border border-white/10"
-                : "text-zinc-400 hover:bg-zinc-900 hover:text-white"
+                ? "bg-slate-100 text-slate-900 font-semibold border border-slate-200 dark:bg-zinc-800 dark:text-white dark:border-white/10"
+                : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-white"
             )
           }
         >
-          <Settings size={18} className="text-zinc-500" />
+          <Settings size={18} className="text-slate-400 dark:text-zinc-500" />
           <span>Settings</span>
         </NavLink>
       </div>
