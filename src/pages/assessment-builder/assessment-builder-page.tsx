@@ -333,12 +333,13 @@ export function AssessmentBuilderPage() {
           const isCollapsed = collapsedMap[comp.id];
 
           return (
-            <Card key={comp.id} className="border border-slate-200 dark:border-white/10 bg-white dark:bg-zinc-950/90 shadow-xl overflow-hidden">
-              <CardHeader className="bg-white/90 dark:bg-zinc-900/80 p-4 border-b border-slate-200 dark:border-white/10 flex flex-row items-center justify-between">
+            <Card key={comp.id} className="border border-slate-200 dark:border-white/10 bg-white dark:bg-zinc-950/90 shadow-sm overflow-hidden">
+              <CardHeader className="bg-slate-50 dark:bg-zinc-900/80 p-4 border-b border-slate-200 dark:border-white/10 flex flex-row items-center justify-between">
                 <div className="flex items-center gap-3 flex-1">
-                  <span className="text-zinc-500 font-mono text-xs font-bold">#{compIdx + 1}</span>
+                  <GripVertical size={18} className="text-slate-400 dark:text-zinc-500 cursor-grab hover:text-slate-600 shrink-0" />
+                  <span className="text-slate-400 dark:text-zinc-500 font-mono text-xs font-bold">#{compIdx + 1}</span>
                   <input
-                    className="bg-transparent text-slate-900 dark:text-white font-extrabold text-base outline-none focus:border-b focus:border-purple-500 w-full max-w-xs"
+                    className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-1 text-slate-900 dark:text-white font-extrabold text-sm outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-500 w-full max-w-xs"
                     value={comp.name}
                     onChange={(e) => updateComponent(comp.id, "name", e.target.value)}
                     placeholder="Component Name..."
@@ -346,13 +347,13 @@ export function AssessmentBuilderPage() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1 font-mono text-xs text-purple-600 dark:text-purple-300">
+                  <div className="flex items-center gap-1.5 font-mono text-xs text-purple-700 dark:text-purple-300 font-semibold">
                     <span>Weight:</span>
                     <input
                       type="number"
                       min={0}
                       max={100}
-                      className="w-16 bg-white dark:bg-zinc-950 border border-white/20 rounded px-2 py-0.5 text-slate-900 dark:text-white font-bold text-center"
+                      className="w-16 bg-white dark:bg-zinc-950 border border-slate-200 dark:border-white/20 rounded-lg px-2 py-1 text-slate-900 dark:text-white font-bold text-center outline-none focus:border-purple-600"
                       value={comp.weightPct}
                       onChange={(e) => updateComponent(comp.id, "weightPct", Number(e.target.value))}
                     />
@@ -363,25 +364,25 @@ export function AssessmentBuilderPage() {
                     <button
                       onClick={() => moveComponent(compIdx, "up")}
                       disabled={compIdx === 0}
-                      className="p-1 text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-slate-900 dark:text-white disabled:opacity-30"
+                      className="p-1 text-slate-400 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white disabled:opacity-30"
                     >
-                      <ArrowUp size={15} />
+                      <ArrowUp size={16} />
                     </button>
                     <button
                       onClick={() => moveComponent(compIdx, "down")}
                       disabled={compIdx === components.length - 1}
-                      className="p-1 text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-slate-900 dark:text-white disabled:opacity-30"
+                      className="p-1 text-slate-400 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white disabled:opacity-30"
                     >
-                      <ArrowDown size={15} />
+                      <ArrowDown size={16} />
                     </button>
-                    <button onClick={() => duplicateComponent(comp)} className="p-1 text-zinc-400 hover:text-purple-600 dark:text-purple-300">
-                      <Copy size={15} />
+                    <button onClick={() => duplicateComponent(comp)} className="p-1 text-slate-400 hover:text-purple-600 dark:hover:text-purple-300">
+                      <Copy size={16} />
                     </button>
-                    <button onClick={() => removeComponent(comp.id)} className="p-1 text-zinc-400 hover:text-rose-400">
-                      <Trash2 size={15} />
+                    <button onClick={() => removeComponent(comp.id)} className="p-1 text-slate-400 hover:text-rose-600">
+                      <Trash2 size={16} />
                     </button>
-                    <button onClick={() => toggleCollapse(comp.id)} className="p-1 text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-slate-900 dark:text-white">
-                      {isCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+                    <button onClick={() => toggleCollapse(comp.id)} className="p-1 text-slate-400 hover:text-slate-900 dark:hover:text-white">
+                      {isCollapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
                     </button>
                   </div>
                 </div>

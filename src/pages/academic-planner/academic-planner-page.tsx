@@ -284,12 +284,12 @@ function AcademicPlannerContent() {
       ) : (
         <div className="flex flex-col gap-8">
           {/* Section 1: Academic Goal Selection */}
-          <Card className="border border-purple-500/30 bg-gradient-to-br from-zinc-950 via-zinc-900 to-purple-950/20 p-6">
+          <Card className="border border-slate-200 bg-white dark:border-purple-500/30 dark:bg-gradient-to-br dark:from-zinc-950 dark:via-zinc-900 dark:to-purple-950/20 p-6 shadow-sm">
             <div className="flex flex-col gap-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <h2 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                    <Sparkles size={18} className="text-purple-400" /> Section 1: Select Academic Goal
+                    <Sparkles size={18} className="text-purple-600 dark:text-purple-400" /> Section 1: Select Academic Goal
                   </h2>
                   <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
                     Choose how you want to define your target for this term
@@ -415,10 +415,10 @@ function AcademicPlannerContent() {
           </div>
 
           {/* Section 3: Target Calculation & Feasibility Banner */}
-          <Card className={`p-6 border ${
+          <Card className={`p-6 border shadow-sm ${
             feasibilityStatus === "unattainable"
-              ? "border-rose-500/40 bg-gradient-to-r from-rose-950/40 via-zinc-900 to-rose-950/20"
-              : "border-purple-500/40 bg-gradient-to-r from-purple-950/40 via-zinc-900 to-blue-950/30"
+              ? "border-rose-200 bg-rose-50/60 dark:border-rose-500/40 dark:bg-gradient-to-r dark:from-rose-950/40 dark:via-zinc-900 dark:to-rose-950/20"
+              : "border-slate-200 bg-white dark:border-purple-500/40 dark:bg-gradient-to-r dark:from-purple-950/40 dark:via-zinc-900 dark:to-blue-950/30"
           }`}>
             <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
               <div className="flex flex-col gap-2">
@@ -605,7 +605,7 @@ function AcademicPlannerContent() {
                                         placeholder="—"
                                         value={ast.enteredMark !== null ? ast.enteredMark : ""}
                                         onChange={(e) => handleMarkChange(subjId, ast.id, e.target.value)}
-                                        className="w-20 bg-white dark:bg-zinc-900 border border-white/20 rounded-lg px-2.5 py-1 text-slate-900 dark:text-white font-mono font-bold text-xs focus:outline-none focus:border-purple-500"
+                                        className="w-20 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-white/20 rounded-lg px-2.5 py-1 text-slate-900 dark:text-white font-mono font-bold text-xs focus:outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-500"
                                       />
                                       <span className="text-xs text-zinc-500 font-mono">/ {ast.maxMarks}</span>
                                     </div>

@@ -424,40 +424,112 @@ export function SettingsPage() {
           )}
 
           {activeTab === "Appearance" && (
-            <div className="flex flex-col gap-4">
-              <p className="text-xs text-zinc-400">Choose your preferred visual theme for GradeWise AI OS.</p>
+            <div className="flex flex-col gap-6">
+              <div>
+                <h4 className="text-sm font-bold text-slate-900 dark:text-white">Interface Theme Preference</h4>
+                <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">Select your preferred visual mode for GradeWise AI OS across all sessions.</p>
+              </div>
 
-              <div className="grid grid-cols-3 gap-4">
-                <button
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                {/* 1. Dark Theme Preview Card */}
+                <motion.button
+                  whileHover={{ y: -2 }}
                   onClick={() => theme !== "dark" && toggleTheme()}
-                  className={`flex flex-col items-center gap-3 rounded-2xl border p-5 text-center transition-all ${
+                  className={`relative flex flex-col gap-3 rounded-2xl border p-4 text-left transition-all cursor-pointer ${
                     theme === "dark"
-                      ? "border-purple-500 bg-purple-500/20 text-purple-300 shadow-[0_0_20px_rgba(124,58,237,0.3)]"
-                      : "border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-zinc-950/60 text-zinc-400 hover:border-white/20"
+                      ? "border-purple-600 ring-2 ring-purple-600/20 bg-white dark:bg-zinc-900 shadow-md"
+                      : "border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-zinc-950/60 hover:border-slate-300 dark:hover:border-white/20"
                   }`}
                 >
-                  <Moon size={24} />
-                  <span className="text-xs font-bold">Dark Mode</span>
-                </button>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white">
+                      <Moon size={16} className="text-purple-600 dark:text-purple-400" />
+                      <span>Dark Mode</span>
+                    </div>
+                    {theme === "dark" && (
+                      <CheckCircle2 size={18} className="text-purple-600 dark:text-purple-400" />
+                    )}
+                  </div>
 
-                <button
+                  {/* Mini Dark UI Representation */}
+                  <div className="h-24 w-full rounded-xl bg-[#09090b] border border-white/10 p-2 flex gap-1.5 overflow-hidden shadow-inner">
+                    <div className="w-1/4 h-full rounded-lg bg-zinc-900 border border-white/10 p-1 flex flex-col gap-1">
+                      <div className="h-2 w-3/4 rounded bg-purple-500/60" />
+                      <div className="h-1.5 w-full rounded bg-zinc-800" />
+                      <div className="h-1.5 w-5/6 rounded bg-zinc-800" />
+                    </div>
+                    <div className="flex-1 h-full flex flex-col gap-1.5">
+                      <div className="h-3 w-full rounded bg-zinc-900 border border-white/10" />
+                      <div className="grid grid-cols-2 gap-1 flex-1">
+                        <div className="rounded bg-zinc-900 border border-white/10" />
+                        <div className="rounded bg-zinc-900 border border-white/10" />
+                      </div>
+                    </div>
+                  </div>
+                </motion.button>
+
+                {/* 2. Light Theme Preview Card */}
+                <motion.button
+                  whileHover={{ y: -2 }}
                   onClick={() => theme === "dark" && toggleTheme()}
-                  className={`flex flex-col items-center gap-3 rounded-2xl border p-5 text-center transition-all ${
+                  className={`relative flex flex-col gap-3 rounded-2xl border p-4 text-left transition-all cursor-pointer ${
                     theme !== "dark"
-                      ? "border-purple-500 bg-purple-500/20 text-purple-300 shadow-[0_0_20px_rgba(124,58,237,0.3)]"
-                      : "border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-zinc-950/60 text-zinc-400 hover:border-white/20"
+                      ? "border-purple-600 ring-2 ring-purple-600/20 bg-white dark:bg-zinc-900 shadow-md"
+                      : "border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-zinc-950/60 hover:border-slate-300 dark:hover:border-white/20"
                   }`}
                 >
-                  <Sun size={24} />
-                  <span className="text-xs font-bold">Light Mode</span>
-                </button>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white">
+                      <Sun size={16} className="text-amber-500" />
+                      <span>Light Mode</span>
+                    </div>
+                    {theme !== "dark" && (
+                      <CheckCircle2 size={18} className="text-purple-600 dark:text-purple-400" />
+                    )}
+                  </div>
 
-                <button
-                  className="flex flex-col items-center gap-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-zinc-950/60 p-5 text-center text-zinc-400 hover:border-white/20 transition-all opacity-60"
+                  {/* Mini Light UI Representation */}
+                  <div className="h-24 w-full rounded-xl bg-slate-100 border border-slate-200 p-2 flex gap-1.5 overflow-hidden shadow-inner">
+                    <div className="w-1/4 h-full rounded-lg bg-white border border-slate-200 p-1 flex flex-col gap-1">
+                      <div className="h-2 w-3/4 rounded bg-purple-600" />
+                      <div className="h-1.5 w-full rounded bg-slate-200" />
+                      <div className="h-1.5 w-5/6 rounded bg-slate-200" />
+                    </div>
+                    <div className="flex-1 h-full flex flex-col gap-1.5">
+                      <div className="h-3 w-full rounded bg-white border border-slate-200" />
+                      <div className="grid grid-cols-2 gap-1 flex-1">
+                        <div className="rounded bg-white border border-slate-200" />
+                        <div className="rounded bg-white border border-slate-200" />
+                      </div>
+                    </div>
+                  </div>
+                </motion.button>
+
+                {/* 3. System Default Preview Card */}
+                <motion.button
+                  whileHover={{ y: -2 }}
+                  className="relative flex flex-col gap-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-zinc-950/60 p-4 text-left opacity-75 cursor-not-allowed"
                 >
-                  <Monitor size={24} />
-                  <span className="text-xs font-bold">System Default</span>
-                </button>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-zinc-300">
+                      <Monitor size={16} />
+                      <span>System Sync</span>
+                    </div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400">Auto</span>
+                  </div>
+
+                  {/* Mini Split UI Representation */}
+                  <div className="h-24 w-full rounded-xl border border-slate-200 dark:border-white/10 overflow-hidden flex shadow-inner">
+                    <div className="w-1/2 h-full bg-slate-100 p-1.5 flex flex-col gap-1">
+                      <div className="h-2 w-full rounded bg-purple-600" />
+                      <div className="h-2 w-full rounded bg-white border border-slate-200" />
+                    </div>
+                    <div className="w-1/2 h-full bg-[#09090b] p-1.5 flex flex-col gap-1">
+                      <div className="h-2 w-full rounded bg-purple-500" />
+                      <div className="h-2 w-full rounded bg-zinc-900 border border-white/10" />
+                    </div>
+                  </div>
+                </motion.button>
               </div>
             </div>
           )}

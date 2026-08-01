@@ -428,77 +428,77 @@ export function AnalyticsPage() {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Highest & Lowest Highlight Cards */}
                 <div className="flex flex-col gap-4">
-                  <Card className="p-5 bg-white dark:bg-zinc-950/70 border border-purple-500/30">
-                    <div className="flex items-center justify-between text-xs font-bold text-purple-600 dark:text-purple-300 uppercase tracking-wider mb-2">
+                  <Card className="p-6 bg-white dark:bg-zinc-950/70 border border-emerald-200 dark:border-emerald-500/30 shadow-sm">
+                    <div className="flex items-center justify-between text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider mb-3">
                       <span>Highest Scoring Subject</span>
-                      <Award size={16} className="text-amber-400" />
+                      <Award size={18} className="text-emerald-600 dark:text-emerald-400" />
                     </div>
                     {highestSubject ? (
                       <div>
-                        <h3 className="font-extrabold text-slate-900 dark:text-white text-lg">{highestSubject.name}</h3>
-                        <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">{highestSubject.code || "Course"} • {highestSubject.credits} Credits</p>
+                        <h3 className="font-extrabold text-slate-900 dark:text-white text-xl">{highestSubject.name}</h3>
+                        <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1 font-medium">{highestSubject.code || "Course"} • {highestSubject.credits} Credits</p>
                         <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-200 dark:border-white/10">
                           <Badge tone="accent">{highestSubject.letterGrade || "A+"}</Badge>
-                          <span className="font-mono font-extrabold text-slate-900 dark:text-white text-lg">{safeFormatPct(highestSubject.pct)}</span>
+                          <span className="font-mono font-extrabold text-slate-900 dark:text-white text-2xl">{safeFormatPct(highestSubject.pct)}</span>
                         </div>
                       </div>
                     ) : (
-                      <p className="text-xs text-zinc-500">No subjects evaluated</p>
+                      <p className="text-xs text-slate-500 dark:text-zinc-500">No subjects evaluated</p>
                     )}
                   </Card>
 
-                  <Card className="p-5 bg-white dark:bg-zinc-950/70 border border-rose-500/20">
-                    <div className="flex items-center justify-between text-xs font-bold text-rose-300 uppercase tracking-wider mb-2">
+                  <Card className="p-6 bg-white dark:bg-zinc-950/70 border border-rose-200 dark:border-rose-500/30 shadow-sm">
+                    <div className="flex items-center justify-between text-xs font-bold text-rose-700 dark:text-rose-400 uppercase tracking-wider mb-3">
                       <span>Lowest Scoring Subject</span>
-                      <AlertTriangle size={16} className="text-rose-400" />
+                      <AlertTriangle size={18} className="text-rose-600 dark:text-rose-400" />
                     </div>
                     {lowestSubject ? (
                       <div>
-                        <h3 className="font-extrabold text-slate-900 dark:text-white text-lg">{lowestSubject.name}</h3>
-                        <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">{lowestSubject.code || "Course"} • {lowestSubject.credits} Credits</p>
+                        <h3 className="font-extrabold text-slate-900 dark:text-white text-xl">{lowestSubject.name}</h3>
+                        <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1 font-medium">{lowestSubject.code || "Course"} • {lowestSubject.credits} Credits</p>
                         <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-200 dark:border-white/10">
                           <Badge tone="warning">{lowestSubject.letterGrade || "B"}</Badge>
-                          <span className="font-mono font-extrabold text-amber-400 text-lg">{safeFormatPct(lowestSubject.pct)}</span>
+                          <span className="font-mono font-extrabold text-amber-600 dark:text-amber-400 text-2xl">{safeFormatPct(lowestSubject.pct)}</span>
                         </div>
                       </div>
                     ) : (
-                      <p className="text-xs text-zinc-500">No subjects evaluated</p>
+                      <p className="text-xs text-slate-500 dark:text-zinc-500">No subjects evaluated</p>
                     )}
                   </Card>
                 </div>
 
                 {/* Sorted Subject Performance Ranking Table */}
-                <Card className="lg:col-span-2 border border-slate-200 bg-white/90 dark:border-white/10 dark:bg-zinc-900/90 shadow-xl overflow-hidden flex flex-col justify-between">
-                  <CardHeader className="bg-white dark:bg-zinc-950 py-3.5 px-5 border-b border-slate-200 dark:border-white/5 flex flex-row items-center justify-between">
+                <Card className="lg:col-span-2 border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-900/90 shadow-sm overflow-hidden flex flex-col justify-between">
+                  <CardHeader className="bg-slate-50 dark:bg-zinc-950 py-3.5 px-5 border-b border-slate-200 dark:border-white/10 flex flex-row items-center justify-between">
                     <CardTitle className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                      <Trophy size={16} className="text-purple-400" /> Subject Performance Ranking ({sortedAllSubjects.length})
+                      <Trophy size={18} className="text-purple-600 dark:text-purple-400" /> Subject Performance Ranking ({sortedAllSubjects.length})
                     </CardTitle>
-                    <span className="text-xs text-slate-500 dark:text-zinc-400">Top to Bottom Score</span>
+                    <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium">Ranked by Percentage</span>
                   </CardHeader>
-                  <CardContent className="p-0 overflow-x-auto max-h-[320px] overflow-y-auto">
+                  <CardContent className="p-0 overflow-x-auto max-h-[340px] overflow-y-auto">
                     {sortedAllSubjects.length === 0 ? (
-                      <div className="p-8 text-center text-xs text-zinc-500">No subject records available.</div>
+                      <div className="p-8 text-center text-xs text-slate-500 dark:text-zinc-500 italic">No subject records available.</div>
                     ) : (
                       <table className="w-full text-xs text-left">
-                        <thead className="bg-slate-50 dark:bg-zinc-950/80 text-zinc-400 uppercase tracking-wider text-[10px] sticky top-0 border-b border-slate-200 dark:border-white/10">
+                        <thead className="bg-slate-100 dark:bg-zinc-950 text-slate-600 dark:text-zinc-400 font-bold uppercase tracking-wider text-[10px] sticky top-0 border-b border-slate-200 dark:border-white/10">
                           <tr>
-                            <th className="px-5 py-2.5">Rank</th>
-                            <th className="px-5 py-2.5">Subject</th>
-                            <th className="px-5 py-2.5">Semester</th>
-                            <th className="px-5 py-2.5">Credits</th>
-                            <th className="px-5 py-2.5">Score %</th>
-                            <th className="px-5 py-2.5 pr-5 text-right">Grade</th>
+                            <th className="px-5 py-3">Rank</th>
+                            <th className="px-5 py-3">Subject Name</th>
+                            <th className="px-5 py-3">Semester</th>
+                            <th className="px-5 py-3 text-right">Credits</th>
+                            <th className="px-5 py-3 text-right">Score %</th>
+                            <th className="px-5 py-3 pr-5 text-right">Grade</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-white/5 font-mono">
+                        <tbody className="divide-y divide-slate-200 dark:divide-white/5 font-mono">
                           {sortedAllSubjects.map((subj, idx) => (
-                            <tr key={idx} className="hover:bg-purple-500/5 transition-colors">
-                              <td className="px-5 py-3 font-bold text-purple-400">#{idx + 1}</td>
-                              <td className="px-5 py-3 font-sans font-extrabold text-slate-900 dark:text-white">{subj.name}</td>
-                              <td className="px-5 py-3 text-zinc-400 font-sans text-[11px]">{subj.semesterName}</td>
-                              <td className="px-5 py-3 text-slate-700 dark:text-zinc-300">{subj.credits}</td>
-                              <td className="px-5 py-3 font-bold text-slate-900 dark:text-slate-900 dark:text-white text-sm">{safeFormatPct(subj.pct)}</td>
-                              <td className="px-5 py-3 pr-5 text-right font-sans">
+                            <tr key={idx} className="odd:bg-slate-50/50 even:bg-white dark:odd:bg-zinc-950/40 dark:even:bg-zinc-900/60 hover:bg-purple-50/60 dark:hover:bg-purple-500/10 transition-colors">
+                              <td className="px-5 py-3.5 font-bold text-purple-700 dark:text-purple-400">#{idx + 1}</td>
+                              <td className="px-5 py-3.5 font-sans font-bold text-slate-900 dark:text-white">{subj.name}</td>
+                              <td className="px-5 py-3.5 text-slate-600 dark:text-zinc-400 font-sans text-[11px]">{subj.semesterName}</td>
+                              <td className="px-5 py-3.5 text-right font-bold text-slate-700 dark:text-zinc-300">{subj.credits}</td>
+                              <td className="px-5 py-3.5 text-right font-extrabold text-slate-900 dark:text-white text-sm">{safeFormatPct(subj.pct)}</td>
+                              <td className="px-5 py-3.5 pr-5 text-right font-sans">
                                 <Badge tone="accent">{subj.letterGrade}</Badge>
                               </td>
                             </tr>
