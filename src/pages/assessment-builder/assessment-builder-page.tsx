@@ -278,11 +278,11 @@ export function AssessmentBuilderPage() {
       {/* Header with Two Primary Actions */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-white/10 pb-4">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-300 mb-2">
+          <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-700 dark:text-purple-300 mb-2">
             <Sliders size={12} className="text-purple-400" /> Universal Scheme Architect
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Assessment Scheme Builder</h1>
-          <p className="text-xs sm:text-sm text-zinc-400 mt-1">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Assessment Scheme Builder</h1>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1">
             Build, import, and configure evaluation schemes for any university
           </p>
         </div>
@@ -363,14 +363,14 @@ export function AssessmentBuilderPage() {
                     <button
                       onClick={() => moveComponent(compIdx, "up")}
                       disabled={compIdx === 0}
-                      className="p-1 text-zinc-400 hover:text-white disabled:opacity-30"
+                      className="p-1 text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white disabled:opacity-30"
                     >
                       <ArrowUp size={15} />
                     </button>
                     <button
                       onClick={() => moveComponent(compIdx, "down")}
                       disabled={compIdx === components.length - 1}
-                      className="p-1 text-zinc-400 hover:text-white disabled:opacity-30"
+                      className="p-1 text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white disabled:opacity-30"
                     >
                       <ArrowDown size={15} />
                     </button>
@@ -380,7 +380,7 @@ export function AssessmentBuilderPage() {
                     <button onClick={() => removeComponent(comp.id)} className="p-1 text-zinc-400 hover:text-rose-400">
                       <Trash2 size={15} />
                     </button>
-                    <button onClick={() => toggleCollapse(comp.id)} className="p-1 text-zinc-400 hover:text-white">
+                    <button onClick={() => toggleCollapse(comp.id)} className="p-1 text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white">
                       {isCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
                     </button>
                   </div>
@@ -423,7 +423,7 @@ export function AssessmentBuilderPage() {
 
                   {/* Assessments List */}
                   <div className="space-y-2.5">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 block">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400 block">
                       Assessments in {comp.name} ({comp.assessments.length})
                     </span>
 
@@ -493,10 +493,10 @@ export function AssessmentBuilderPage() {
 
       {/* Save Template Dialog */}
       {showSaveTemplateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl border border-white/10 bg-zinc-950 p-6 flex flex-col gap-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/80 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 p-6 flex flex-col gap-4 shadow-2xl">
             <h3 className="font-extrabold text-white text-lg">Save Scheme as New Template</h3>
-            <p className="text-xs text-zinc-400">Enter a title to save this configuration to your local templates.</p>
+            <p className="text-xs text-slate-500 dark:text-zinc-400">Enter a title to save this configuration to your local templates.</p>
             <input
               className="w-full bg-zinc-900 border border-white/20 rounded-xl px-3.5 py-2 text-xs text-white outline-none focus:border-purple-500"
               placeholder="e.g., Chitkara ST 40/60 Scheme"
@@ -517,10 +517,10 @@ export function AssessmentBuilderPage() {
 
       {/* Assign to Subject Dialog */}
       {showAssignModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl border border-white/10 bg-zinc-950 p-6 flex flex-col gap-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/80 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 p-6 flex flex-col gap-4 shadow-2xl">
             <h3 className="font-extrabold text-white text-lg">Assign Evaluation Scheme to Subject</h3>
-            <p className="text-xs text-zinc-400">Select a current semester course to apply this custom scheme.</p>
+            <p className="text-xs text-slate-500 dark:text-zinc-400">Select a current semester course to apply this custom scheme.</p>
             {currentSubjects.length === 0 ? (
               <p className="text-xs text-amber-400">No active semester subjects found.</p>
             ) : (

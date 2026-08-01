@@ -289,7 +289,7 @@ export function OnboardingPage() {
         </div>
 
         {/* Main Onboarding Card */}
-        <Card className="rounded-2xl border border-white/10 bg-zinc-900/90 shadow-2xl backdrop-blur-2xl p-6 sm:p-8">
+        <Card className="rounded-2xl border border-slate-200 bg-white/90 dark:border-white/10 dark:bg-zinc-900/90 shadow-2xl backdrop-blur-2xl p-6 sm:p-8">
           {(authError || uploadError || cgpaError) && (
             <div className="mb-5 rounded-xl bg-rose-500/10 border border-rose-500/20 p-3.5 text-xs text-rose-400 font-semibold flex items-center gap-2">
               <AlertTriangle size={16} />
@@ -314,13 +314,13 @@ export function OnboardingPage() {
                   <div className="flex flex-col gap-4">
                     {/* College Input / Select */}
                     <div>
-                      <label className="mb-1.5 block text-xs font-medium text-zinc-300">University / Institution Name *</label>
+                      <label className="mb-1.5 block text-xs font-medium text-slate-600 dark:text-zinc-300">University / Institution Name *</label>
                       <input
                         list="college-suggestions"
                         value={college}
                         onChange={(e) => setCollege(e.target.value)}
                         placeholder="e.g. Stanford University or Chitkara University"
-                        className="w-full rounded-xl border border-white/10 bg-zinc-950/60 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-slate-50 dark:bg-zinc-950/60 px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                       />
                       <datalist id="college-suggestions">
                         {PRESET_COLLEGES.map((c) => (
@@ -332,13 +332,13 @@ export function OnboardingPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {/* Course / Degree */}
                       <div>
-                        <label className="mb-1.5 block text-xs font-medium text-zinc-300">Course / Degree *</label>
+                        <label className="mb-1.5 block text-xs font-medium text-slate-600 dark:text-zinc-300">Course / Degree *</label>
                         <input
                           list="course-suggestions"
                           value={course}
                           onChange={(e) => setCourse(e.target.value)}
                           placeholder="e.g. B.Tech / B.S."
-                          className="w-full rounded-xl border border-white/10 bg-zinc-950/60 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                          className="w-full rounded-xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-slate-50 dark:bg-zinc-950/60 px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                         />
                         <datalist id="course-suggestions">
                           {PRESET_COURSES.map((c) => (
@@ -349,13 +349,13 @@ export function OnboardingPage() {
 
                       {/* Branch / Department */}
                       <div>
-                        <label className="mb-1.5 block text-xs font-medium text-zinc-300">Branch / Department *</label>
+                        <label className="mb-1.5 block text-xs font-medium text-slate-600 dark:text-zinc-300">Branch / Department *</label>
                         <input
                           list="branch-suggestions"
                           value={branch}
                           onChange={(e) => setBranch(e.target.value)}
                           placeholder="e.g. Computer Science"
-                          className="w-full rounded-xl border border-white/10 bg-zinc-950/60 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                          className="w-full rounded-xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-slate-50 dark:bg-zinc-950/60 px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                         />
                         <datalist id="branch-suggestions">
                           {PRESET_BRANCHES.map((b) => (
@@ -368,11 +368,11 @@ export function OnboardingPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {/* Current Semester */}
                       <div>
-                        <label className="mb-1.5 block text-xs font-medium text-zinc-300">Current Semester *</label>
+                        <label className="mb-1.5 block text-xs font-medium text-slate-600 dark:text-zinc-300">Current Semester *</label>
                         <select
                           value={semesterSystem}
                           onChange={(e) => setSemesterSystem(e.target.value)}
-                          className="w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all cursor-pointer"
+                          className="w-full rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all cursor-pointer"
                         >
                           {PRESET_SEMESTERS.map((s) => (
                             <option key={s} value={s} className="bg-zinc-900 text-white">{s}</option>
@@ -382,13 +382,13 @@ export function OnboardingPage() {
 
                       {/* Academic Session */}
                       <div>
-                        <label className="mb-1.5 block text-xs font-medium text-zinc-300">Academic Session / Batch *</label>
+                        <label className="mb-1.5 block text-xs font-medium text-slate-600 dark:text-zinc-300">Academic Session / Batch *</label>
                         <input
                           list="session-suggestions"
                           value={academicSession}
                           onChange={(e) => setAcademicSession(e.target.value)}
                           placeholder="e.g. 2025 - 2026"
-                          className="w-full rounded-xl border border-white/10 bg-zinc-950/60 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                          className="w-full rounded-xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-slate-50 dark:bg-zinc-950/60 px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                         />
                         <datalist id="session-suggestions">
                           {PRESET_SESSIONS.map((s) => (
@@ -428,7 +428,7 @@ export function OnboardingPage() {
                           className={`relative flex items-center justify-between rounded-2xl border p-5 cursor-pointer transition-all outline-none focus-visible:ring-2 focus-visible:ring-purple-500 ${
                             completedPrevious === "yes"
                               ? "border-purple-500 bg-purple-500/15 shadow-[0_0_20px_rgba(124,58,237,0.25)] ring-2 ring-purple-500/40"
-                              : "border-white/10 bg-zinc-950/60 hover:border-purple-500/40 hover:bg-purple-500/5"
+                              : "border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-zinc-950/60 hover:border-purple-500/40 hover:bg-purple-500/5"
                           }`}
                         >
                           <span className="text-sm font-bold text-white">Yes, I have completed past semesters</span>
@@ -455,7 +455,7 @@ export function OnboardingPage() {
                           className={`relative flex items-center justify-between rounded-2xl border p-5 cursor-pointer transition-all outline-none focus-visible:ring-2 focus-visible:ring-purple-500 ${
                             completedPrevious === "no"
                               ? "border-purple-500 bg-purple-500/15 shadow-[0_0_20px_rgba(124,58,237,0.25)] ring-2 ring-purple-500/40"
-                              : "border-white/10 bg-zinc-950/60 hover:border-purple-500/40 hover:bg-purple-500/5"
+                              : "border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-zinc-950/60 hover:border-purple-500/40 hover:bg-purple-500/5"
                           }`}
                         >
                           <span className="text-sm font-bold text-white">No, this is my 1st semester</span>
@@ -486,7 +486,7 @@ export function OnboardingPage() {
                           value={cgpaInput}
                           onChange={(e) => handleCgpaChange(e.target.value)}
                           placeholder="e.g. 8.45"
-                          className="w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-2.5 text-base font-mono font-bold text-white placeholder-zinc-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                          className="w-full rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-4 py-2.5 text-base font-mono font-bold text-white placeholder-zinc-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                         />
 
                         <p className="mt-2 text-xs text-zinc-400 flex items-center gap-1.5">
@@ -524,7 +524,7 @@ export function OnboardingPage() {
                       className={`relative group flex flex-col items-center gap-3 rounded-2xl border p-6 text-center transition-all cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-purple-500 ${
                         selectedImportMethod === "upload"
                           ? "border-purple-500 bg-purple-500/15 shadow-[0_0_25px_rgba(124,58,237,0.3)] ring-2 ring-purple-500/40"
-                          : "border-white/10 bg-zinc-950/60 hover:border-purple-500/40 hover:bg-purple-500/5"
+                          : "border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-zinc-950/60 hover:border-purple-500/40 hover:bg-purple-500/5"
                       }`}
                     >
                       {selectedImportMethod === "upload" && (
@@ -533,13 +533,13 @@ export function OnboardingPage() {
                         </div>
                       )}
                       <div className={`flex h-12 w-12 items-center justify-center rounded-xl transition-transform group-hover:scale-110 ${
-                        selectedImportMethod === "upload" ? "bg-purple-500 text-white" : "bg-purple-500/20 text-purple-400"
+                        selectedImportMethod === "upload" ? "bg-purple-500 text-white" : "bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400"
                       }`}>
                         <Upload size={24} />
                       </div>
                       <div>
                         <span className="text-sm font-semibold text-white block">Upload Academic Document</span>
-                        <span className="text-xs text-zinc-400">AI automatically extracts weights from PDF or images</span>
+                        <span className="text-xs text-slate-500 dark:text-zinc-400">AI automatically extracts weights from PDF or images</span>
                       </div>
                     </div>
 
@@ -561,7 +561,7 @@ export function OnboardingPage() {
                       className={`relative group flex flex-col items-center gap-3 rounded-2xl border p-6 text-center transition-all cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
                         selectedImportMethod === "manual"
                           ? "border-blue-500 bg-blue-500/15 shadow-[0_0_25px_rgba(59,130,246,0.3)] ring-2 ring-blue-500/40"
-                          : "border-white/10 bg-zinc-950/60 hover:border-blue-500/40 hover:bg-blue-500/5"
+                          : "border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-zinc-950/60 hover:border-blue-500/40 hover:bg-blue-500/5"
                       }`}
                     >
                       {selectedImportMethod === "manual" && (
@@ -570,13 +570,13 @@ export function OnboardingPage() {
                         </div>
                       )}
                       <div className={`flex h-12 w-12 items-center justify-center rounded-xl transition-transform group-hover:scale-110 ${
-                        selectedImportMethod === "manual" ? "bg-blue-500 text-white" : "bg-blue-500/20 text-blue-400"
+                        selectedImportMethod === "manual" ? "bg-blue-500 text-white" : "bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400"
                       }`}>
                         <PenLine size={24} />
                       </div>
                       <div>
                         <span className="text-sm font-semibold text-white block">Enter Manually</span>
-                        <span className="text-xs text-zinc-400">Quick profile setup, add subjects anytime</span>
+                        <span className="text-xs text-slate-500 dark:text-zinc-400">Quick profile setup, add subjects anytime</span>
                       </div>
                     </div>
                   </div>
@@ -617,7 +617,7 @@ export function OnboardingPage() {
                         className="h-20 w-20 rounded-xl object-cover border border-purple-500/40 shadow-xl mb-3"
                       />
                     ) : (
-                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-purple-500/20 text-purple-400 mb-3 shadow-lg">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 mb-3 shadow-lg">
                         <FileText size={28} />
                       </div>
                     )}
@@ -625,7 +625,7 @@ export function OnboardingPage() {
                     <p className="text-sm font-semibold text-white mb-1">
                       {uploadFile ? `${uploadFile.name}` : "Click to browse or drag & drop Academic Document"}
                     </p>
-                    <p className="text-xs text-zinc-400">
+                    <p className="text-xs text-slate-500 dark:text-zinc-400">
                       Supported formats: PDF, JPG, JPEG, PNG • Maximum file size: 10MB
                     </p>
 
@@ -652,7 +652,7 @@ export function OnboardingPage() {
                   </div>
 
                   <div className="mt-8 flex items-center justify-between border-t border-white/10 pt-5">
-                    <Button variant="ghost" size="sm" onClick={handleBackStep} className="gap-1 text-zinc-400 hover:text-white">
+                    <Button variant="ghost" size="sm" onClick={handleBackStep} className="gap-1 text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white">
                       <ArrowLeft size={14} /> Back
                     </Button>
                     <Button
@@ -701,7 +701,7 @@ export function OnboardingPage() {
                         <div className="flex items-center gap-2">
                           <input
                             defaultValue={f.value}
-                            className="w-16 rounded-lg border border-white/10 bg-zinc-900 px-2 py-1 text-right font-mono font-semibold text-white outline-none"
+                            className="w-16 rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-900 px-2 py-1 text-right font-mono font-semibold text-white outline-none"
                           />
                           {f.flagged ? <AlertTriangle size={14} className="text-amber-400" /> : <CheckCircle2 size={14} className="text-emerald-400" />}
                         </div>
@@ -724,7 +724,7 @@ export function OnboardingPage() {
               {mode === "choose" && (
                 <div className="mt-8 flex items-center justify-between border-t border-white/10 pt-5">
                   {step > 0 ? (
-                    <Button variant="ghost" size="sm" onClick={handleBackStep} className="gap-1 text-zinc-400 hover:text-white">
+                    <Button variant="ghost" size="sm" onClick={handleBackStep} className="gap-1 text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white">
                       <ArrowLeft size={14} /> Back
                     </Button>
                   ) : <div />}

@@ -304,7 +304,7 @@ export function AnalyticsPage() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Academic Analytics & Insights</h1>
-          <p className="text-xs sm:text-sm text-zinc-400 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1">
             Deep performance analysis, grade distributions, credit progress, and semester transcripts
           </p>
         </div>
@@ -314,7 +314,7 @@ export function AnalyticsPage() {
             onClick={() => setTab("overview")}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all ${tab === "overview"
                 ? "bg-purple-600 text-white shadow-md shadow-purple-600/30"
-                : "text-zinc-400 hover:text-white"
+                : "text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
               }`}
           >
             <BarChart3 size={14} /> Analytics Overview
@@ -323,7 +323,7 @@ export function AnalyticsPage() {
             onClick={() => setTab("history")}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all ${tab === "history"
                 ? "bg-purple-600 text-white shadow-md shadow-purple-600/30"
-                : "text-zinc-400 hover:text-white"
+                : "text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
               }`}
           >
             <BookOpen size={14} /> Past Results Transcript
@@ -436,7 +436,7 @@ export function AnalyticsPage() {
                     {highestSubject ? (
                       <div>
                         <h3 className="font-extrabold text-white text-lg">{highestSubject.name}</h3>
-                        <p className="text-xs text-zinc-400 mt-0.5">{highestSubject.code || "Course"} • {highestSubject.credits} Credits</p>
+                        <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">{highestSubject.code || "Course"} • {highestSubject.credits} Credits</p>
                         <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/10">
                           <Badge tone="accent">{highestSubject.letterGrade || "A+"}</Badge>
                           <span className="font-mono font-extrabold text-white text-lg">{safeFormatPct(highestSubject.pct)}</span>
@@ -455,7 +455,7 @@ export function AnalyticsPage() {
                     {lowestSubject ? (
                       <div>
                         <h3 className="font-extrabold text-white text-lg">{lowestSubject.name}</h3>
-                        <p className="text-xs text-zinc-400 mt-0.5">{lowestSubject.code || "Course"} • {lowestSubject.credits} Credits</p>
+                        <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">{lowestSubject.code || "Course"} • {lowestSubject.credits} Credits</p>
                         <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/10">
                           <Badge tone="warning">{lowestSubject.letterGrade || "B"}</Badge>
                           <span className="font-mono font-extrabold text-amber-400 text-lg">{safeFormatPct(lowestSubject.pct)}</span>
@@ -468,12 +468,12 @@ export function AnalyticsPage() {
                 </div>
 
                 {/* Sorted Subject Performance Ranking Table */}
-                <Card className="lg:col-span-2 border border-white/10 bg-zinc-900/90 shadow-xl overflow-hidden flex flex-col justify-between">
+                <Card className="lg:col-span-2 border border-slate-200 bg-white/90 dark:border-white/10 dark:bg-zinc-900/90 shadow-xl overflow-hidden flex flex-col justify-between">
                   <CardHeader className="bg-zinc-950 py-3.5 px-5 border-b border-white/5 flex flex-row items-center justify-between">
                     <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
                       <Trophy size={16} className="text-purple-400" /> Subject Performance Ranking ({sortedAllSubjects.length})
                     </CardTitle>
-                    <span className="text-xs text-zinc-400">Top to Bottom Score</span>
+                    <span className="text-xs text-slate-500 dark:text-zinc-400">Top to Bottom Score</span>
                   </CardHeader>
                   <CardContent className="p-0 overflow-x-auto max-h-[320px] overflow-y-auto">
                     {sortedAllSubjects.length === 0 ? (
@@ -497,7 +497,7 @@ export function AnalyticsPage() {
                               <td className="px-5 py-3 font-sans font-extrabold text-white">{subj.name}</td>
                               <td className="px-5 py-3 text-zinc-400 font-sans text-[11px]">{subj.semesterName}</td>
                               <td className="px-5 py-3 text-zinc-300">{subj.credits}</td>
-                              <td className="px-5 py-3 font-bold text-white text-sm">{safeFormatPct(subj.pct)}</td>
+                              <td className="px-5 py-3 font-bold text-slate-900 dark:text-white text-sm">{safeFormatPct(subj.pct)}</td>
                               <td className="px-5 py-3 pr-5 text-right font-sans">
                                 <Badge tone="accent">{subj.letterGrade}</Badge>
                               </td>
@@ -593,7 +593,7 @@ export function AnalyticsPage() {
               {/* Section 4: AI Academic Insights */}
               <Card className="glow-purple border border-purple-500/30 bg-gradient-to-r from-purple-950/40 via-zinc-900 to-blue-950/40 p-6">
                 <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-purple-500/20 text-purple-400 border border-purple-500/30 shadow-lg">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-500/30 shadow-lg">
                     <Sparkles size={24} />
                   </div>
                   <div className="flex flex-col gap-2">
@@ -623,7 +623,7 @@ export function AnalyticsPage() {
                 <div className="flex flex-col gap-6">
                   {/* Digital Academic Transcript Header Bar */}
                   <div className="flex items-center justify-between">
-                    <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
+                    <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400 flex items-center gap-2">
                       <GraduationCap size={16} className="text-purple-400" /> Chronological Academic Transcript ({completedSemesters.length} Completed {completedSemesters.length === 1 ? "Semester" : "Semesters"})
                     </h2>
                     <Button variant="outline" size="sm" onClick={handleExportTranscript} className="gap-1.5 text-xs">
@@ -645,7 +645,7 @@ export function AnalyticsPage() {
                           key={semId}
                           className={`overflow-hidden transition-all duration-200 border ${isSelected
                               ? "border-purple-500/60 bg-gradient-to-br from-zinc-900 via-zinc-900 to-purple-950/20 shadow-[0_0_25px_rgba(124,58,237,0.15)]"
-                              : "border-white/10 bg-zinc-950/60 hover:border-purple-500/30"
+                              : "border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-zinc-950/60 hover:border-purple-500/30"
                             }`}
                         >
                           {/* Semester Transcript Header */}
@@ -654,7 +654,7 @@ export function AnalyticsPage() {
                             className="flex flex-col sm:flex-row sm:items-center justify-between p-5 bg-zinc-950/90 border-b border-white/10 gap-4 cursor-pointer"
                           >
                             <div className="flex items-center gap-3.5">
-                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30 font-bold text-sm font-mono">
+                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-500/30 font-bold text-sm font-mono">
                                 #{sem.semesterNumber || sIdx + 1}
                               </div>
                               <div>
@@ -664,7 +664,7 @@ export function AnalyticsPage() {
                                     <CheckCircle2 size={11} className="mr-1 inline" /> Completed
                                   </Badge>
                                 </div>
-                                <p className="text-xs text-zinc-400 mt-0.5">
+                                <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
                                   Verified Official Academic Transcript Record
                                 </p>
                               </div>

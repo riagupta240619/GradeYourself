@@ -271,7 +271,7 @@ function AcademicPlannerContent() {
             <Target size={16} /> Central Academic Decision Engine
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Academic Planner</h1>
-          <p className="text-xs sm:text-sm text-zinc-400 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1">
             Set your target, track live position, and calculate exact required scores for every remaining assessment
           </p>
         </div>
@@ -291,7 +291,7 @@ function AcademicPlannerContent() {
                   <h2 className="text-base font-extrabold text-white flex items-center gap-2">
                     <Sparkles size={18} className="text-purple-400" /> Section 1: Select Academic Goal
                   </h2>
-                  <p className="text-xs text-zinc-400 mt-0.5">
+                  <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
                     Choose how you want to define your target for this term
                   </p>
                 </div>
@@ -301,7 +301,7 @@ function AcademicPlannerContent() {
                   <button
                     onClick={() => setGoalMode("cgpa")}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                      goalMode === "cgpa" ? "bg-purple-600 text-white shadow-md" : "text-zinc-400 hover:text-white"
+                      goalMode === "cgpa" ? "bg-purple-600 text-white shadow-md" : "text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
                     }`}
                   >
                     Target CGPA
@@ -309,7 +309,7 @@ function AcademicPlannerContent() {
                   <button
                     onClick={() => setGoalMode("sgpa")}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                      goalMode === "sgpa" ? "bg-purple-600 text-white shadow-md" : "text-zinc-400 hover:text-white"
+                      goalMode === "sgpa" ? "bg-purple-600 text-white shadow-md" : "text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
                     }`}
                   >
                     Target SGPA
@@ -317,7 +317,7 @@ function AcademicPlannerContent() {
                   <button
                     onClick={() => setGoalMode("maintain")}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                      goalMode === "maintain" ? "bg-purple-600 text-white shadow-md" : "text-zinc-400 hover:text-white"
+                      goalMode === "maintain" ? "bg-purple-600 text-white shadow-md" : "text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
                     }`}
                   >
                     Maintain Current
@@ -325,7 +325,7 @@ function AcademicPlannerContent() {
                   <button
                     onClick={() => setGoalMode("honors")}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
-                      goalMode === "honors" ? "bg-amber-600 text-white shadow-md" : "text-zinc-400 hover:text-white"
+                      goalMode === "honors" ? "bg-amber-600 text-white shadow-md" : "text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
                     }`}
                   >
                     <Award size={13} /> Honors Track
@@ -493,7 +493,7 @@ function AcademicPlannerContent() {
                 <h2 className="text-lg font-extrabold text-white flex items-center gap-2">
                   <Calculator size={20} className="text-purple-400" /> Section 4: Dynamic Assessment Planner
                 </h2>
-                <p className="text-xs text-zinc-400 mt-0.5">
+                <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
                   Hierarchical evaluation scheme breakdown. Enter actual or test marks to see required scores update live.
                 </p>
               </div>
@@ -516,11 +516,11 @@ function AcademicPlannerContent() {
                 const isExpanded = expandedSubjectIds.has(subjId);
 
                 return (
-                  <Card key={subjId} className="border border-white/10 bg-zinc-950/80 overflow-hidden shadow-xl">
+                  <Card key={subjId} className="border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950/80 overflow-hidden shadow-xl">
                     {/* Subject Header */}
                     <div
                       onClick={() => toggleSubjectExpand(subjId)}
-                      className="p-5 bg-zinc-900/90 border-b border-white/10 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-zinc-800/80 transition-colors"
+                      className="p-5 bg-zinc-900/90 border-b border-white/10 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-100 dark:bg-zinc-800/80 transition-colors"
                     >
                       <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-500/20 text-purple-300 font-bold border border-purple-500/30">
@@ -528,7 +528,7 @@ function AcademicPlannerContent() {
                         </div>
                         <div>
                           <h3 className="font-extrabold text-white text-base">{subject.name || "Untitled Course"}</h3>
-                          <p className="text-xs text-zinc-400">
+                          <p className="text-xs text-slate-500 dark:text-zinc-400">
                             {subject.code || "Course"} • {subject.credits || 3} Credits • Current Score: <strong className="text-purple-300 font-mono">{currentPct.toFixed(1)}%</strong>
                           </p>
                         </div>
@@ -549,7 +549,7 @@ function AcademicPlannerContent() {
                           </Badge>
                         )}
 
-                        <button className="text-zinc-400 hover:text-white p-1 rounded-lg">
+                        <button className="text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white p-1 rounded-lg">
                           {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                         </button>
                       </div>
@@ -559,7 +559,7 @@ function AcademicPlannerContent() {
                     {isExpanded && (
                       <CardContent className="p-5 space-y-6 bg-zinc-950/60">
                         {(plan?.components || []).map((comp) => (
-                          <div key={comp.id} className="rounded-2xl border border-white/10 bg-zinc-900/50 p-4 space-y-3">
+                          <div key={comp.id} className="rounded-2xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-900/50 p-4 space-y-3">
                             <div className="flex items-center justify-between text-xs border-b border-white/10 pb-2">
                               <span className="font-extrabold text-purple-300 uppercase tracking-wider flex items-center gap-1.5">
                                 <Layers size={14} /> {comp.name} ({comp.weightPct}% Weight)
@@ -597,7 +597,7 @@ function AcademicPlannerContent() {
                                   {/* Mark Entry Input or Required Score Indicator */}
                                   <div className="flex items-center justify-between gap-3 pt-1">
                                     <div className="flex items-center gap-2">
-                                      <span className="text-xs text-zinc-400">Mark:</span>
+                                      <span className="text-xs text-slate-500 dark:text-zinc-400">Mark:</span>
                                       <input
                                         type="number"
                                         min={0}

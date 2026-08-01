@@ -117,7 +117,7 @@ export function DeleteAccountModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
           transition={{ type: "spring", duration: 0.25 }}
-          className="relative w-full max-w-md rounded-2xl border border-rose-500/30 bg-zinc-900/95 p-6 shadow-2xl backdrop-blur-xl sm:p-7 text-white z-10 max-h-[90vh] overflow-y-auto"
+          className="relative w-full max-w-md rounded-2xl border border-rose-500/30 bg-white dark:bg-zinc-900/95 p-6 shadow-2xl backdrop-blur-xl sm:p-7 text-white z-10 max-h-[90vh] overflow-y-auto"
         >
           {/* Header Icon */}
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-500/20 text-rose-400 border border-rose-500/30 shadow-[0_0_20px_rgba(244,63,94,0.25)]">
@@ -156,7 +156,7 @@ export function DeleteAccountModal({
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter current password"
-                    className="w-full rounded-xl border border-white/10 bg-zinc-950/80 pl-10 pr-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 outline-none transition-all"
+                    className="w-full rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950/80 pl-10 pr-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 outline-none transition-all"
                   />
                 </div>
               </div>
@@ -168,7 +168,7 @@ export function DeleteAccountModal({
                   size="sm"
                   onClick={onClose}
                   disabled={isLoading}
-                  className="text-zinc-400 hover:text-white"
+                  className="text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
                 >
                   Cancel
                 </Button>
@@ -209,7 +209,7 @@ export function DeleteAccountModal({
                   size="sm"
                   onClick={() => setStep(1)}
                   disabled={isLoading}
-                  className="text-zinc-400 hover:text-white text-xs"
+                  className="text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white text-xs"
                 >
                   ← Back
                 </Button>
@@ -220,7 +220,7 @@ export function DeleteAccountModal({
                     size="sm"
                     onClick={onClose}
                     disabled={isLoading}
-                    className="text-zinc-400 hover:text-white"
+                    className="text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
                   >
                     Cancel
                   </Button>

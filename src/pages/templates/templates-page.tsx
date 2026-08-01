@@ -53,11 +53,11 @@ export function TemplatesPage() {
     <div className="flex max-w-5xl flex-col gap-8 pb-10">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-300 mb-2">
+          <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-700 dark:text-purple-300 mb-2">
             <Layers size={12} className="text-purple-400" /> Scheme Repository
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Community & University Grading Schemes</h1>
-          <p className="text-xs sm:text-sm text-zinc-400 mt-1">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Community & University Grading Schemes</h1>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1">
             Pre-configured evaluation schemes for Chitkara University, Standard Theory, & Lab courses.
           </p>
         </div>
@@ -75,7 +75,7 @@ export function TemplatesPage() {
 
       {loading ? (
         <Card className="p-12 text-center flex flex-col items-center justify-center">
-          <Loader2 size={24} className="animate-spin text-purple-400 mb-2" />
+          <Loader2 size={24} className="animate-spin text-purple-500 dark:text-purple-400 mb-2" />
           <p className="text-xs text-zinc-400 font-medium">Loading community grading scheme repository...</p>
         </Card>
       ) : filtered.length === 0 ? (
@@ -96,7 +96,7 @@ export function TemplatesPage() {
                 <CardContent className="flex flex-col gap-4 pt-6">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <h3 className="font-bold text-white text-base leading-snug">{t.university}</h3>
+                      <h3 className="font-bold text-slate-900 dark:text-white text-base leading-snug">{t.university}</h3>
                       <p className="text-xs text-purple-300 font-medium mt-0.5">{t.name}</p>
                     </div>
                     {t.verified ? (
@@ -146,21 +146,21 @@ export function TemplatesPage() {
 
       {/* Preview Modal */}
       {previewTemplate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-zinc-900 p-6 flex flex-col gap-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/80 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-900 p-6 flex flex-col gap-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <div>
                 <h3 className="font-extrabold text-white text-lg">{previewTemplate.name}</h3>
                 <p className="text-xs text-purple-300">{previewTemplate.university}</p>
               </div>
-              <button onClick={() => setPreviewTemplate(null)} className="text-zinc-400 hover:text-white p-1">
+              <button onClick={() => setPreviewTemplate(null)} className="text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white p-1">
                 <X size={18} />
               </button>
             </div>
 
             <div className="flex flex-col gap-3 max-h-96 overflow-y-auto">
               {normalizeScheme(previewTemplate).components.map((comp) => (
-                <div key={comp.id} className="rounded-xl border border-white/10 bg-zinc-950 p-3.5 flex flex-col gap-2 text-xs">
+                <div key={comp.id} className="rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 p-3.5 flex flex-col gap-2 text-xs">
                   <div className="flex justify-between items-center font-bold text-white">
                     <span>{comp.name}</span>
                     <Badge tone="accent">{comp.weightPct}% Weight</Badge>

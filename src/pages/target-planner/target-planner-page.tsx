@@ -190,11 +190,11 @@ export function TargetPlannerPage() {
   return (
     <div className="flex max-w-4xl flex-col gap-6 pb-10">
       <div>
-        <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-300 mb-2">
+        <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-700 dark:text-purple-300 mb-2">
           <Target size={12} className="text-purple-400" /> Current Semester AI Target Planner
         </div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Active Semester Target Planner</h1>
-        <p className="text-xs sm:text-sm text-zinc-400 mt-1">
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Active Semester Target Planner</h1>
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1">
           Real-time predictions for your current active semester subjects.
         </p>
       </div>
@@ -224,16 +224,16 @@ export function TargetPlannerPage() {
           <div className="flex items-baseline justify-between pt-2 border-t border-white/10">
             <div className="flex items-baseline gap-2">
               <span className="text-3xl sm:text-4xl font-extrabold font-tabular text-white tracking-tight">{target}%</span>
-              <span className="text-xs text-zinc-400">Required Benchmark</span>
+              <span className="text-xs text-slate-500 dark:text-zinc-400">Required Benchmark</span>
             </div>
             <Badge tone={tone as any}>{feasibility}</Badge>
           </div>
         </Card>
 
         {/* Current & Required SGPA Overview Card */}
-        <Card className="border border-white/10 bg-zinc-950/60 p-5 flex flex-col justify-between space-y-3">
+        <Card className="border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-zinc-950/60 p-5 flex flex-col justify-between space-y-3">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block mb-1">Planning Metrics</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400 block mb-1">Planning Metrics</span>
             <div className="space-y-1.5 text-xs">
               <div className="flex items-center justify-between">
                 <span className="text-zinc-400">Official CGPA:</span>
@@ -272,7 +272,7 @@ export function TargetPlannerPage() {
           </div>
           <div>
             <h3 className="text-base font-bold text-white">No current semester subjects available.</h3>
-            <p className="text-xs text-zinc-400 mt-1 max-w-sm mx-auto">
+            <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1 max-w-sm mx-auto">
               Add active subjects for the current semester on the Dashboard or click below to begin target planning.
             </p>
           </div>
@@ -300,18 +300,18 @@ export function TargetPlannerPage() {
               <motion.div
                 key={subject.id || subject._id}
                 whileHover={{ x: 2 }}
-                className="flex flex-col sm:flex-row sm:items-center justify-between rounded-xl border border-white/10 bg-zinc-950/60 p-4 text-xs gap-3"
+                className="flex flex-col sm:flex-row sm:items-center justify-between rounded-xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-slate-50 dark:bg-zinc-950/60 p-4 text-xs gap-3"
               >
                 <div className="flex items-start gap-3">
                   <span className="h-3 w-3 rounded-full mt-1 shrink-0 shadow-sm" style={{ backgroundColor: subject.colorTag || "#3b82f6" }} />
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-white text-sm">{subject.name}</span>
+                      <span className="font-bold text-slate-900 dark:text-white text-sm">{subject.name}</span>
                       <span className="text-[11px] text-zinc-400 font-mono">({subject.code || "No Code"})</span>
                       <Badge tone="accent" className="text-[10px]">{subject.credits} Credits</Badge>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3 text-[11px] text-zinc-400 mt-1">
+                    <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-500 dark:text-zinc-400 mt-1">
                       <span>Obtained Marks: <strong className="text-zinc-200">{evaluatedMarks > 0 ? evaluatedMarks : "—"}</strong></span>
                       <span>•</span>
                       <span>Remaining Exams: <strong className="text-purple-300">{remainingTypes.length > 0 ? remainingTypes.join(", ") : "All Completed"}</strong></span>

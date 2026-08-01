@@ -23,7 +23,7 @@ const CustomTooltip = ({ active, payload }: any) => {
     const isProj = point.isProjected;
 
     return (
-      <div className="rounded-2xl border border-white/10 bg-zinc-900/95 p-3.5 text-xs shadow-2xl backdrop-blur-md min-w-[200px] flex flex-col gap-2">
+      <div className="rounded-2xl border border-white/10 bg-white dark:bg-zinc-900/95 p-3.5 text-xs shadow-2xl backdrop-blur-md min-w-[200px] flex flex-col gap-2">
         <div className="flex items-center justify-between border-b border-white/10 pb-2">
           <p className="font-bold text-white text-xs">{point.label}</p>
           <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${isProj ? "bg-purple-500/20 text-purple-300" : "bg-emerald-500/20 text-emerald-300"}`}>
@@ -35,14 +35,14 @@ const CustomTooltip = ({ active, payload }: any) => {
           <div className="flex flex-col gap-1.5 font-mono">
             <div className="flex items-center justify-between gap-3 text-blue-300">
               <span className="font-sans font-semibold">Projected SGPA:</span>
-              <span className="font-bold text-white text-sm">
+              <span className="font-bold text-slate-900 dark:text-white text-sm">
                 {point.projectedSgpa !== null && point.projectedSgpa !== undefined ? Number(point.projectedSgpa).toFixed(2) : "—"}
               </span>
             </div>
 
             <div className="flex items-center justify-between gap-3 text-purple-300">
               <span className="font-sans font-semibold">Projected CGPA:</span>
-              <span className="font-bold text-white text-sm">
+              <span className="font-bold text-slate-900 dark:text-white text-sm">
                 {point.projectedCgpa !== null && point.projectedCgpa !== undefined ? Number(point.projectedCgpa).toFixed(2) : "—"}
               </span>
             </div>
@@ -62,14 +62,14 @@ const CustomTooltip = ({ active, payload }: any) => {
           <div className="flex flex-col gap-1.5 font-mono">
             <div className="flex items-center justify-between gap-3 text-blue-400">
               <span className="font-sans font-semibold">Official SGPA:</span>
-              <span className="font-bold text-white text-sm">
+              <span className="font-bold text-slate-900 dark:text-white text-sm">
                 {point.officialSgpa !== null && point.officialSgpa !== undefined ? Number(point.officialSgpa).toFixed(2) : "—"}
               </span>
             </div>
 
             <div className="flex items-center justify-between gap-3 text-purple-400">
               <span className="font-sans font-semibold">Official CGPA:</span>
-              <span className="font-bold text-white text-sm">
+              <span className="font-bold text-slate-900 dark:text-white text-sm">
                 {point.officialCgpa !== null && point.officialCgpa !== undefined ? Number(point.officialCgpa).toFixed(2) : "—"}
               </span>
             </div>

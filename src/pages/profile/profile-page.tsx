@@ -131,11 +131,11 @@ export function ProfilePage() {
     <div className="flex max-w-4xl flex-col gap-8 pb-10">
       <div className="flex items-center justify-between">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-300 mb-2">
+          <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-700 dark:text-purple-300 mb-2">
             <GraduationCap size={12} className="text-purple-400" /> Permanent Academic Profile
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Student Academic Profile</h1>
-          <p className="text-xs sm:text-sm text-zinc-400 mt-1">Manage and update your university details, degree program, and academic baseline.</p>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Student Academic Profile</h1>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1">Manage and update your university details, degree program, and academic baseline.</p>
         </div>
 
         {!isEditing && (
@@ -184,7 +184,7 @@ export function ProfilePage() {
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <Edit3 size={18} className="text-purple-400" /> Edit Academic Profile Details
               </h3>
-              <span className="text-xs text-zinc-400">Updates sync to Database & Global State</span>
+              <span className="text-xs text-slate-500 dark:text-zinc-400">Updates sync to Database & Global State</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -195,7 +195,7 @@ export function ProfilePage() {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                  className="w-full rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                   placeholder="Enter full name"
                 />
               </div>
@@ -218,7 +218,7 @@ export function ProfilePage() {
                   type="text"
                   value={college}
                   onChange={(e) => setCollege(e.target.value)}
-                  className="w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                  className="w-full rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                   placeholder="e.g. Stanford University"
                 />
               </div>
@@ -230,7 +230,7 @@ export function ProfilePage() {
                   type="text"
                   value={course}
                   onChange={(e) => setCourse(e.target.value)}
-                  className="w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                  className="w-full rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                   placeholder="e.g. B.Tech / B.E."
                 />
               </div>
@@ -242,7 +242,7 @@ export function ProfilePage() {
                   type="text"
                   value={branch}
                   onChange={(e) => setBranch(e.target.value)}
-                  className="w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                  className="w-full rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                   placeholder="e.g. Computer Science & Engineering"
                 />
               </div>
@@ -253,7 +253,7 @@ export function ProfilePage() {
                 <select
                   value={currentSemester}
                   onChange={(e) => setCurrentSemester(e.target.value)}
-                  className="w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all cursor-pointer"
+                  className="w-full rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all cursor-pointer"
                 >
                   {PRESET_SEMESTERS.map((s) => (
                     <option key={s} value={s} className="bg-zinc-900 text-white">{s}</option>
@@ -268,7 +268,7 @@ export function ProfilePage() {
                   type="text"
                   value={academicSession}
                   onChange={(e) => setAcademicSession(e.target.value)}
-                  className="w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                  className="w-full rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                   placeholder="e.g. 2025 - 2026"
                 />
               </div>
@@ -279,7 +279,7 @@ export function ProfilePage() {
                 <select
                   value={academicStatus}
                   onChange={(e) => setAcademicStatus(e.target.value)}
-                  className="w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all cursor-pointer"
+                  className="w-full rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all cursor-pointer"
                 >
                   {STATUS_OPTIONS.map((st) => (
                     <option key={st} value={st} className="bg-zinc-900 text-white">{st}</option>
@@ -299,7 +299,7 @@ export function ProfilePage() {
                   max="10"
                   value={cgpaInput}
                   onChange={(e) => setCgpaInput(e.target.value)}
-                  className="w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-2.5 text-sm font-mono font-bold text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                  className="w-full rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-4 py-2.5 text-sm font-mono font-bold text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                   placeholder="e.g. 8.45"
                 />
               </div>

@@ -158,10 +158,10 @@ export function SubjectDetailsPage() {
   if (loading && subjects.length === 0) {
     return (
       <div className="flex max-w-4xl flex-col gap-6">
-        <Link to="/app/dashboard" className="flex w-fit items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition-colors">
+        <Link to="/app/dashboard" className="flex w-fit items-center gap-1.5 text-xs text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white transition-colors">
           <ChevronLeft size={16} /> Back to Dashboard
         </Link>
-        <Card className="p-8 text-center text-xs text-zinc-400">Loading course details...</Card>
+        <Card className="p-8 text-center text-xs text-slate-500 dark:text-zinc-400">Loading course details...</Card>
       </div>
     );
   }
@@ -169,7 +169,7 @@ export function SubjectDetailsPage() {
   if (!subject) {
     return (
       <div className="flex max-w-4xl flex-col gap-6">
-        <Link to="/app/dashboard" className="flex w-fit items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition-colors">
+        <Link to="/app/dashboard" className="flex w-fit items-center gap-1.5 text-xs text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white transition-colors">
           <ChevronLeft size={16} /> Back to Dashboard
         </Link>
         <Card className="p-10 text-center">
@@ -202,7 +202,7 @@ export function SubjectDetailsPage() {
     <div className="flex max-w-4xl flex-col gap-8 pb-10">
       {/* Top Header Actions */}
       <div className="flex items-center justify-between">
-        <Link to="/app/dashboard" className="flex w-fit items-center gap-1.5 text-xs font-semibold text-zinc-400 hover:text-white transition-colors">
+        <Link to="/app/dashboard" className="flex w-fit items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white transition-colors">
           <ChevronLeft size={16} /> Back to Dashboard
         </Link>
         <Button variant="outline" size="sm" onClick={() => setAddSubjectModalOpen(true)} className="gap-1.5">
@@ -221,7 +221,7 @@ export function SubjectDetailsPage() {
               onClick={() => setSelectedId(sId)}
               className={`flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold transition-all ${active
                   ? "border-purple-500 bg-purple-500/20 text-purple-300 shadow-[0_0_15px_rgba(124,58,237,0.3)]"
-                  : "border-white/10 bg-zinc-900/80 text-zinc-400 hover:text-white hover:border-white/20"
+                  : "border-slate-200 bg-white/90 dark:border-white/10 dark:bg-zinc-900/80 text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:border-white/20"
                 }`}
             >
               <span className="h-2.5 w-2.5 rounded-full shadow-sm" style={{ backgroundColor: s.colorTag || "#3b82f6" }} />
@@ -261,7 +261,7 @@ export function SubjectDetailsPage() {
                 <div className="flex items-center gap-1.5 text-zinc-400">
                   <span>Current Score:</span>
                   {hasMarks ? (
-                    <span className="font-mono font-bold text-white text-sm">
+                    <span className="font-mono font-bold text-slate-900 dark:text-white text-sm">
                       {pct.toFixed(1)}% <span className="text-xs font-semibold text-purple-300">({pctToLetter(pct)})</span>
                     </span>
                   ) : (
@@ -313,7 +313,7 @@ export function SubjectDetailsPage() {
             <BookOpen size={18} className="text-purple-400" />
             <h2 className="text-lg font-bold text-white">Hierarchical Assessment Breakdown</h2>
           </div>
-          <span className="text-xs text-zinc-500 font-semibold">Live Weightage Math</span>
+          <span className="text-xs text-slate-400 dark:text-zinc-500 font-semibold">Live Weightage Math</span>
         </div>
 
         {normScheme.components.map((comp) => {
@@ -321,12 +321,12 @@ export function SubjectDetailsPage() {
           const ruleLabel = comp.rule ? comp.rule.toUpperCase().replace("_", " ") : "AVERAGE";
 
           return (
-            <Card key={comp.id} className="border border-white/10 bg-zinc-900/90 overflow-hidden shadow-lg">
+            <Card key={comp.id} className="border border-slate-200 bg-white/90 dark:border-white/10 dark:bg-zinc-900/90 overflow-hidden shadow-lg">
               {/* Component Header */}
               <CardHeader className="bg-zinc-950/70 border-b border-white/5 py-3 px-5 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <Layers size={16} className="text-purple-400" />
-                  <span className="font-bold text-white text-sm">{comp.name}</span>
+                  <span className="font-bold text-slate-900 dark:text-white text-sm">{comp.name}</span>
                   <Badge tone="accent" className="text-[10px] uppercase font-mono tracking-wider">
                     Weight: {comp.weightPct}%
                   </Badge>
@@ -374,7 +374,7 @@ export function SubjectDetailsPage() {
                             <div className="flex items-center gap-2">
                               <input
                                 type="number"
-                                className="w-24 rounded-xl border border-white/10 bg-zinc-950 px-3 py-1.5 font-mono text-sm font-bold text-white placeholder-zinc-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                                className="w-24 rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-3 py-1.5 font-mono text-sm font-bold text-white placeholder-zinc-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                                 placeholder="—"
                                 value={raw ?? ""}
                                 max={ast.maxMarks}

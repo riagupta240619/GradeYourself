@@ -89,7 +89,7 @@ export function SimulatorPage() {
     return (
       <div className="flex max-w-3xl flex-col gap-6">
         <h1 className="text-2xl font-bold tracking-tight">What-if Simulator</h1>
-        <Card className="p-8 text-center text-xs text-zinc-400">
+        <Card className="p-8 text-center text-xs text-slate-500 dark:text-zinc-400">
           Loading subjects for simulation...
         </Card>
       </div>
@@ -100,10 +100,10 @@ export function SimulatorPage() {
     return (
       <div className="flex max-w-3xl flex-col gap-6">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-300 mb-2">
+          <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-700 dark:text-purple-300 mb-2">
             <Wand2 size={12} className="text-purple-400" /> Grade Simulator
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">What-if Grade Simulator</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">What-if Grade Simulator</h1>
         </div>
         <Card className="p-10 text-center">
           <h2 className="text-lg font-bold mb-2">No Active Subjects Available</h2>
@@ -121,11 +121,11 @@ export function SimulatorPage() {
   return (
     <div className="flex max-w-3xl flex-col gap-8 pb-10">
       <div>
-        <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-300 mb-2">
+        <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-700 dark:text-purple-300 mb-2">
           <Wand2 size={12} className="text-purple-400" /> Grade Simulator
         </div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">What-if Grade Simulator</h1>
-        <p className="text-xs sm:text-sm text-zinc-400 mt-1">Adjust marks on upcoming exams to see immediate impact on overall course grade.</p>
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">What-if Grade Simulator</h1>
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1">Adjust marks on upcoming exams to see immediate impact on overall course grade.</p>
       </div>
 
       {/* Subject Filter Pills */}
@@ -140,7 +140,7 @@ export function SimulatorPage() {
               className={`rounded-full border px-4 py-2 text-xs font-semibold transition-all ${
                 active
                   ? "border-purple-500 bg-purple-500/20 text-purple-300 shadow-[0_0_15px_rgba(124,58,237,0.3)]"
-                  : "border-white/10 bg-zinc-900/80 text-zinc-400 hover:text-white hover:border-white/20"
+                  : "border-slate-200 bg-white/90 dark:border-white/10 dark:bg-zinc-900/80 text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:border-white/20"
               }`}
             >
               {s.name}
@@ -158,7 +158,7 @@ export function SimulatorPage() {
 
         <CardContent className="pt-2">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-zinc-300">Simulated Score</span>
+            <span className="text-xs font-medium text-slate-600 dark:text-zinc-300">Simulated Score</span>
             <span className="text-sm font-bold font-mono text-purple-400">
               {finalMarks} / {finalType.maxMarks} Marks
             </span>
@@ -175,13 +175,13 @@ export function SimulatorPage() {
 
           {/* Results Comparison Grid */}
           <div className="mt-6 grid grid-cols-2 gap-4 border-t border-white/10 pt-5">
-            <div className="rounded-xl border border-white/10 bg-zinc-950/60 p-4">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-slate-50 dark:bg-zinc-950/60 p-4">
               <p className="text-xs text-zinc-400 font-medium">Resulting Grade</p>
               <p className="text-3xl font-extrabold text-white mt-1">{pctToLetter(simulatedPct)}</p>
               <p className="font-tabular text-xs text-purple-400 font-semibold mt-1">{simulatedPct.toFixed(1)}% Overall</p>
             </div>
 
-            <div className="rounded-xl border border-white/10 bg-zinc-950/60 p-4">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-slate-50 dark:bg-zinc-950/60 p-4">
               <p className="text-xs text-zinc-400 font-medium">Change from Current</p>
               <p className={`text-3xl font-extrabold font-tabular mt-1 flex items-center gap-1 ${delta >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                 {delta >= 0 ? <TrendingUp size={24} /> : <TrendingDown size={24} />}
@@ -211,7 +211,7 @@ export function SimulatorPage() {
             {scenarios.map((s) => (
               <div
                 key={s.id}
-                className="flex items-center gap-2 rounded-xl border border-purple-500/30 bg-purple-500/10 px-3.5 py-2 text-xs font-semibold text-zinc-200"
+                className="flex items-center gap-2 rounded-xl border border-purple-300 bg-purple-50 dark:border-purple-500/30 dark:bg-purple-500/10 px-3.5 py-2 text-xs font-semibold text-zinc-200"
               >
                 <span>{s.label}</span>
                 <span className="font-mono text-purple-300 font-bold bg-purple-500/20 px-2 py-0.5 rounded-lg border border-purple-500/30">
