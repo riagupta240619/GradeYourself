@@ -723,7 +723,7 @@ function AcademicPlannerContent() {
                     {/* Subject Header */}
                     <div
                       onClick={() => toggleSubjectExpand(subjId)}
-                      className="p-5 bg-white/90 dark:bg-zinc-900/90 border-b border-slate-200 dark:border-white/10 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-100 dark:bg-zinc-800/80 transition-colors"
+                      className="p-5 bg-white/90 dark:bg-zinc-900/90 border-b border-slate-200 dark:border-white/10 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50 dark:hover:bg-zinc-800/80 dark:bg-zinc-800/80 transition-colors"
                     >
                       <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-500/20 text-purple-600 dark:text-purple-300 font-bold border border-purple-500/30">
