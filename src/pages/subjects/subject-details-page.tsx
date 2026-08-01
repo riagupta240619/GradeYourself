@@ -1,11 +1,28 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { ChevronLeft, Wand2, Check, Plus, Trash2, BookOpen, Award, Sparkles, Layers } from "lucide-react";
+import {
+  ChevronLeft,
+  Wand2,
+  Check,
+  Plus,
+  Trash2,
+  BookOpen,
+  Award,
+  Sparkles,
+  Layers,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AddSubjectModal } from "@/components/upload/add-subject-modal";
-import { subjectCurrentPct, predictSubject, pctToLetter, hasSubjectMarks, normalizeScheme, evaluateComponentScore } from "@/utils/grading-engine";
+import {
+  subjectCurrentPct,
+  predictSubject,
+  pctToLetter,
+  hasSubjectMarks,
+  normalizeScheme,
+  evaluateComponentScore,
+} from "@/utils/grading-engine";
 import { SubjectService } from "@/services/subject-service";
 import type { Subject } from "@/types";
 import { Link } from "react-router-dom";
@@ -66,7 +83,11 @@ export function SubjectDetailsPage() {
   // Selected subject object
   const subject = useMemo(() => {
     if (!selectedId) return subjects[0] || null;
-    return subjects.find((s) => s.id === selectedId || s._id === selectedId) || subjects[0] || null;
+    return (
+      subjects.find((s) => s.id === selectedId || s._id === selectedId) ||
+      subjects[0] ||
+      null
+    );
   }, [subjects, selectedId]);
 
   const [savedFlash, setSavedFlash] = useState<string | null>(null);
@@ -83,7 +104,9 @@ export function SubjectDetailsPage() {
     const currentVersion = ++latestSaveVersionRef.current;
     const timestamp = new Date().toISOString().slice(11, 23);
 
-    console.log(`[${timestamp}] [Mark Edit Init] Version: ${currentVersion}, Assessment: ${assessmentId}, Value: ${value}`);
+    console.log(
+      `[${timestamp}] [Mark Edit Init] Version: ${currentVersion}, Assessment: ${assessmentId}, Value: ${value}`,
+    );
 
     try {
       // Step 1: Immediate optimistic state update in React local state
@@ -92,19 +115,25 @@ export function SubjectDetailsPage() {
           const sId = s.id || s._id;
           if (sId !== targetId) return s;
           return { ...s, marks: newMarks };
-        })
+        }),
       );
 
       // Step 2: Persist to backend API
-      const updatedSubject = await SubjectService.updateSubject(targetId, { marks: newMarks });
+      const updatedSubject = await SubjectService.updateSubject(targetId, {
+        marks: newMarks,
+      });
 
       // Stale Response Guard: if a newer edit occurred while this HTTP call was in flight, reject this response!
       if (currentVersion < latestSaveVersionRef.current) {
-        console.log(`[${new Date().toISOString().slice(11, 23)}] [Stale Response Ignored] Version ${currentVersion} < ${latestSaveVersionRef.current}`);
+        console.log(
+          `[${new Date().toISOString().slice(11, 23)}] [Stale Response Ignored] Version ${currentVersion} < ${latestSaveVersionRef.current}`,
+        );
         return;
       }
 
-      console.log(`[${new Date().toISOString().slice(11, 23)}] [Mutation Success] Version: ${currentVersion}`);
+      console.log(
+        `[${new Date().toISOString().slice(11, 23)}] [Mutation Success] Version: ${currentVersion}`,
+      );
 
       // Step 3: Update local state with authoritative response
       setBackendSubjects((prev) =>
@@ -112,7 +141,7 @@ export function SubjectDetailsPage() {
           const sId = s.id || s._id;
           if (sId !== targetId) return s;
           return updatedSubject;
-        })
+        }),
       );
 
       // Step 4: UI feedback
@@ -124,15 +153,21 @@ export function SubjectDetailsPage() {
       // Step 5: Silent background sync (also version-guarded)
       const freshSubjects = await SubjectService.getSubjects();
       if (currentVersion === latestSaveVersionRef.current) {
-        console.log(`[${new Date().toISOString().slice(11, 23)}] [Silent Sync Applied] Version: ${currentVersion}`);
+        console.log(
+          `[${new Date().toISOString().slice(11, 23)}] [Silent Sync Applied] Version: ${currentVersion}`,
+        );
         setBackendSubjects(freshSubjects || []);
       } else {
-        console.log(`[${new Date().toISOString().slice(11, 23)}] [Silent Sync Ignored] Version ${currentVersion} < ${latestSaveVersionRef.current}`);
+        console.log(
+          `[${new Date().toISOString().slice(11, 23)}] [Silent Sync Ignored] Version ${currentVersion} < ${latestSaveVersionRef.current}`,
+        );
       }
     } catch (err) {
       if (currentVersion === latestSaveVersionRef.current) {
         console.error("Failed to update mark on backend:", err);
-        toast.error("Failed to save mark. Please try again.", { id: "marks-saved-toast" });
+        toast.error("Failed to save mark. Please try again.", {
+          id: "marks-saved-toast",
+        });
       }
     }
   }
@@ -158,10 +193,15 @@ export function SubjectDetailsPage() {
   if (loading && subjects.length === 0) {
     return (
       <div className="flex max-w-4xl flex-col gap-6">
-        <Link to="/app/dashboard" className="flex w-fit items-center gap-1.5 text-xs text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-slate-900 dark:text-white transition-colors">
+        <Link
+          to="/app/dashboard"
+          className="flex w-fit items-center gap-1.5 text-xs text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-slate-900 dark:text-white transition-colors"
+        >
           <ChevronLeft size={16} /> Back to Dashboard
         </Link>
-        <Card className="p-8 text-center text-xs text-slate-500 dark:text-zinc-400">Loading course details...</Card>
+        <Card className="p-8 text-center text-xs text-slate-500 dark:text-zinc-400">
+          Loading course details...
+        </Card>
       </div>
     );
   }
@@ -169,13 +209,23 @@ export function SubjectDetailsPage() {
   if (!subject) {
     return (
       <div className="flex max-w-4xl flex-col gap-6">
-        <Link to="/app/dashboard" className="flex w-fit items-center gap-1.5 text-xs text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-slate-900 dark:text-white transition-colors">
+        <Link
+          to="/app/dashboard"
+          className="flex w-fit items-center gap-1.5 text-xs text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-slate-900 dark:text-white transition-colors"
+        >
           <ChevronLeft size={16} /> Back to Dashboard
         </Link>
         <Card className="p-10 text-center">
           <h2 className="text-xl font-bold mb-2">No Active Courses Found</h2>
-          <p className="text-xs text-zinc-400 mb-5">Add your subjects to start tracking course performance.</p>
-          <Button variant="primary" size="sm" onClick={() => setAddSubjectModalOpen(true)} className="mx-auto flex items-center gap-1.5">
+          <p className="text-xs text-zinc-400 mb-5">
+            Add your subjects to start tracking course performance.
+          </p>
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => setAddSubjectModalOpen(true)}
+            className="mx-auto flex items-center gap-1.5"
+          >
             <Plus size={15} /> Add New Subject
           </Button>
         </Card>
@@ -202,10 +252,18 @@ export function SubjectDetailsPage() {
     <div className="flex max-w-4xl flex-col gap-8 pb-10">
       {/* Top Header Actions */}
       <div className="flex items-center justify-between">
-        <Link to="/app/dashboard" className="flex w-fit items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-slate-900 dark:text-white transition-colors">
+        <Link
+          to="/app/dashboard"
+          className="flex w-fit items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-slate-900 dark:text-white transition-colors"
+        >
           <ChevronLeft size={16} /> Back to Dashboard
         </Link>
-        <Button variant="outline" size="sm" onClick={() => setAddSubjectModalOpen(true)} className="gap-1.5">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setAddSubjectModalOpen(true)}
+          className="gap-1.5"
+        >
           <Plus size={14} /> Add Subject
         </Button>
       </div>
@@ -219,12 +277,16 @@ export function SubjectDetailsPage() {
             <button
               key={sId}
               onClick={() => setSelectedId(sId)}
-              className={`flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold transition-all ${active
+              className={`flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold transition-all ${
+                active
                   ? "border-purple-500 bg-purple-500/20 text-purple-300 shadow-[0_0_15px_rgba(124,58,237,0.3)]"
                   : "border-slate-200 bg-white/90 dark:border-white/10 dark:bg-zinc-900/80 text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:border-white/20"
-                }`}
+              }`}
             >
-              <span className="h-2.5 w-2.5 rounded-full shadow-sm" style={{ backgroundColor: s.colorTag || "#3b82f6" }} />
+              <span
+                className="h-2.5 w-2.5 rounded-full shadow-sm"
+                style={{ backgroundColor: s.colorTag || "#3b82f6" }}
+              />
               {s.name}
             </button>
           );
@@ -239,7 +301,10 @@ export function SubjectDetailsPage() {
             <div className="flex-1 min-w-0 flex flex-col gap-3">
               {/* Row 1: Color Tag, Truncated Subject Name, Credits Badge, Status Badge */}
               <div className="flex flex-wrap items-center gap-3">
-                <span className="h-4 w-4 shrink-0 rounded-full shadow-sm" style={{ backgroundColor: subject.colorTag || "#3b82f6" }} />
+                <span
+                  className="h-4 w-4 shrink-0 rounded-full shadow-sm"
+                  style={{ backgroundColor: subject.colorTag || "#3b82f6" }}
+                />
                 <h1
                   className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white truncate max-w-full"
                   title={subject.name}
@@ -248,9 +313,13 @@ export function SubjectDetailsPage() {
                 </h1>
                 <div className="flex items-center gap-2 shrink-0">
                   <Badge tone="accent" className="font-mono text-xs">
-                    {subject.credits} {subject.credits === 1 ? "Credit" : "Credits"}
+                    {subject.credits}{" "}
+                    {subject.credits === 1 ? "Credit" : "Credits"}
                   </Badge>
-                  <Badge tone={hasMarks ? "success" : "warning"} className="text-xs">
+                  <Badge
+                    tone={hasMarks ? "success" : "warning"}
+                    className="text-xs"
+                  >
                     {hasMarks ? "Status: Completed" : "Status: In Progress"}
                   </Badge>
                 </div>
@@ -262,10 +331,15 @@ export function SubjectDetailsPage() {
                   <span>Current Score:</span>
                   {hasMarks ? (
                     <span className="font-mono font-bold text-slate-900 dark:text-slate-900 dark:text-white text-sm">
-                      {pct.toFixed(1)}% <span className="text-xs font-semibold text-purple-600 dark:text-purple-300">({pctToLetter(pct)})</span>
+                      {pct.toFixed(1)}%{" "}
+                      <span className="text-xs font-semibold text-purple-600 dark:text-purple-300">
+                        ({pctToLetter(pct)})
+                      </span>
                     </span>
                   ) : (
-                    <span className="font-semibold text-zinc-400">Unavailable</span>
+                    <span className="font-semibold text-zinc-400">
+                      Unavailable
+                    </span>
                   )}
                 </div>
 
@@ -274,9 +348,13 @@ export function SubjectDetailsPage() {
                 <div className="flex items-center gap-1.5 text-zinc-400">
                   <span>Prediction:</span>
                   {hasMarks ? (
-                    <span className="font-mono font-semibold text-purple-400">{prediction.low}–{prediction.high}%</span>
+                    <span className="font-mono font-semibold text-purple-400">
+                      {prediction.low}–{prediction.high}%
+                    </span>
                   ) : (
-                    <span className="font-semibold text-purple-400/80">Unavailable</span>
+                    <span className="font-semibold text-purple-400/80">
+                      Unavailable
+                    </span>
                   )}
                 </div>
               </div>
@@ -298,7 +376,12 @@ export function SubjectDetailsPage() {
                   <Wand2 size={15} /> Open Simulator
                 </Button>
               </Link>
-              <Button variant="danger" size="sm" onClick={handleDeleteSubject} className="gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDeleteSubject}
+                className="gap-1.5 border-purple-500/30 text-purple-600 dark:text-purple-300 hover:border-purple-500 hover:text-purple-700"
+              >
                 <Trash2 size={15} /> Delete Course
               </Button>
             </div>
@@ -311,27 +394,42 @@ export function SubjectDetailsPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <BookOpen size={18} className="text-purple-400" />
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Hierarchical Assessment Breakdown</h2>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+              Hierarchical Assessment Breakdown
+            </h2>
           </div>
-          <span className="text-xs text-slate-400 dark:text-zinc-500 font-semibold">Live Weightage Math</span>
+          <span className="text-xs text-slate-400 dark:text-zinc-500 font-semibold">
+            Live Weightage Math
+          </span>
         </div>
 
         {normScheme.components.map((comp) => {
           const evalRes = evaluateComponentScore(comp, subject.marks || {});
-          const ruleLabel = comp.rule ? comp.rule.toUpperCase().replace("_", " ") : "AVERAGE";
+          const ruleLabel = comp.rule
+            ? comp.rule.toUpperCase().replace("_", " ")
+            : "AVERAGE";
 
           return (
-            <Card key={comp.id} className="border border-slate-200 bg-white/90 dark:border-white/10 dark:bg-zinc-900/90 overflow-hidden shadow-lg">
+            <Card
+              key={comp.id}
+              className="border border-slate-200 bg-white/90 dark:border-white/10 dark:bg-zinc-900/90 overflow-hidden shadow-lg"
+            >
               {/* Component Header */}
               <CardHeader className="bg-white dark:bg-zinc-950/70 border-b border-slate-200 dark:border-white/5 py-3 px-5 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <Layers size={16} className="text-purple-400" />
-                  <span className="font-bold text-slate-900 dark:text-slate-900 dark:text-white text-sm">{comp.name}</span>
-                  <Badge tone="accent" className="text-[10px] uppercase font-mono tracking-wider">
+                  <span className="font-bold text-slate-900 dark:text-slate-900 dark:text-white text-sm">
+                    {comp.name}
+                  </span>
+                  <Badge
+                    tone="accent"
+                    className="text-[10px] uppercase font-mono tracking-wider"
+                  >
                     Weight: {comp.weightPct}%
                   </Badge>
                   <span className="text-[11px] font-mono text-purple-600 dark:text-purple-300 font-semibold bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded-md">
-                    Rule: {ruleLabel} {comp.rule === "best_n" ? `(${comp.bestN || 1})` : ""}
+                    Rule: {ruleLabel}{" "}
+                    {comp.rule === "best_n" ? `(${comp.bestN || 1})` : ""}
                   </span>
                 </div>
 
@@ -339,14 +437,17 @@ export function SubjectDetailsPage() {
                   <span className="text-zinc-400">
                     Component Score:{" "}
                     {evalRes.hasEntered ? (
-                      <span className="font-bold text-slate-900 dark:text-white">{evalRes.compPct}%</span>
+                      <span className="font-bold text-slate-900 dark:text-white">
+                        {evalRes.compPct}%
+                      </span>
                     ) : (
                       <span className="text-zinc-500">—</span>
                     )}
                   </span>
                   <span className="text-zinc-600">|</span>
                   <span className="text-emerald-400 font-bold">
-                    Contribution: {evalRes.hasEntered ? `${evalRes.contribution}%` : "—"}
+                    Contribution:{" "}
+                    {evalRes.hasEntered ? `${evalRes.contribution}%` : "—"}
                   </span>
                 </div>
               </CardHeader>
@@ -364,12 +465,23 @@ export function SubjectDetailsPage() {
                   <tbody className="divide-y divide-slate-200 dark:divide-white/5">
                     {comp.assessments.map((ast) => {
                       const raw = subject.marks ? subject.marks[ast.id] : null;
-                      const hasVal = raw !== null && raw !== undefined && (raw as any) !== "" && !isNaN(Number(raw));
-                      const astPct = hasVal ? (((Number(raw) / ast.maxMarks) * 100).toFixed(1)) : "—";
+                      const hasVal =
+                        raw !== null &&
+                        raw !== undefined &&
+                        (raw as any) !== "" &&
+                        !isNaN(Number(raw));
+                      const astPct = hasVal
+                        ? ((Number(raw) / ast.maxMarks) * 100).toFixed(1)
+                        : "—";
 
                       return (
-                        <tr key={ast.id} className="hover:bg-purple-50/50 dark:hover:bg-purple-500/10 transition-colors">
-                          <td className="px-6 py-3.5 font-bold text-slate-900 dark:text-white text-sm">{ast.name}</td>
+                        <tr
+                          key={ast.id}
+                          className="hover:bg-purple-50/50 dark:hover:bg-purple-500/10 transition-colors"
+                        >
+                          <td className="px-6 py-3.5 font-bold text-slate-900 dark:text-white text-sm">
+                            {ast.name}
+                          </td>
                           <td className="px-6 py-3.5">
                             <div className="flex items-center gap-2.5">
                               <input
@@ -378,10 +490,19 @@ export function SubjectDetailsPage() {
                                 placeholder="—"
                                 value={raw ?? ""}
                                 max={ast.maxMarks}
-                                onChange={(e) => handleMarkChange(ast.id, e.target.value)}
+                                onChange={(e) =>
+                                  handleMarkChange(ast.id, e.target.value)
+                                }
                               />
-                              <span className="text-slate-500 dark:text-zinc-400 font-mono font-semibold">/ {ast.maxMarks} Marks</span>
-                              {savedFlash === ast.id && <Check size={18} className="text-emerald-600 dark:text-emerald-400 animate-pulse" />}
+                              <span className="text-slate-500 dark:text-zinc-400 font-mono font-semibold">
+                                / {ast.maxMarks} Marks
+                              </span>
+                              {savedFlash === ast.id && (
+                                <Check
+                                  size={18}
+                                  className="text-emerald-600 dark:text-emerald-400 animate-pulse"
+                                />
+                              )}
                             </div>
                           </td>
                           <td className="px-6 py-3.5 font-mono font-extrabold text-purple-700 dark:text-purple-300 text-sm">

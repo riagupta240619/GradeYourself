@@ -1,4 +1,4 @@
-import { useState, useRef, type ChangeEvent } from "react";
+import { useState, useRef, useEffect, type ChangeEvent } from "react";
 import {
   Upload, X, FileText, Download, Plus, Trash2, CheckCircle2, AlertCircle,
   Loader2, Sparkles, Eye, ShieldCheck, Cpu, RefreshCw, Layers, Edit3, AlertTriangle, Info, Check
@@ -17,9 +17,10 @@ interface UploadResultsModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  manualMode?: boolean;
 }
 
-export function UploadResultsModal({ isOpen, onClose, onSuccess }: UploadResultsModalProps) {
+export function UploadResultsModal({ isOpen, onClose, onSuccess, manualMode = false }: UploadResultsModalProps) {
   const [dragOver, setDragOver] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
   const [preprocessedUrl, setPreprocessedUrl] = useState<string | null>(null);
@@ -39,8 +40,36 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess }: UploadResults
 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [semesterScoreDrafts, setSemesterScoreDrafts] = useState<Record<string, string>>({});
+  const MAX_TRANSCRIPT_BYTES = 15 * 1024 * 1024;
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!isOpen || !manualMode) return;
+    setPipelineStep("review");
+    setValidatedDoc({
+      university: "",
+      institution: "",
+      program: "",
+      department: "",
+      overallConfidence: 100,
+      totalIssuesCount: 0,
+      allIssues: [],
+      semesters: [{
+        semester: 1,
+        semesterName: "Semester 1",
+        sgpa: null,
+        cgpa: null,
+        credits: 0,
+        calculatedCredits: 0,
+        subjects: [],
+        isValid: true,
+        isMismatch: false,
+        issues: [],
+      }],
+    });
+  }, [isOpen, manualMode]);
 
   if (!isOpen) return null;
 
@@ -62,7 +91,21 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess }: UploadResults
    * Executes the 7-Step Academic Document Understanding Pipeline:
    * Upload -> Preprocess -> OCR -> LLM Understanding -> Semantic Parsing -> Validation -> User Review Studio
    */
+  function validateTranscriptFile(file: File): string | null {
+    const allowedTypes = new Set(["image/png", "image/jpeg", "image/webp", "application/pdf"]);
+    const hasAllowedExtension = /\.(png|jpe?g|webp|pdf)$/i.test(file.name);
+    if (file.size === 0) return "The selected file is empty. Choose a transcript image or PDF.";
+    if (!allowedTypes.has(file.type) && !hasAllowedExtension) return "Unsupported format. Upload a PNG, JPG, JPEG, WEBP, or PDF transcript.";
+    if (file.size > MAX_TRANSCRIPT_BYTES) return "This file is larger than 15 MB. Upload a smaller or compressed transcript.";
+    return null;
+  }
+
   async function executeParsingPipeline(file: File) {
+    const validationError = validateTranscriptFile(file);
+    if (validationError) {
+      setErrorMsg(validationError);
+      return;
+    }
     setErrorMsg(null);
     setSuccessMsg(null);
     setFileName(file.name);
@@ -139,6 +182,22 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess }: UploadResults
     revalidateDoc(updated);
   }
 
+  function getScoreDraft(sIdx: number, field: "sgpa" | "cgpa", value: number | null) {
+    const key = `${sIdx}-${field}`;
+    return semesterScoreDrafts[key] ?? (value === null || value === undefined ? "" : String(value));
+  }
+
+  function commitScoreDraft(sIdx: number, field: "sgpa" | "cgpa") {
+    const key = `${sIdx}-${field}`;
+    const value = semesterScoreDrafts[key];
+    if (value === undefined) return;
+    setSemesterScoreDrafts((drafts) => {
+      const next = { ...drafts };
+      delete next[key];
+      return next;
+    });
+    updateSemesterField(sIdx, field, value);
+  }
   function updateSemesterField(sIdx: number, field: "semesterName" | "sgpa" | "cgpa", val: any) {
     if (!validatedDoc) return;
     const sems = [...validatedDoc.semesters];
@@ -361,7 +420,7 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess }: UploadResults
                   type="file"
                   ref={fileInputRef}
                   onChange={handleFileInputChange}
-                  accept=".pdf,image/*"
+                  accept=".png,.jpg,.jpeg,.webp,.pdf,image/png,image/jpeg,image/webp,application/pdf"
                   className="hidden"
                 />
 
@@ -373,7 +432,7 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess }: UploadResults
                   Upload University Mark Sheet / Transcript
                 </h3>
                 <p className="text-xs text-slate-400 max-w-md mx-auto mb-4">
-                  Supports PDFs, PNG, JPG, mobile photographs, screenshots & cropped documents. Works for Chitkara, VTU, Anna Univ, IPU, AKTU, Mumbai Univ, SRM, VIT, NITs, IITs & international universities.
+                  Supports PNG, JPG, JPEG, WEBP, and PDF transcripts up to 15 MB. Mobile photos, screenshots, and cropped documents are supported. Works for Chitkara, VTU, Anna Univ, IPU, AKTU, Mumbai Univ, SRM, VIT, NITs, IITs & international universities.
                 </p>
 
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-slate-900 dark:text-white text-xs font-medium transition shadow-lg shadow-indigo-600/20">

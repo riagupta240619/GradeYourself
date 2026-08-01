@@ -29,7 +29,7 @@ const DEFAULT_SCHEME: GradingScheme = {
   ],
 };
 
-const COLOR_PALETTE = ["#6366f1", "#22c55e", "#f59e0b", "#ec4899", "#06b6d4", "#8b5cf6", "#14b8a6"];
+const COLOR_PALETTE = ["#6366f1", "#22c55e", "#f59e0b", "#8b5cf6", "#06b6d4", "#8b5cf6", "#14b8a6"];
 
 /**
  * Parses raw text or CSV content for past semester results.

@@ -414,6 +414,19 @@ const bulkSaveTranscript = async (req, res, next) => {
       savedSemesters.push(formatted);
     }
 
+    // CGPA belongs to the user profile rather than an individual semester.
+    // Preserve the last valid CGPA value the user confirmed in the editable preview.
+    const latestCgpa = [...semesters]
+      .sort((a, b) => Number(b.semester || 0) - Number(a.semester || 0))
+      .map((semester) => Number(semester.cgpa))
+      .find((value) => Number.isFinite(value) && value >= 0 && value <= 10);
+
+    if (latestCgpa !== undefined) user.currentCgpa = latestCgpa;
+    if (typeof university === "string" && university.trim()) user.college = university.trim().slice(0, 150);
+    if (typeof program === "string" && program.trim()) user.course = program.trim().slice(0, 150);
+    if (latestCgpa !== undefined || (typeof university === "string" && university.trim()) || (typeof program === "string" && program.trim())) {
+      await user.save();
+    }
     res.status(200).json({
       message: `Successfully saved ${savedSemesters.length} semester records to database.`,
       savedSemesters,

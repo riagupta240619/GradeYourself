@@ -3,7 +3,8 @@
 @variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: "Inter", "Geist", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-sans:
+    "Inter", "Geist", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
   --color-accent: #7c3aed;
@@ -17,13 +18,25 @@
   --animate-scale-in: scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 
   @keyframes fade-up {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   @keyframes scale-in {
-    from { opacity: 0; transform: scale(0.97); }
-    to { opacity: 1; transform: scale(1); }
+    from {
+      opacity: 0;
+      transform: scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
 }
 
@@ -31,31 +44,63 @@
 :root {
   --bg-base: #f8fafc;
   --bg-surface: #ffffff;
-  --bg-elevated: #f1f5f9;
-  --border-hairline: #e2e8f0;
+  --bg-surface-elevated: #f1f5f9;
+  --bg-surface-strong: #e2e8f0;
+  --border: #e2e8f0;
+  --border-strong: rgba(226, 232, 240, 0.65);
   --text-primary: #0f172a;
   --text-secondary: #475569;
   --text-tertiary: #64748b;
-  --color-accent: #7c3aed;
+  --text-muted: #94a3b8;
+  --accent-purple: #8b5cf6;
+  --accent-purple-soft: rgba(139, 92, 246, 0.14);
+  --accent-purple-strong: #7c3aed;
+  --accent-purple-glow: rgba(139, 92, 246, 0.24);
+  --shadow-soft: 0 12px 40px -22px rgba(15, 23, 42, 0.18);
+  --shadow-card: 0 12px 30px -18px rgba(15, 23, 42, 0.15);
+  --shadow-elevated: 0 18px 50px -30px rgba(15, 23, 42, 0.18);
+  --focus-ring: rgba(236, 72, 153, 0.35);
+  --gradient-purple: linear-gradient(
+    135deg,
+    rgba(139, 92, 246, 0.18) 0%,
+    rgba(139, 92, 246, 0) 80%
+  );
 }
 
-/* ── Dark Mode Tokens (Preserved) ───────────────────────────────────────── */
+/* ── Dark Mode Tokens ─────────────────────────────────────────────────────── */
 .dark {
-  --bg-base: #09090b;
-  --bg-surface: #18181b;
-  --bg-elevated: #27272a;
-  --border-hairline: rgba(255, 255, 255, 0.08);
-  --text-primary: #ffffff;
+  --bg-base: #050506;
+  --bg-surface: #09090c;
+  --bg-surface-elevated: #111115;
+  --bg-surface-strong: #141418;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.12);
+  --text-primary: #f8fafc;
   --text-secondary: #a1a1aa;
-  --text-tertiary: #71717a;
-  --color-accent: #7c3aed;
+  --text-tertiary: #6b7280;
+  --text-muted: #8b8ca0;
+  --accent-purple: #8b5cf6;
+  --accent-purple-soft: rgba(139, 92, 246, 0.16);
+  --accent-purple-strong: #7c3aed;
+  --accent-purple-glow: rgba(139, 92, 246, 0.28);
+  --shadow-soft: 0 18px 50px -38px rgba(0, 0, 0, 0.72);
+  --shadow-card: 0 30px 75px -42px rgba(0, 0, 0, 0.75);
+  --shadow-elevated: 0 25px 80px -40px rgba(0, 0, 0, 0.82);
+  --focus-ring: rgba(236, 72, 153, 0.45);
+  --gradient-purple: linear-gradient(
+    135deg,
+    rgba(139, 92, 246, 0.18) 0%,
+    rgba(139, 92, 246, 0) 80%
+  );
 }
 
 * {
-  border-color: var(--border-hairline);
+  border-color: var(--border);
 }
 
-html, body, #root {
+html,
+body,
+#root {
   height: 100%;
 }
 
@@ -65,64 +110,68 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
   overflow-x: hidden;
 }
 
 /* SaaS Card Utilities */
-.glass-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+.surface-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
 }
 
-.dark .glass-card {
-  background: rgba(24, 24, 27, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+.surface-panel {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-soft);
 }
 
-.glass-panel {
-  background: #ffffff;
-  border-bottom: 1px solid #e2e8f0;
+.surface-elevated {
+  background: var(--bg-surface-strong);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-soft);
 }
 
-.dark .glass-panel {
-  background: rgba(9, 9, 11, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+.bg-accent-soft {
+  background: var(--accent-purple-soft);
 }
 
 .glow-purple {
-  box-shadow: 0 2px 10px -2px rgba(124, 58, 237, 0.08), 0 1px 3px 0 rgba(0, 0, 0, 0.04);
-}
-
-.dark .glow-purple {
-  box-shadow: 0 0 30px -5px rgba(124, 58, 237, 0.25);
+  box-shadow: 0 0 30px -12px var(--accent-purple-glow);
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(139, 92, 246, 0.98) 0%,
+    rgba(139, 92, 246, 0.45) 55%,
+    rgba(255, 255, 255, 0.18) 100%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .dark .gradient-text {
-  background: linear-gradient(135deg, #ffffff 0%, #a1a1aa 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(139, 92, 246, 0.95) 0%,
+    rgba(139, 92, 246, 0.35) 60%,
+    rgba(255, 255, 255, 0.12) 100%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .gradient-purple-text {
-  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.dark .gradient-purple-text {
-  background: linear-gradient(135deg, #c084fc 0%, #7c3aed 50%, #3b82f6 100%);
+  background: linear-gradient(
+    135deg,
+    #a855f7 0%,
+    #8b5cf6 55%,
+    #60a5fa 100%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -174,7 +223,9 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }

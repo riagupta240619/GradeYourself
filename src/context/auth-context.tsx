@@ -20,12 +20,28 @@ export interface AuthContextValue {
   updateSetup: (payload: SetupPayload) => Promise<AuthUser>;
   updateProfile: (payload: UpdateProfilePayload) => Promise<AuthUser>;
   changePassword: (payload: ChangePasswordPayload) => Promise<{ message: string }>;
-  deleteAccount: (password: string) => Promise<{ message: string }>;
+  deleteAccount: () => Promise<{ message: string }>;
   logout: () => Promise<void>;
   clearError: () => void;
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
+
+function clearClientAuthData() {
+  const clearMatchingKeys = (storage: Storage) => {
+    for (let index = storage.length - 1; index >= 0; index -= 1) {
+      const key = storage.key(index);
+      if (key && /(?:auth|token|session|academic)/i.test(key)) storage.removeItem(key);
+    }
+  };
+
+  try {
+    clearMatchingKeys(localStorage);
+    clearMatchingKeys(sessionStorage);
+  } catch {
+    // Storage can be unavailable in restricted browser contexts.
+  }
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -131,15 +147,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const deleteAccount = async (password: string) => {
+  const deleteAccount = async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await AuthService.deleteAccount(password);
+      const res = await AuthService.deleteAccount();
       useAcademicStore.getState().clearState();
+      clearClientAuthData();
       setUser(null);
       return res;
     } catch (err: any) {
+      if (err.response?.status === 401) {
+        useAcademicStore.getState().clearState();
+        clearClientAuthData();
+        setUser(null);
+      }
       const msg = err.response?.data?.message || "Failed to delete account";
       setError(msg);
       throw err;

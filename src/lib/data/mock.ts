@@ -31,7 +31,7 @@ export const currentSemesterSubjects: Subject[] = [
   subject("Data Structures", "#6366f1", { a1: 18, a2: 41, a3: null }),
   subject("Operating Systems", "#22c55e", { a1: 19, a2: 45, a3: null }),
   subject("Computer Networks", "#f59e0b", { a1: 14, a2: 32, a3: null }),
-  subject("Database Systems", "#ec4899", { a1: 20, a2: 47, a3: null }),
+  subject("Database Systems", "#8b5cf6", { a1: 20, a2: 47, a3: null }),
   subject("Cyber Security", "#06b6d4", { a1: 17, a2: 38, a3: null }),
 ];
 

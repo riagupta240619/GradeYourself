@@ -389,4 +389,5 @@ module.exports = {
   evaluateComponentScore,
   pctToGrade10Scale,
   pctToGrade4Scale,
+  gradeToDetails,
 };

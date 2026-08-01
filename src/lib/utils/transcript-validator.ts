@@ -41,10 +41,21 @@ export function validateTranscriptDocument(
   let totalChecksPassed = 0;
   let totalChecksCount = 0;
 
+  const seenSemesterNumbers = new Set<number>();
+  const seenSemesterNames = new Set<string>();
+
   const validatedSemesters: ValidatedSemester[] = doc.semesters.map((sem, sIdx) => {
     const semIssues: ValidationIssue[] = [];
     let calculatedCredits = 0;
     const seenCodes = new Set<string>();
+    const semesterNameKey = (sem.semesterName || "").trim().toLowerCase();
+    if (!Number.isInteger(sem.semester) || sem.semester < 1 || sem.semester > 20) {
+      semIssues.push({ id: `sem-${sIdx}-invalid-number`, type: "error", semesterIndex: sIdx, field: "semester", message: `Semester number '${sem.semester}' is invalid.` });
+    } else if (seenSemesterNumbers.has(sem.semester) || (semesterNameKey && seenSemesterNames.has(semesterNameKey))) {
+      semIssues.push({ id: `sem-${sIdx}-duplicate-semester`, type: "error", semesterIndex: sIdx, field: "semester", message: `${sem.semesterName} appears more than once in this import.` });
+    }
+    seenSemesterNumbers.add(sem.semester);
+    if (semesterNameKey) seenSemesterNames.add(semesterNameKey);
 
     // 1. Validate SGPA
     totalChecksCount++;

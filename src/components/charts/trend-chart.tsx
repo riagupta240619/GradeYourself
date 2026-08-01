@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+} from "recharts";
 import { useTheme } from "@/hooks/use-theme";
 
 export interface TrendChartPoint {
@@ -23,10 +31,14 @@ const CustomTooltip = ({ active, payload }: any) => {
     const isProj = point.isProjected;
 
     return (
-      <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-zinc-900 p-4 text-xs shadow-xl backdrop-blur-md min-w-[200px] flex flex-col gap-2">
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-4 text-xs shadow-xl backdrop-blur-md min-w-[200px] flex flex-col gap-2">
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/10 pb-2">
-          <p className="font-bold text-slate-900 dark:text-white text-xs">{point.label}</p>
-          <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${isProj ? "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300" : "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300"}`}>
+          <p className="font-bold text-slate-900 dark:text-white text-xs">
+            {point.label}
+          </p>
+          <span
+            className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${isProj ? "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300" : "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300"}`}
+          >
             {isProj ? "Projected" : "Completed"}
           </span>
         </div>
@@ -36,25 +48,33 @@ const CustomTooltip = ({ active, payload }: any) => {
             <div className="flex items-center justify-between gap-3 text-blue-700 dark:text-blue-300">
               <span className="font-sans font-semibold">Projected SGPA:</span>
               <span className="font-bold text-slate-900 dark:text-white text-sm">
-                {point.projectedSgpa !== null && point.projectedSgpa !== undefined ? Number(point.projectedSgpa).toFixed(2) : "—"}
+                {point.projectedSgpa !== null &&
+                point.projectedSgpa !== undefined
+                  ? Number(point.projectedSgpa).toFixed(2)
+                  : "—"}
               </span>
             </div>
 
             <div className="flex items-center justify-between gap-3 text-purple-700 dark:text-purple-300">
               <span className="font-sans font-semibold">Projected CGPA:</span>
               <span className="font-bold text-slate-900 dark:text-white text-sm">
-                {point.projectedCgpa !== null && point.projectedCgpa !== undefined ? Number(point.projectedCgpa).toFixed(2) : "—"}
+                {point.projectedCgpa !== null &&
+                point.projectedCgpa !== undefined
+                  ? Number(point.projectedCgpa).toFixed(2)
+                  : "—"}
               </span>
             </div>
 
             {typeof point.confidencePct === "number" && (
-              <div className="flex items-center justify-between gap-3 text-slate-500 dark:text-zinc-400 text-[11px] pt-1">
+              <div className="flex items-center justify-between gap-3 text-[var(--text-secondary)] text-[11px] pt-1">
                 <span className="font-sans">Confidence:</span>
-                <span className="font-bold text-emerald-600 dark:text-emerald-400">{point.confidencePct}%</span>
+                <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                  {point.confidencePct}%
+                </span>
               </div>
             )}
 
-            <p className="text-[10px] text-slate-500 dark:text-zinc-400 italic pt-1.5 border-t border-slate-100 dark:border-white/10 font-sans">
+            <p className="text-[10px] text-[var(--text-secondary)] italic pt-1.5 border-t border-[var(--border-strong)] font-sans">
               {point.note || "Based on entered assessments"}
             </p>
           </div>
@@ -63,21 +83,27 @@ const CustomTooltip = ({ active, payload }: any) => {
             <div className="flex items-center justify-between gap-3 text-blue-700 dark:text-blue-400">
               <span className="font-sans font-semibold">Official SGPA:</span>
               <span className="font-bold text-slate-900 dark:text-white text-sm">
-                {point.officialSgpa !== null && point.officialSgpa !== undefined ? Number(point.officialSgpa).toFixed(2) : "—"}
+                {point.officialSgpa !== null && point.officialSgpa !== undefined
+                  ? Number(point.officialSgpa).toFixed(2)
+                  : "—"}
               </span>
             </div>
 
             <div className="flex items-center justify-between gap-3 text-purple-700 dark:text-purple-400">
               <span className="font-sans font-semibold">Official CGPA:</span>
               <span className="font-bold text-slate-900 dark:text-white text-sm">
-                {point.officialCgpa !== null && point.officialCgpa !== undefined ? Number(point.officialCgpa).toFixed(2) : "—"}
+                {point.officialCgpa !== null && point.officialCgpa !== undefined
+                  ? Number(point.officialCgpa).toFixed(2)
+                  : "—"}
               </span>
             </div>
 
             {typeof point.credits === "number" && (
-              <div className="flex items-center justify-between gap-3 text-slate-500 dark:text-zinc-400 text-[11px] pt-1 font-sans">
+              <div className="flex items-center justify-between gap-3 text-[var(--text-secondary)] text-[11px] pt-1 font-sans">
                 <span>Credits:</span>
-                <span className="font-mono text-slate-900 dark:text-white font-bold">{point.credits}</span>
+                <span className="font-mono text-slate-900 dark:text-white font-bold">
+                  {point.credits}
+                </span>
               </div>
             )}
           </div>
@@ -88,7 +114,13 @@ const CustomTooltip = ({ active, payload }: any) => {
   return null;
 };
 
-export function TrendChart({ data, mode = "official" }: { data: TrendChartPoint[]; mode?: "official" | "predicted" }) {
+export function TrendChart({
+  data,
+  mode = "official",
+}: {
+  data: TrendChartPoint[];
+  mode?: "official" | "predicted";
+}) {
   const { theme } = useTheme();
   const [visibleSeries, setVisibleSeries] = useState({
     officialCgpa: true,
@@ -102,7 +134,10 @@ export function TrendChart({ data, mode = "official" }: { data: TrendChartPoint[
   };
 
   const safeData = Array.isArray(data) ? data : [];
-  const chartData = mode === "official" ? safeData.filter((d) => d && !d.isProjected) : safeData;
+  const chartData =
+    mode === "official"
+      ? safeData.filter((d) => d && !d.isProjected)
+      : safeData;
   const showPredictions = mode === "predicted";
   const gridStroke = theme === "dark" ? "rgba(255,255,255,0.08)" : "#e2e8f0";
 
@@ -158,8 +193,15 @@ export function TrendChart({ data, mode = "official" }: { data: TrendChartPoint[
       {/* Taller Graph Area (h-72 / 280px) */}
       <div className="h-72 w-full min-h-[280px]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartData} margin={{ top: 15, right: 25, left: -10, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
+          <LineChart
+            data={chartData}
+            margin={{ top: 15, right: 25, left: -10, bottom: 5 }}
+          >
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke={gridStroke}
+              vertical={false}
+            />
 
             <XAxis
               dataKey="label"
@@ -192,8 +234,18 @@ export function TrendChart({ data, mode = "official" }: { data: TrendChartPoint[
                 name="Official CGPA"
                 stroke="#7c3aed"
                 strokeWidth={3}
-                dot={{ r: 5, fill: "#7c3aed", strokeWidth: 2, stroke: "#ffffff" }}
-                activeDot={{ r: 7, fill: "#6d28d9", stroke: "#ffffff", strokeWidth: 2 }}
+                dot={{
+                  r: 5,
+                  fill: "#7c3aed",
+                  strokeWidth: 2,
+                  stroke: "#ffffff",
+                }}
+                activeDot={{
+                  r: 7,
+                  fill: "#6d28d9",
+                  stroke: "#ffffff",
+                  strokeWidth: 2,
+                }}
                 connectNulls
               />
             )}
@@ -207,7 +259,12 @@ export function TrendChart({ data, mode = "official" }: { data: TrendChartPoint[
                 stroke="#c084fc"
                 strokeWidth={3}
                 strokeDasharray="6 6"
-                dot={{ r: 5, fill: "#c084fc", strokeWidth: 2, stroke: "#ffffff" }}
+                dot={{
+                  r: 5,
+                  fill: "#c084fc",
+                  strokeWidth: 2,
+                  stroke: "#ffffff",
+                }}
                 activeDot={{ r: 7, fill: "#a855f7" }}
                 connectNulls
               />
@@ -221,8 +278,18 @@ export function TrendChart({ data, mode = "official" }: { data: TrendChartPoint[
                 name="Official SGPA"
                 stroke="#2563eb"
                 strokeWidth={3}
-                dot={{ r: 5, fill: "#2563eb", strokeWidth: 2, stroke: "#ffffff" }}
-                activeDot={{ r: 7, fill: "#1d4ed8", stroke: "#ffffff", strokeWidth: 2 }}
+                dot={{
+                  r: 5,
+                  fill: "#2563eb",
+                  strokeWidth: 2,
+                  stroke: "#ffffff",
+                }}
+                activeDot={{
+                  r: 7,
+                  fill: "#1d4ed8",
+                  stroke: "#ffffff",
+                  strokeWidth: 2,
+                }}
                 connectNulls
               />
             )}
@@ -236,7 +303,12 @@ export function TrendChart({ data, mode = "official" }: { data: TrendChartPoint[
                 stroke="#60a5fa"
                 strokeWidth={3}
                 strokeDasharray="6 6"
-                dot={{ r: 5, fill: "#60a5fa", strokeWidth: 2, stroke: "#ffffff" }}
+                dot={{
+                  r: 5,
+                  fill: "#60a5fa",
+                  strokeWidth: 2,
+                  stroke: "#ffffff",
+                }}
                 activeDot={{ r: 7, fill: "#3b82f6" }}
                 connectNulls
               />

@@ -100,10 +100,9 @@ export const AuthService = {
     return response.data;
   },
 
-  async deleteAccount(password: string): Promise<{ message: string }> {
-    const response = await api.delete<{ message: string }>("/auth/delete-account", {
-      data: { password },
-    });
+  async deleteAccount(): Promise<{ message: string }> {
+    // The HttpOnly session cookie is verified by the protected endpoint.
+    const response = await api.delete<{ message: string }>("/auth/delete-account");
     return response.data;
   },
 };

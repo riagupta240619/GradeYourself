@@ -4,20 +4,20 @@ import { motion, type HTMLMotionProps } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-150 disabled:opacity-50 disabled:pointer-events-none whitespace-nowrap cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7c3aed] focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-[#09090b]",
+  "inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-150 disabled:opacity-50 disabled:pointer-events-none whitespace-nowrap cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-[#09090b]",
   {
     variants: {
       variant: {
         primary:
-          "bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white shadow-sm hover:shadow border border-purple-500/20",
+          "bg-[var(--accent-purple)] text-white shadow-[var(--shadow-soft)] hover:bg-[#7c3aed] active:bg-[#6d28d9] border border-transparent",
         secondary:
-          "bg-slate-900 hover:bg-slate-800 text-white shadow-sm dark:bg-slate-800 dark:hover:bg-slate-700",
+          "bg-[var(--bg-surface)] text-white shadow-[var(--shadow-card)] hover:bg-[var(--bg-surface-elevated)] border border-[var(--border)] dark:bg-[var(--bg-surface)] dark:hover:bg-[var(--bg-surface-elevated)]",
         outline:
-          "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300 dark:border-white/10 dark:bg-zinc-900/60 dark:text-white dark:hover:bg-zinc-800/80 dark:hover:border-white/20 shadow-sm",
+          "border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--bg-surface-elevated)] dark:text-white dark:bg-[var(--bg-surface)] dark:hover:bg-[var(--bg-surface-elevated)]",
         ghost:
-          "bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800/60 dark:hover:text-white",
+          "bg-transparent text-[var(--text-secondary)] hover:bg-[var(--bg-surface-elevated)] dark:text-[var(--text-secondary)] dark:hover:bg-[var(--bg-surface-elevated)]",
         danger:
-          "bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white shadow-sm border border-rose-500/20",
+          "bg-[#831843] text-white shadow-[var(--shadow-soft)] hover:bg-[#a21d43] active:bg-[#7f173d] border border-[#881d4a]",
       },
       size: {
         sm: "h-9 px-3.5 text-xs rounded-xl",
@@ -26,11 +26,12 @@ const buttonVariants = cva(
       },
     },
     defaultVariants: { variant: "primary", size: "md" },
-  }
+  },
 );
 
 export interface ButtonProps
-  extends ButtonHTMLAttributes<HTMLButtonElement>,
+  extends
+    ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   whileHover?: HTMLMotionProps<"button">["whileHover"];
   whileTap?: HTMLMotionProps<"button">["whileTap"];
@@ -47,6 +48,6 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     >
       {children}
     </motion.button>
-  )
+  ),
 );
 Button.displayName = "Button";

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Plus, X, Upload, Download, CheckCircle2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { parseNewSubjectsCsv, generateNewSubjectsCsvTemplate, type ParsedSubjectInput } from "@/lib/utils/upload-parser";
@@ -8,11 +9,12 @@ import { SemesterService, type SemesterWithTotalCredits } from "@/services/semes
 interface AddSubjectModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
 const PALETTE = ["#6366f1", "#22c55e", "#f59e0b", "#ec4899", "#06b6d4", "#8b5cf6", "#14b8a6"];
 
-export function AddSubjectModal({ isOpen, onClose }: AddSubjectModalProps) {
+export function AddSubjectModal({ isOpen, onClose, onSuccess }: AddSubjectModalProps) {
   const [semesters, setSemesters] = useState<SemesterWithTotalCredits[]>([]);
   const [activeTab, setActiveTab] = useState<"form" | "bulk">("form");
   const [targetSemId, setTargetSemId] = useState<string>("");
@@ -34,6 +36,50 @@ export function AddSubjectModal({ isOpen, onClose }: AddSubjectModalProps) {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const previouslyFocusedElement = useRef<HTMLElement | null>(null);
+  const isSubmittingRef = useRef(false);
+  isSubmittingRef.current = isSubmitting;
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    previouslyFocusedElement.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const focusTimer = window.setTimeout(() => nameInputRef.current?.focus(), 50);
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !isSubmittingRef.current) {
+        event.preventDefault();
+        resetForm();
+        onClose();
+        return;
+      }
+
+      if (event.key !== "Tab" || !dialogRef.current) return;
+      const focusable = Array.from(dialogRef.current.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [href], [tabindex]:not([tabindex="-1"])'
+      ));
+      if (!focusable.length) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.clearTimeout(focusTimer);
+      window.removeEventListener("keydown", handleKeyDown);
+      previouslyFocusedElement.current?.focus();
+    };
+  }, [isOpen, onClose]);
 
   // Fetch semesters when modal opens
   useEffect(() => {
@@ -59,7 +105,6 @@ export function AddSubjectModal({ isOpen, onClose }: AddSubjectModalProps) {
     }
   }, [isOpen]);
 
-  if (!isOpen) return null;
 
   function resetForm() {
     setName("");
@@ -120,6 +165,7 @@ export function AddSubjectModal({ isOpen, onClose }: AddSubjectModalProps) {
 
       setSuccessMsg(`Subject "${name}" added successfully!`);
       window.dispatchEvent(new CustomEvent("academic-data-updated"));
+      onSuccess?.();
       setTimeout(() => {
         resetForm();
         onClose();
@@ -205,6 +251,7 @@ export function AddSubjectModal({ isOpen, onClose }: AddSubjectModalProps) {
 
       setSuccessMsg(`Successfully imported ${parsedSubjects.length} subject(s)!`);
       window.dispatchEvent(new CustomEvent("academic-data-updated"));
+      onSuccess?.();
       setTimeout(() => {
         resetForm();
         onClose();
@@ -227,28 +274,32 @@ export function AddSubjectModal({ isOpen, onClose }: AddSubjectModalProps) {
     URL.revokeObjectURL(url);
   }
 
+  const closeModal = () => {
+    resetForm();
+    onClose();
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-fade-in">
-      <div
-        className="w-full max-w-lg rounded-xl border bg-[var(--bg-card)] p-6 shadow-2xl animate-scale-up max-h-[90vh] overflow-y-auto"
-        style={{ borderColor: "var(--border-hairline)" }}
-      >
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} onClick={isSubmitting ? undefined : closeModal} className="fixed inset-0 bg-black/75 backdrop-blur-md" aria-hidden="true" />
+          <motion.div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="add-subject-dialog-title" aria-describedby="add-subject-dialog-description" initial={{ opacity: 0, scale: 0.95, y: 12 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 12 }} transition={{ type: "spring", damping: 25, stiffness: 350 }} className="relative z-10 max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border p-6 shadow-2xl sm:p-7" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border-hairline)", color: "var(--text-primary)" }}>
         <div className="flex items-center justify-between border-b pb-4 mb-4" style={{ borderColor: "var(--border-hairline)" }}>
           <div>
-            <h2 className="text-xl font-semibold flex items-center gap-2">
+            <h2 id="add-subject-dialog-title" className="text-xl font-bold tracking-tight flex items-center gap-2">
               <Plus size={20} className="text-[var(--color-accent)]" />
               Add or Upload New Subjects
             </h2>
-            <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+            <p id="add-subject-dialog-description" className="text-xs text-[var(--text-secondary)] mt-0.5">
               Add new subjects manually or bulk import them from CSV/JSON.
             </p>
           </div>
           <button
-            onClick={() => {
-              resetForm();
-              onClose();
-            }}
-            className="rounded-lg p-1.5 text-[var(--text-tertiary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors"
+            onClick={closeModal}
+            aria-label="Close add subject dialog"
+            disabled={isSubmitting}
+            className="rounded-xl p-1.5 text-[var(--text-tertiary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors"
           >
             <X size={18} />
           </button>
@@ -326,6 +377,7 @@ export function AddSubjectModal({ isOpen, onClose }: AddSubjectModalProps) {
                 Subject Name *
               </label>
               <input
+                ref={nameInputRef}
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -496,10 +548,7 @@ export function AddSubjectModal({ isOpen, onClose }: AddSubjectModalProps) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => {
-              resetForm();
-              onClose();
-            }}
+            onClick={closeModal}
           >
             Cancel
           </Button>
@@ -513,7 +562,9 @@ export function AddSubjectModal({ isOpen, onClose }: AddSubjectModalProps) {
             </Button>
           )}
         </div>
-      </div>
-    </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
   );
 }

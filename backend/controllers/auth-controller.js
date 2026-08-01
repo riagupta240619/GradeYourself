@@ -319,13 +319,6 @@ const changeUserPassword = async (req, res, next) => {
  */
 const deleteUserAccount = async (req, res, next) => {
   try {
-    const { password } = req.body;
-
-    if (!password || typeof password !== "string") {
-      res.status(400);
-      throw new Error("Password is required to confirm account deletion");
-    }
-
     const userId = req.user._id;
     const user = await User.findById(userId);
 
@@ -334,23 +327,22 @@ const deleteUserAccount = async (req, res, next) => {
       throw new Error("User account not found");
     }
 
-    // Verify password using bcrypt
-    const isMatch = await user.matchPassword(password);
-    if (!isMatch) {
-      res.status(401);
-      throw new Error("Incorrect password. Account deletion aborted.");
-    }
-
-    // Import models lazily or at module top
+    // verifyToken has already validated the active HttpOnly session. No password
+    // is accepted here, avoiding a redundant credential prompt for signed-in users.
     const Semester = require("../models/semester-model");
     const Subject = require("../models/subject-model");
+    const Template = require("../models/template-model");
 
-    // Permanently remove all user records from database
-    await Subject.deleteMany({ user: userId });
-    await Semester.deleteMany({ user: userId });
+    // Remove every record owned by this user before deleting the account. Keeping
+    // the account until cleanup succeeds makes a failed request safe to retry.
+    await Promise.all([
+      Subject.deleteMany({ user: userId }),
+      Semester.deleteMany({ user: userId }),
+      Template.deleteMany({ createdBy: userId }),
+    ]);
     await User.findByIdAndDelete(userId);
 
-    // Invalidate session cookies
+    // Invalidate the browser session and CSRF token.
     res.clearCookie(AUTH_COOKIE_NAME, getClearAuthCookieOptions());
     res.clearCookie(CSRF_COOKIE_NAME, getClearCsrfCookieOptions());
 

@@ -51,11 +51,21 @@ export function ProfilePage() {
   const [college, setCollege] = useState(user?.college || "");
   const [course, setCourse] = useState(user?.course || "");
   const [branch, setBranch] = useState(user?.branch || "");
-  const [currentSemester, setCurrentSemester] = useState(user?.currentSemester || user?.semesterSystem || "Semester 1");
-  const [academicSession, setAcademicSession] = useState(user?.academicSession || "");
-  const [cgpaInput, setCgpaInput] = useState(typeof user?.currentCgpa === "number" ? String(user.currentCgpa) : "");
-  const [academicStatus, setAcademicStatus] = useState(user?.academicStatus || "Active Student");
-  const [totalDegreeCredits, setTotalDegreeCredits] = useState<number>(user?.totalDegreeCredits || 160);
+  const [currentSemester, setCurrentSemester] = useState(
+    user?.currentSemester || user?.semesterSystem || "Semester 1",
+  );
+  const [academicSession, setAcademicSession] = useState(
+    user?.academicSession || "",
+  );
+  const [cgpaInput, setCgpaInput] = useState(
+    typeof user?.currentCgpa === "number" ? String(user.currentCgpa) : "",
+  );
+  const [academicStatus, setAcademicStatus] = useState(
+    user?.academicStatus || "Active Student",
+  );
+  const [totalDegreeCredits, setTotalDegreeCredits] = useState<number>(
+    user?.totalDegreeCredits || 160,
+  );
 
   useEffect(() => {
     if (user) {
@@ -63,9 +73,13 @@ export function ProfilePage() {
       setCollege(user.college || "");
       setCourse(user.course || "");
       setBranch(user.branch || "");
-      setCurrentSemester(user.currentSemester || user.semesterSystem || "Semester 1");
+      setCurrentSemester(
+        user.currentSemester || user.semesterSystem || "Semester 1",
+      );
       setAcademicSession(user.academicSession || "");
-      setCgpaInput(typeof user.currentCgpa === "number" ? String(user.currentCgpa) : "");
+      setCgpaInput(
+        typeof user.currentCgpa === "number" ? String(user.currentCgpa) : "",
+      );
       setAcademicStatus(user.academicStatus || "Active Student");
       setTotalDegreeCredits(user.totalDegreeCredits || 160);
     }
@@ -83,7 +97,10 @@ export function ProfilePage() {
     }
 
     const parsedCgpa = cgpaInput.trim() ? parseFloat(cgpaInput) : null;
-    if (cgpaInput.trim() && (isNaN(parsedCgpa!) || parsedCgpa! < 0 || parsedCgpa! > 10)) {
+    if (
+      cgpaInput.trim() &&
+      (isNaN(parsedCgpa!) || parsedCgpa! < 0 || parsedCgpa! > 10)
+    ) {
       setErrorMsg("CGPA must be a number between 0.00 and 10.00");
       return;
     }
@@ -106,7 +123,9 @@ export function ProfilePage() {
       toast.success("Academic profile updated successfully!");
       setIsEditing(false);
     } catch (err: any) {
-      setErrorMsg(err.response?.data?.message || "Failed to update profile details");
+      setErrorMsg(
+        err.response?.data?.message || "Failed to update profile details",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -120,9 +139,13 @@ export function ProfilePage() {
       setCollege(user.college || "");
       setCourse(user.course || "");
       setBranch(user.branch || "");
-      setCurrentSemester(user.currentSemester || user.semesterSystem || "Semester 1");
+      setCurrentSemester(
+        user.currentSemester || user.semesterSystem || "Semester 1",
+      );
       setAcademicSession(user.academicSession || "");
-      setCgpaInput(typeof user.currentCgpa === "number" ? String(user.currentCgpa) : "");
+      setCgpaInput(
+        typeof user.currentCgpa === "number" ? String(user.currentCgpa) : "",
+      );
       setAcademicStatus(user.academicStatus || "Active Student");
     }
   };
@@ -132,14 +155,25 @@ export function ProfilePage() {
       <div className="flex items-center justify-between">
         <div>
           <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-700 dark:text-purple-600 dark:text-purple-300 mb-2">
-            <GraduationCap size={12} className="text-purple-400" /> Permanent Academic Profile
+            <GraduationCap size={12} className="text-purple-400" /> Permanent
+            Academic Profile
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-900 dark:text-white">Student Academic Profile</h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1">Manage and update your university details, degree program, and academic baseline.</p>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-900 dark:text-white">
+            Student Academic Profile
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1">
+            Manage and update your university details, degree program, and
+            academic baseline.
+          </p>
         </div>
 
         {!isEditing && (
-          <Button variant="outline" size="sm" onClick={() => setIsEditing(true)} className="gap-1.5 border-purple-500/30 text-purple-600 dark:text-purple-300 hover:bg-purple-500/10">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsEditing(true)}
+            className="gap-1.5 border-purple-500/30 text-purple-600 dark:text-purple-300 hover:bg-purple-500/10"
+          >
             <Edit3 size={15} /> Edit Profile
           </Button>
         )}
@@ -154,23 +188,34 @@ export function ProfilePage() {
       {/* User Header Profile Banner */}
       <Card className="glow-purple border-purple-500/30 bg-gradient-to-br from-zinc-900 via-zinc-900 to-purple-950/30 shadow-xl">
         <CardContent className="pt-6 flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
-          <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-purple-600 to-blue-600 text-3xl font-bold text-slate-900 dark:text-white shadow-xl">
+          <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-purple-500 via-purple-600 to-violet-700 text-3xl font-bold text-slate-900 dark:text-white shadow-xl">
             {initial}
             <span className="absolute -bottom-1 -right-1 h-4.5 w-4.5 rounded-full bg-emerald-500 ring-4 ring-zinc-950" />
           </div>
 
           <div className="flex flex-col gap-1 flex-1">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">{user?.name || "Student User"}</h2>
-              <span className="text-xs text-zinc-400 font-mono">{user?.email}</span>
+              <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                {user?.name || "Student User"}
+              </h2>
+              <span className="text-xs text-zinc-400 font-mono">
+                {user?.email}
+              </span>
             </div>
-            <p className="text-xs text-purple-600 dark:text-purple-300 font-medium">{user?.college || "University Institution"}</p>
-            
+            <p className="text-xs text-purple-600 dark:text-purple-300 font-medium">
+              {user?.college || "University Institution"}
+            </p>
+
             <div className="mt-3 flex flex-wrap justify-center sm:justify-start gap-2 text-xs">
               <Badge tone="accent">{user?.course || "Course / Degree"}</Badge>
               <Badge tone="blue">{user?.branch || "Department"}</Badge>
-              <Badge tone="accent">Semester: {user?.currentSemester || user?.semesterSystem || "N/A"}</Badge>
-              <Badge tone="success">{user?.academicStatus || "Active Student"}</Badge>
+              <Badge tone="accent">
+                Semester:{" "}
+                {user?.currentSemester || user?.semesterSystem || "N/A"}
+              </Badge>
+              <Badge tone="success">
+                {user?.academicStatus || "Active Student"}
+              </Badge>
             </div>
           </div>
         </CardContent>
@@ -182,15 +227,20 @@ export function ProfilePage() {
           <form onSubmit={handleSaveProfile} className="flex flex-col gap-6">
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/10 pb-3">
               <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Edit3 size={18} className="text-purple-400" /> Edit Academic Profile Details
+                <Edit3 size={18} className="text-purple-400" /> Edit Academic
+                Profile Details
               </h3>
-              <span className="text-xs text-slate-500 dark:text-zinc-400">Updates sync to Database & Global State</span>
+              <span className="text-xs text-slate-500 dark:text-zinc-400">
+                Updates sync to Database & Global State
+              </span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               {/* Name */}
               <div>
-                <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-zinc-300">Full Name *</label>
+                <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-zinc-300">
+                  Full Name *
+                </label>
                 <input
                   type="text"
                   value={name}
@@ -202,7 +252,9 @@ export function ProfilePage() {
 
               {/* Email (Read only) */}
               <div>
-                <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-zinc-300">Email Address (Read Only)</label>
+                <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-zinc-300">
+                  Email Address (Read Only)
+                </label>
                 <input
                   type="text"
                   value={user?.email || ""}
@@ -213,7 +265,9 @@ export function ProfilePage() {
 
               {/* College */}
               <div>
-                <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-zinc-300">College / University *</label>
+                <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-zinc-300">
+                  College / University *
+                </label>
                 <input
                   type="text"
                   value={college}
@@ -225,7 +279,9 @@ export function ProfilePage() {
 
               {/* Course */}
               <div>
-                <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-zinc-300">Course / Degree *</label>
+                <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-zinc-300">
+                  Course / Degree *
+                </label>
                 <input
                   type="text"
                   value={course}
@@ -237,7 +293,9 @@ export function ProfilePage() {
 
               {/* Branch / Department */}
               <div>
-                <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-zinc-300">Branch / Department *</label>
+                <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-zinc-300">
+                  Branch / Department *
+                </label>
                 <input
                   type="text"
                   value={branch}
@@ -249,21 +307,31 @@ export function ProfilePage() {
 
               {/* Current Semester */}
               <div>
-                <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-zinc-300">Current Semester *</label>
+                <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-zinc-300">
+                  Current Semester *
+                </label>
                 <select
                   value={currentSemester}
                   onChange={(e) => setCurrentSemester(e.target.value)}
                   className="w-full rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all cursor-pointer"
                 >
                   {PRESET_SEMESTERS.map((s) => (
-                    <option key={s} value={s} className="bg-white dark:bg-zinc-900 text-slate-900 dark:text-white">{s}</option>
+                    <option
+                      key={s}
+                      value={s}
+                      className="bg-white dark:bg-zinc-900 text-slate-900 dark:text-white"
+                    >
+                      {s}
+                    </option>
                   ))}
                 </select>
               </div>
 
               {/* Academic Session / Batch */}
               <div>
-                <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-zinc-300">Academic Session / Batch *</label>
+                <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-zinc-300">
+                  Academic Session / Batch *
+                </label>
                 <input
                   type="text"
                   value={academicSession}
@@ -275,14 +343,22 @@ export function ProfilePage() {
 
               {/* Academic Status */}
               <div>
-                <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-zinc-300">Academic Status *</label>
+                <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-zinc-300">
+                  Academic Status *
+                </label>
                 <select
                   value={academicStatus}
                   onChange={(e) => setAcademicStatus(e.target.value)}
                   className="w-full rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all cursor-pointer"
                 >
                   {STATUS_OPTIONS.map((st) => (
-                    <option key={st} value={st} className="bg-white dark:bg-zinc-900 text-slate-900 dark:text-white">{st}</option>
+                    <option
+                      key={st}
+                      value={st}
+                      className="bg-white dark:bg-zinc-900 text-slate-900 dark:text-white"
+                    >
+                      {st}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -306,11 +382,24 @@ export function ProfilePage() {
             </div>
 
             <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-white/10">
-              <Button type="button" variant="ghost" size="sm" onClick={handleCancelEdit} disabled={isSaving}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleCancelEdit}
+                disabled={isSaving}
+              >
                 <X size={14} className="mr-1" /> Cancel
               </Button>
-              <Button type="submit" variant="primary" size="md" disabled={isSaving} className="gap-1.5">
-                <Save size={15} /> {isSaving ? "Saving..." : "Save Profile Changes"}
+              <Button
+                type="submit"
+                variant="primary"
+                size="md"
+                disabled={isSaving}
+                className="gap-1.5"
+              >
+                <Save size={15} />{" "}
+                {isSaving ? "Saving..." : "Save Profile Changes"}
               </Button>
             </div>
           </form>
@@ -321,23 +410,36 @@ export function ProfilePage() {
           <Card>
             <CardHeader className="pb-3 border-b border-slate-200 dark:border-white/10">
               <CardTitle className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Building2 size={16} className="text-purple-400" /> Institution & Degree Program
+                <Building2 size={16} className="text-purple-400" /> Institution
+                & Degree Program
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-4 flex flex-col gap-4 text-xs">
               <div>
-                <span className="text-zinc-400 uppercase text-[10px] font-bold tracking-wider block mb-1">College / University</span>
-                <span className="text-sm font-bold text-slate-900 dark:text-white">{user?.college || "Not set"}</span>
+                <span className="text-zinc-400 uppercase text-[10px] font-bold tracking-wider block mb-1">
+                  College / University
+                </span>
+                <span className="text-sm font-bold text-slate-900 dark:text-white">
+                  {user?.college || "Not set"}
+                </span>
               </div>
 
               <div>
-                <span className="text-zinc-400 uppercase text-[10px] font-bold tracking-wider block mb-1">Course / Degree</span>
-                <span className="text-sm font-semibold text-zinc-200">{user?.course || "Not set"}</span>
+                <span className="text-zinc-400 uppercase text-[10px] font-bold tracking-wider block mb-1">
+                  Course / Degree
+                </span>
+                <span className="text-sm font-semibold text-zinc-200">
+                  {user?.course || "Not set"}
+                </span>
               </div>
 
               <div>
-                <span className="text-zinc-400 uppercase text-[10px] font-bold tracking-wider block mb-1">Branch / Department</span>
-                <span className="text-sm font-semibold text-zinc-200">{user?.branch || "Not set"}</span>
+                <span className="text-zinc-400 uppercase text-[10px] font-bold tracking-wider block mb-1">
+                  Branch / Department
+                </span>
+                <span className="text-sm font-semibold text-zinc-200">
+                  {user?.branch || "Not set"}
+                </span>
               </div>
             </CardContent>
           </Card>
@@ -345,33 +447,54 @@ export function ProfilePage() {
           <Card>
             <CardHeader className="pb-3 border-b border-slate-200 dark:border-white/10">
               <CardTitle className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Layers size={16} className="text-blue-400" /> Academic Term & Baseline Status
+                <Layers size={16} className="text-blue-400" /> Academic Term &
+                Baseline Status
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-4 flex flex-col gap-4 text-xs">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <span className="text-zinc-400 uppercase text-[10px] font-bold tracking-wider block mb-1">Current Semester</span>
-                  <span className="text-sm font-bold text-purple-400">{user?.currentSemester || user?.semesterSystem || "Semester 1"}</span>
+                  <span className="text-zinc-400 uppercase text-[10px] font-bold tracking-wider block mb-1">
+                    Current Semester
+                  </span>
+                  <span className="text-sm font-bold text-purple-400">
+                    {user?.currentSemester ||
+                      user?.semesterSystem ||
+                      "Semester 1"}
+                  </span>
                 </div>
 
                 <div>
-                  <span className="text-zinc-400 uppercase text-[10px] font-bold tracking-wider block mb-1">Batch / Session</span>
-                  <span className="text-sm font-bold text-blue-400">{user?.academicSession || "Not set"}</span>
+                  <span className="text-zinc-400 uppercase text-[10px] font-bold tracking-wider block mb-1">
+                    Batch / Session
+                  </span>
+                  <span className="text-sm font-bold text-blue-400">
+                    {user?.academicSession || "Not set"}
+                  </span>
                 </div>
               </div>
 
               <div>
-                <span className="text-zinc-400 uppercase text-[10px] font-bold tracking-wider block mb-1">Academic Status</span>
-                <span className="text-sm font-semibold text-emerald-400">{user?.academicStatus || "Active Student"}</span>
+                <span className="text-zinc-400 uppercase text-[10px] font-bold tracking-wider block mb-1">
+                  Academic Status
+                </span>
+                <span className="text-sm font-semibold text-emerald-400">
+                  {user?.academicStatus || "Active Student"}
+                </span>
               </div>
 
               <div>
-                <span className="text-zinc-400 uppercase text-[10px] font-bold tracking-wider block mb-1">Baseline Onboarding CGPA</span>
+                <span className="text-zinc-400 uppercase text-[10px] font-bold tracking-wider block mb-1">
+                  Baseline Onboarding CGPA
+                </span>
                 {typeof user?.currentCgpa === "number" ? (
-                  <span className="text-lg font-extrabold font-mono text-purple-600 dark:text-purple-300">{user.currentCgpa.toFixed(2)} / 10.00</span>
+                  <span className="text-lg font-extrabold font-mono text-purple-600 dark:text-purple-300">
+                    {user.currentCgpa.toFixed(2)} / 10.00
+                  </span>
                 ) : (
-                  <span className="text-xs text-zinc-500 italic">No baseline CGPA provided during onboarding</span>
+                  <span className="text-xs text-zinc-500 italic">
+                    No baseline CGPA provided during onboarding
+                  </span>
                 )}
               </div>
             </CardContent>

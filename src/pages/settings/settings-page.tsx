@@ -78,14 +78,19 @@ export function SettingsPage() {
     }
   };
 
-  const handleConfirmDeleteAccount = async (pwd: string) => {
+  const handleConfirmDeleteAccount = async () => {
     setIsDeletingAccount(true);
     try {
-      await deleteAccount(pwd);
+      await deleteAccount();
       setShowDeleteAccountModal(false);
       toast.success("Your account and all associated data have been permanently deleted.");
-      navigate("/login");
+      navigate("/", { replace: true });
     } catch (err: any) {
+      if (err.response?.status === 401) {
+        setShowDeleteAccountModal(false);
+        toast.error("Your session has expired. Please sign in again to delete your account.");
+        navigate("/login", { replace: true });
+      }
       throw err;
     } finally {
       setIsDeletingAccount(false);
