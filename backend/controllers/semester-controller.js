@@ -437,6 +437,10 @@ const bulkSaveTranscript = async (req, res, next) => {
         semInput.sgpa !== null && semInput.sgpa !== undefined
           ? Number(semInput.sgpa)
           : null;
+      const cgpa =
+        semInput.cgpa !== null && semInput.cgpa !== undefined
+          ? Number(semInput.cgpa)
+          : null;
       const credits = Number(semInput.credits) || 20;
 
       // Find existing semester or create new
@@ -446,6 +450,7 @@ const bulkSaveTranscript = async (req, res, next) => {
       });
       if (semesterObj) {
         semesterObj.finalizedSgpa = sgpa;
+        semesterObj.cgpa = cgpa;
         semesterObj.credits = credits;
         semesterObj.isCurrent = false;
         await semesterObj.save();
@@ -455,6 +460,7 @@ const bulkSaveTranscript = async (req, res, next) => {
           name: name.trim(),
           isCurrent: false,
           finalizedSgpa: sgpa,
+          cgpa: cgpa,
           credits: credits,
         });
       }

@@ -767,7 +767,7 @@ function AcademicPlannerContent() {
                           </Badge>
                         )}
 
-                        <button className="text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-slate-900 dark:text-white p-1 rounded-lg">
+                        <button className="text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200 p-1 rounded-lg">
                           {isExpanded ? (
                             <ChevronUp size={18} />
                           ) : (
