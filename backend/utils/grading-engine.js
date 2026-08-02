@@ -285,6 +285,9 @@ function calculateSgpa(semester, scale = "10.0") {
   let totalCredits = 0;
 
   for (const subj of subjects) {
+    if (subj?.status && subj.status !== "completed") {
+      continue;
+    }
     const cred = Number(subj.credits || 3);
     const score = calculateSubjectScore(subj, scale);
     if (score.isInProgress || score.pct === null || score.gradePoint === null) {

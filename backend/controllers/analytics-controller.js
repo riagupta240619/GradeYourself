@@ -216,6 +216,7 @@ const getAnalyticsSummary = async (req, res, next) => {
           subjectCode: subj.code || "",
           code: subj.code || "",
           credits: subj.credits || 3,
+          status: subj.status || "completed",
           marksObtained:
             subj.marksObtained !== undefined && subj.marksObtained !== null
               ? Number(subj.marksObtained)
@@ -240,6 +241,7 @@ const getAnalyticsSummary = async (req, res, next) => {
           name: subj.name,
           code: subj.code || "",
           credits: subj.credits || 3,
+          status: subj.status || "completed",
           pct: finalPercentage,
           letterGrade: grade,
           gradePoint: gradePoint,

@@ -328,6 +328,21 @@ const updateFullSemester = async (req, res, next) => {
               ? Number(subInput.pct)
               : details.pct;
 
+        const statusVal =
+          subInput.status &&
+          [
+            "completed",
+            "in_progress",
+            "reappear",
+            "backlog",
+            "incomplete",
+            "withheld_result",
+          ].includes(subInput.status)
+            ? subInput.status
+            : gradeVal || finalPctVal !== null || subInput.marksObtained !== null
+              ? "completed"
+              : "in_progress";
+
         await SubjectModel.create({
           user: req.user._id,
           semester: semester._id,
@@ -338,6 +353,7 @@ const updateFullSemester = async (req, res, next) => {
           targetGrade: gradeVal || "A",
           grade: gradeVal || details.letter,
           gradePoint: gradePointVal,
+          status: statusVal,
           marksObtained:
             subInput.marksObtained !== undefined &&
             subInput.marksObtained !== null &&
@@ -499,6 +515,21 @@ const bulkSaveTranscript = async (req, res, next) => {
                 ? Number(subInput.pct)
                 : details.pct;
 
+          const bulkStatusVal =
+            subInput.status &&
+            [
+              "completed",
+              "in_progress",
+              "reappear",
+              "backlog",
+              "incomplete",
+              "withheld_result",
+            ].includes(subInput.status)
+              ? subInput.status
+              : gradeVal || finalPctVal !== null || subInput.marksObtained !== null
+                ? "completed"
+                : "in_progress";
+
           await SubjectModel.create({
             user: userId,
             semester: semesterObj._id,
@@ -509,6 +540,7 @@ const bulkSaveTranscript = async (req, res, next) => {
             targetGrade: gradeVal || "A",
             grade: gradeVal || details.letter,
             gradePoint: gradePointVal,
+            status: bulkStatusVal,
             marksObtained:
               subInput.marksObtained !== undefined &&
               subInput.marksObtained !== null &&

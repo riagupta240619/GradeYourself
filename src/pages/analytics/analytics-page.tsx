@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, Fragment } from "react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Trophy,
@@ -12,23 +13,31 @@ import {
   Edit3,
   Award,
   BarChart3,
-  PieChart,
   Download,
-  ShieldCheck,
   Zap,
   GraduationCap,
+  Loader2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
 import {
   AnalyticsService,
   type AnalyticsSummary,
   type AnalyticsSubject,
   type CompletedSemesterDetail,
+  type SubjectStatus,
+  resolveSubjectStatus,
+  getSubjectEffectiveScore,
+  SUBJECT_STATUS_CONFIG,
 } from "@/services/analytics-service";
 import { DashboardService } from "@/services/dashboard-service";
 import { EditSemesterModal } from "@/components/upload/edit-semester-modal";
+import {
+  ColumnSettingsService,
+  type ColumnConfig,
+} from "@/services/column-settings-service";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { toast } from "sonner";
 
@@ -43,6 +52,31 @@ export function AnalyticsPage() {
     new Set(),
   );
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  const [columnConfigs, setColumnConfigs] = useState<ColumnConfig[]>(() =>
+    ColumnSettingsService.getTranscriptColumnSettings(),
+  );
+
+  useEffect(() => {
+    const handleColumnsUpdate = (e: any) => {
+      if (e.detail) {
+        setColumnConfigs(e.detail);
+      } else {
+        setColumnConfigs(ColumnSettingsService.getTranscriptColumnSettings());
+      }
+    };
+    window.addEventListener("transcript-columns-updated", handleColumnsUpdate);
+    return () => {
+      window.removeEventListener(
+        "transcript-columns-updated",
+        handleColumnsUpdate,
+      );
+    };
+  }, []);
+
+  const visibleColumns = useMemo(() => {
+    return columnConfigs.filter((col) => col.visible);
+  }, [columnConfigs]);
 
   const fetchAnalytics = async () => {
     setLoading(true);
@@ -253,115 +287,198 @@ export function AnalyticsPage() {
     return maxDelta > 0 ? bestSem : null;
   }, [completedSemesters]);
 
-  const consistencyScore = useMemo(() => {
-    if (!completedSemesters.length)
-      return { score: 100, label: "Optimal Consistency" };
-    const sgpas = completedSemesters
-      .map((s) => s.sgpa)
-      .filter((v): v is number => typeof v === "number");
-    if (sgpas.length <= 1) return { score: 98, label: "Very High Consistency" };
+  const { user } = useAuth();
+  const totalDegreeCreditsConfigured =
+    user?.totalDegreeCredits && user.totalDegreeCredits > 0
+      ? user.totalDegreeCredits
+      : null;
 
-    const mean = sgpas.reduce((a, b) => a + b, 0) / sgpas.length;
-    const variance =
-      sgpas.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / sgpas.length;
-    const stdDev = Math.sqrt(variance);
-
-    const score = Math.max(60, Math.min(100, Math.round(100 - stdDev * 25)));
-    const label =
-      score >= 90
-        ? "High Consistency"
-        : score >= 75
-          ? "Moderate Consistency"
-          : "Variable Consistency";
-
-    return { score, label };
-  }, [completedSemesters]);
-
-  // All Evaluated Subjects Sorted
-  const sortedAllSubjects = useMemo(() => {
+  const evaluatedCompletedSubjects = useMemo(() => {
     if (!completedSemesters.length) return [];
-    const list: Array<AnalyticsSubject & { semesterName: string }> = [];
+    const list: Array<{
+      name: string;
+      code: string;
+      credits: number;
+      pct: number;
+      letterGrade: string;
+      gradePoint: number;
+      semesterName: string;
+      effectiveScore: number;
+      tier: "Excellent" | "Good" | "Average" | "Needs Improvement";
+      status: SubjectStatus;
+    }> = [];
+
     for (const sem of completedSemesters) {
       for (const subj of sem.subjects || []) {
-        list.push({
-          name: subj.name || subj.subjectName || "Subject",
-          code: subj.code || subj.subjectCode || "",
-          credits: subj.credits || 3,
-          pct: subj.finalPercentage ?? subj.pct ?? 0,
-          letterGrade: subj.grade || subj.letterGrade || "—",
-          gradePoint: subj.gradePoint || 0,
-          semester: sem.name,
-          semesterName: sem.name,
-        });
+        const status = resolveSubjectStatus(subj);
+        if (status === "completed") {
+          const score = getSubjectEffectiveScore(subj);
+          if (score !== null && !isNaN(score)) {
+            let tier: "Excellent" | "Good" | "Average" | "Needs Improvement" = "Good";
+            if (score >= 90) tier = "Excellent";
+            else if (score >= 75) tier = "Good";
+            else if (score >= 60) tier = "Average";
+            else tier = "Needs Improvement";
+
+            list.push({
+              name: subj.name || subj.subjectName || "Subject",
+              code: subj.code || subj.subjectCode || "",
+              credits: Number(subj.credits) || 3,
+              pct: score,
+              letterGrade: subj.grade || subj.letterGrade || "—",
+              gradePoint: subj.gradePoint || 0,
+              semesterName: sem.name,
+              effectiveScore: score,
+              tier,
+              status,
+            });
+          }
+        }
       }
     }
-    return list.sort((a, b) => b.pct - a.pct);
+
+    return list;
   }, [completedSemesters]);
 
-  const highestSubject = useMemo(() => {
-    return (
-      analytics?.highestSubject ||
-      (sortedAllSubjects.length > 0 ? sortedAllSubjects[0] : null)
-    );
-  }, [analytics, sortedAllSubjects]);
-
-  const lowestSubject = useMemo(() => {
-    return (
-      analytics?.lowestSubject ||
-      (sortedAllSubjects.length > 0
-        ? sortedAllSubjects[sortedAllSubjects.length - 1]
-        : null)
-    );
-  }, [analytics, sortedAllSubjects]);
-
-  // Grade Distribution Histogram
-  const gradeDistribution = useMemo(() => {
-    const dist: Record<string, number> = {
-      "A+": 0,
-      A: 0,
-      "A-": 0,
-      "B+": 0,
-      B: 0,
-      "B-": 0,
-      "C+": 0,
-      C: 0,
-      D: 0,
-      F: 0,
-    };
-    for (const subj of sortedAllSubjects) {
-      const g = (subj.letterGrade || "B").trim();
-      if (g in dist) {
-        dist[g]++;
-      } else if (g.startsWith("A")) {
-        dist["A"]++;
-      } else if (g.startsWith("B")) {
-        dist["B"]++;
-      } else {
-        dist["C"]++;
-      }
+  const highestSubjectResult = useMemo(() => {
+    if (!evaluatedCompletedSubjects.length) return null;
+    let maxScore = -Infinity;
+    for (const s of evaluatedCompletedSubjects) {
+      if (s.effectiveScore > maxScore) maxScore = s.effectiveScore;
     }
-    return Object.entries(dist).filter(([_, count]) => count > 0);
-  }, [sortedAllSubjects]);
+    const topSubjects = evaluatedCompletedSubjects.filter(
+      (s) => Math.abs(s.effectiveScore - maxScore) < 0.05,
+    );
+    return {
+      score: maxScore,
+      subjects: topSubjects,
+      isTie: topSubjects.length > 1,
+      primary: topSubjects[0],
+    };
+  }, [evaluatedCompletedSubjects]);
 
-  // Credit Analysis
+  const lowestSubjectResult = useMemo(() => {
+    if (!evaluatedCompletedSubjects.length) return null;
+    let minScore = Infinity;
+    for (const s of evaluatedCompletedSubjects) {
+      if (s.effectiveScore < minScore) minScore = s.effectiveScore;
+    }
+    const lowSubjects = evaluatedCompletedSubjects.filter(
+      (s) => Math.abs(s.effectiveScore - minScore) < 0.05,
+    );
+    return {
+      score: minScore,
+      subjects: lowSubjects,
+      isTie: lowSubjects.length > 1,
+      primary: lowSubjects[0],
+    };
+  }, [evaluatedCompletedSubjects]);
+
+  const rankedSubjects = useMemo(() => {
+    if (!evaluatedCompletedSubjects.length) return [];
+    const sorted = [...evaluatedCompletedSubjects].sort(
+      (a, b) => b.effectiveScore - a.effectiveScore,
+    );
+
+    let currentRank = 1;
+    return sorted.map((item, idx, arr) => {
+      if (
+        idx > 0 &&
+        Math.abs(item.effectiveScore - arr[idx - 1].effectiveScore) >= 0.05
+      ) {
+        currentRank = idx + 1;
+      }
+      return { ...item, rank: currentRank };
+    });
+  }, [evaluatedCompletedSubjects]);
+
   const creditAnalysis = useMemo(() => {
-    const completedCredits = completedSemesters.reduce(
-      (sum, sem) => sum + (sem.creditsEarned || sem.credits || 20),
-      0,
-    );
-    const degreeTotal = 160;
-    const progressPct = Math.min(
-      100,
-      Math.round((completedCredits / degreeTotal) * 100),
-    );
+    const completedCredits = completedSemesters.reduce((sum, sem) => {
+      if (Array.isArray(sem.subjects) && sem.subjects.length > 0) {
+        return (
+          sum +
+          sem.subjects.reduce((sSum, subj) => {
+            const status = resolveSubjectStatus(subj);
+            return status === "completed"
+              ? sSum + (Number(subj.credits) || 3)
+              : sSum;
+          }, 0)
+        );
+      }
+      return sum + (sem.creditsEarned || sem.credits || 20);
+    }, 0);
+
+    const degreeTotal = totalDegreeCreditsConfigured;
+    const progressPct =
+      degreeTotal && degreeTotal > 0
+        ? Math.min(100, Math.round((completedCredits / degreeTotal) * 100))
+        : null;
 
     return {
       completedCredits,
-      remainingCredits: Math.max(0, degreeTotal - completedCredits),
+      remainingCredits:
+        degreeTotal && degreeTotal > 0
+          ? Math.max(0, degreeTotal - completedCredits)
+          : null,
       degreeTotal,
       progressPct,
+      isConfigured: degreeTotal !== null && degreeTotal > 0,
     };
-  }, [completedSemesters]);
+  }, [completedSemesters, totalDegreeCreditsConfigured]);
+
+  const aiAcademicInsights = useMemo(() => {
+    if (!completedSemesters.length || !evaluatedCompletedSubjects.length) {
+      return [
+        "Complete at least one semester with evaluated subjects to unlock personalized AI academic trend observations.",
+      ];
+    }
+
+    const insights: string[] = [];
+
+    if (bestSemester && bestSemester.sgpa) {
+      insights.push(
+        `${bestSemester.name} is your highest performing semester with an SGPA of ${bestSemester.sgpa.toFixed(2)}.`,
+      );
+    }
+
+    if (mostImprovedSemester && mostImprovedSemester.delta > 0) {
+      insights.push(
+        `Your average SGPA improved by +${mostImprovedSemester.delta.toFixed(2)} between consecutive terms (${mostImprovedSemester.name}).`,
+      );
+    }
+
+    const highSgpaSems = completedSemesters.filter(
+      (s) => typeof s.sgpa === "number" && s.sgpa >= 9.0,
+    );
+    if (highSgpaSems.length >= 2) {
+      insights.push(
+        `You maintained an SGPA above 9.0 across ${highSgpaSems.length} completed semesters.`,
+      );
+    }
+
+    const totalEarned = creditAnalysis.completedCredits;
+    insights.push(
+      `You have earned ${totalEarned} completed credits across ${completedSemesters.length} semester${completedSemesters.length > 1 ? "s" : ""}.`,
+    );
+
+    if (highestSubjectResult) {
+      const nameStr = highestSubjectResult.isTie
+        ? `${highestSubjectResult.subjects.length} subjects (including ${highestSubjectResult.primary.name})`
+        : highestSubjectResult.primary.name;
+      insights.push(
+        `Peak academic score recorded in ${nameStr} (${safeFormatPct(highestSubjectResult.score)}).`,
+      );
+    }
+
+    return insights;
+  }, [
+    completedSemesters,
+    evaluatedCompletedSubjects,
+    bestSemester,
+    mostImprovedSemester,
+    creditAnalysis,
+    highestSubjectResult,
+  ]);
 
   const toggleSubjectExpand = (id: string) => {
     const next = new Set(expandedSubjectIds);
@@ -387,10 +504,12 @@ export function AnalyticsPage() {
   }
 
   function handleExportTranscript() {
-    toast.success("Academic Transcript prepared for export!", {
-      id: "export-transcript-toast",
-    });
-    window.print();
+    if (tab !== "history") {
+      setTab("history");
+    }
+    setTimeout(() => {
+      window.print();
+    }, 50);
   }
 
   return (
@@ -441,11 +560,12 @@ export function AnalyticsPage() {
             /* Analytics Overview Tab */
             <div className="flex flex-col gap-8">
               {/* Section 1: Performance Summary Grid (4 Cards) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Section 1: Performance Summary Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* 1. Best Semester */}
                 <Card className="p-4 bg-gradient-to-br from-zinc-900 to-purple-950/30 border border-purple-500/30">
                   <div className="flex items-center justify-between text-xs text-purple-600 dark:text-purple-300 font-bold uppercase tracking-wider mb-2">
-                    <span>Best Semester</span>
+                    <span>Peak Performance</span>
                     <Trophy size={16} className="text-amber-400" />
                   </div>
                   {bestSemester ? (
@@ -531,154 +651,224 @@ export function AnalyticsPage() {
                     </div>
                   )}
                 </Card>
-
-                {/* 4. Academic Consistency Score */}
-                <Card className="p-4 bg-white dark:bg-zinc-950/70 border border-slate-200 dark:border-white/10">
-                  <div className="flex items-center justify-between text-xs text-zinc-400 font-bold uppercase tracking-wider mb-2">
-                    <span>Consistency Score</span>
-                    <ShieldCheck size={16} className="text-purple-400" />
-                  </div>
-                  <div>
-                    <div className="flex items-baseline gap-2">
-                      <span className="font-extrabold text-slate-900 dark:text-white text-xl font-mono">
-                        {consistencyScore.score}%
-                      </span>
-                      <span className="text-xs text-emerald-400 font-semibold">
-                        {consistencyScore.label}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-zinc-400 mt-2">
-                      Based on SGPA stability across terms
-                    </p>
-                  </div>
-                </Card>
               </div>
 
-              {/* Section 2: Subject Analysis & Ranking */}
+              {/* Section 2: Subject Highlights & Performance Ranking */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Highest & Lowest Highlight Cards */}
                 <div className="flex flex-col gap-4">
-                  <Card className="p-6 bg-white dark:bg-zinc-950/70 border border-emerald-200 dark:border-emerald-500/30 shadow-sm">
-                    <div className="flex items-center justify-between text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider mb-3">
-                      <span>Highest Scoring Subject</span>
-                      <Award
-                        size={18}
-                        className="text-emerald-600 dark:text-emerald-400"
-                      />
-                    </div>
-                    {highestSubject ? (
-                      <div>
-                        <h3 className="font-extrabold text-slate-900 dark:text-white text-xl">
-                          {highestSubject.name}
-                        </h3>
-                        <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1 font-medium">
-                          {highestSubject.code || "Course"} •{" "}
-                          {highestSubject.credits} Credits
-                        </p>
-                        <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-200 dark:border-white/10">
-                          <Badge tone="accent">
-                            {highestSubject.letterGrade || "A+"}
-                          </Badge>
-                          <span className="font-mono font-extrabold text-slate-900 dark:text-white text-2xl">
-                            {safeFormatPct(highestSubject.pct)}
-                          </span>
-                        </div>
+                  {/* Highest Scoring Subject Card */}
+                  <Card className="p-5 bg-white dark:bg-zinc-950/70 border border-emerald-200 dark:border-emerald-500/30 shadow-sm flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider mb-3">
+                        <span>
+                          Highest Scoring Subject
+                          {highestSubjectResult?.isTie
+                            ? `s (${highestSubjectResult.subjects.length})`
+                            : ""}
+                        </span>
+                        <Award
+                          size={18}
+                          className="text-emerald-600 dark:text-emerald-400"
+                        />
                       </div>
-                    ) : (
-                      <p className="text-xs text-slate-500 dark:text-zinc-500">
-                        No subjects evaluated
-                      </p>
+                      {highestSubjectResult ? (
+                        highestSubjectResult.isTie ? (
+                          <div className="flex flex-col gap-1.5 my-2">
+                            {highestSubjectResult.subjects.map((s, idx) => (
+                              <div
+                                key={idx}
+                                className="flex items-center gap-2 text-xs font-extrabold text-slate-900 dark:text-white"
+                              >
+                                <span className="text-emerald-500">•</span>
+                                <span>{s.name}</span>
+                                {s.code && (
+                                  <span className="text-[10px] text-zinc-400 font-mono">
+                                    ({s.code})
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div>
+                            <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">
+                              {highestSubjectResult.primary.name}
+                            </h3>
+                            <p className="text-xs text-slate-500 dark:text-zinc-400 font-medium mt-1">
+                              {highestSubjectResult.primary.semesterName} •{" "}
+                              {highestSubjectResult.primary.credits} Credits
+                              {highestSubjectResult.primary.code
+                                ? ` • ${highestSubjectResult.primary.code}`
+                                : ""}
+                            </p>
+                          </div>
+                        )
+                      ) : (
+                        <p className="text-xs text-slate-500 dark:text-zinc-500 italic py-2">
+                          Complete at least one semester to determine the
+                          highest scoring subject.
+                        </p>
+                      )}
+                    </div>
+                    {highestSubjectResult && (
+                      <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-200 dark:border-white/10">
+                        <Badge tone="accent" className="font-bold">
+                          Grade{" "}
+                          {highestSubjectResult.primary.letterGrade || "O"}
+                        </Badge>
+                        <span className="font-mono font-extrabold text-slate-900 dark:text-white text-xl">
+                          {safeFormatPct(highestSubjectResult.score)}
+                        </span>
+                      </div>
                     )}
                   </Card>
 
-                  <Card className="p-6 bg-white dark:bg-zinc-950/70 border border-rose-200 dark:border-rose-500/30 shadow-sm">
-                    <div className="flex items-center justify-between text-xs font-bold text-rose-700 dark:text-rose-400 uppercase tracking-wider mb-3">
-                      <span>Lowest Scoring Subject</span>
-                      <AlertTriangle
-                        size={18}
-                        className="text-rose-600 dark:text-rose-400"
-                      />
-                    </div>
-                    {lowestSubject ? (
-                      <div>
-                        <h3 className="font-extrabold text-slate-900 dark:text-white text-xl">
-                          {lowestSubject.name}
-                        </h3>
-                        <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1 font-medium">
-                          {lowestSubject.code || "Course"} •{" "}
-                          {lowestSubject.credits} Credits
-                        </p>
-                        <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-200 dark:border-white/10">
-                          <Badge tone="warning">
-                            {lowestSubject.letterGrade || "B"}
-                          </Badge>
-                          <span className="font-mono font-extrabold text-amber-600 dark:text-amber-400 text-2xl">
-                            {safeFormatPct(lowestSubject.pct)}
-                          </span>
-                        </div>
+                  {/* Lowest Scoring Subject Card */}
+                  <Card className="p-5 bg-white dark:bg-zinc-950/70 border border-rose-200 dark:border-rose-500/30 shadow-sm flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between text-xs font-bold text-rose-700 dark:text-rose-400 uppercase tracking-wider mb-3">
+                        <span>
+                          Lowest Scoring Subject
+                          {lowestSubjectResult?.isTie
+                            ? `s (${lowestSubjectResult.subjects.length})`
+                            : ""}
+                        </span>
+                        <AlertTriangle
+                          size={18}
+                          className="text-rose-600 dark:text-rose-400"
+                        />
                       </div>
-                    ) : (
-                      <p className="text-xs text-slate-500 dark:text-zinc-500">
-                        No subjects evaluated
-                      </p>
+                      {lowestSubjectResult ? (
+                        lowestSubjectResult.isTie ? (
+                          <div className="flex flex-col gap-1.5 my-2">
+                            {lowestSubjectResult.subjects.map((s, idx) => (
+                              <div
+                                key={idx}
+                                className="flex items-center gap-2 text-xs font-extrabold text-slate-900 dark:text-white"
+                              >
+                                <span className="text-rose-500">•</span>
+                                <span>{s.name}</span>
+                                {s.code && (
+                                  <span className="text-[10px] text-zinc-400 font-mono">
+                                    ({s.code})
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div>
+                            <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">
+                              {lowestSubjectResult.primary.name}
+                            </h3>
+                            <p className="text-xs text-slate-500 dark:text-zinc-400 font-medium mt-1">
+                              {lowestSubjectResult.primary.semesterName} •{" "}
+                              {lowestSubjectResult.primary.credits} Credits
+                              {lowestSubjectResult.primary.code
+                                ? ` • ${lowestSubjectResult.primary.code}`
+                                : ""}
+                            </p>
+                          </div>
+                        )
+                      ) : (
+                        <p className="text-xs text-slate-500 dark:text-zinc-500 italic py-2">
+                          Complete at least one semester to determine the lowest
+                          scoring subject.
+                        </p>
+                      )}
+                    </div>
+                    {lowestSubjectResult && (
+                      <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-200 dark:border-white/10">
+                        <Badge tone="warning" className="font-bold">
+                          Grade {lowestSubjectResult.primary.letterGrade || "B"}
+                        </Badge>
+                        <span className="font-mono font-extrabold text-amber-600 dark:text-amber-400 text-xl">
+                          {safeFormatPct(lowestSubjectResult.score)}
+                        </span>
+                      </div>
                     )}
                   </Card>
                 </div>
 
                 {/* Sorted Subject Performance Ranking Table */}
-                <Card className="lg:col-span-2 border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-900/90 shadow-sm overflow-hidden">
+                <Card className="lg:col-span-2 border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-900/90 shadow-sm overflow-hidden flex flex-col">
                   <CardHeader className="bg-slate-50 dark:bg-zinc-950 py-3.5 px-5 border-b border-slate-200 dark:border-white/10 flex flex-row items-center justify-between">
                     <CardTitle className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                       <Trophy
                         size={18}
                         className="text-purple-600 dark:text-purple-400"
                       />{" "}
-                      Subject Performance Ranking ({sortedAllSubjects.length})
+                      Subject Performance Ranking ({rankedSubjects.length})
                     </CardTitle>
                     <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium">
-                      Ranked by Percentage
+                      Completed Subjects Only
                     </span>
                   </CardHeader>
-                  <CardContent className="p-0 overflow-x-auto max-h-[340px] overflow-y-auto">
-                    {sortedAllSubjects.length === 0 ? (
+                  <CardContent className="p-0 overflow-x-auto max-h-[380px] overflow-y-auto">
+                    {rankedSubjects.length === 0 ? (
                       <div className="p-8 text-center text-xs text-slate-500 dark:text-zinc-500 italic">
-                        No subject records available.
+                        Complete at least one semester with completed subjects
+                        to view rankings.
                       </div>
                     ) : (
                       <table className="w-full min-w-full border-separate border-spacing-0 text-xs text-left table-fixed">
-                        <thead className="bg-slate-100 dark:bg-zinc-950 text-slate-600 dark:text-zinc-400 font-bold uppercase tracking-wider text-[10px] sticky top-0 border-b border-slate-200 dark:border-white/10">
+                        <thead className="bg-slate-100 dark:bg-zinc-950 text-slate-600 dark:text-zinc-400 font-bold uppercase tracking-wider text-[10px] sticky top-0 border-b border-slate-200 dark:border-white/10 z-10">
                           <tr>
-                            <th className="px-5 py-3">Rank</th>
-                            <th className="px-5 py-3">Subject Name</th>
-                            <th className="px-5 py-3">Semester</th>
-                            <th className="px-5 py-3 text-right">Credits</th>
-                            <th className="px-5 py-3 text-right">Score %</th>
-                            <th className="px-5 py-3 pr-5 text-right">Grade</th>
+                            <th className="px-4 py-3.5 w-16">Rank</th>
+                            <th className="px-4 py-3.5">Subject Name</th>
+                            <th className="px-4 py-3.5">Semester</th>
+                            <th className="px-4 py-3.5 text-right w-16">
+                              Credits
+                            </th>
+                            <th className="px-4 py-3.5 text-right w-24">
+                              Score %
+                            </th>
+                            <th className="px-4 py-3.5 text-center w-20">
+                              Grade
+                            </th>
+                            <th className="px-4 py-3.5 pr-5 text-center w-24">
+                              Status
+                            </th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-800 dark:divide-white/10 font-mono">
-                          {sortedAllSubjects.map((subj, idx) => (
+                        <tbody className="divide-y divide-slate-200 dark:divide-white/10">
+                          {rankedSubjects.map((subj, idx) => (
                             <tr
                               key={idx}
-                              className="hover:bg-slate-200/10 dark:hover:bg-white/10 transition-colors"
+                              className="hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
                             >
-                              <td className="px-5 py-3.5 font-bold text-purple-700 dark:text-purple-400">
-                                #{idx + 1}
+                              <td className="px-4 py-4 font-bold font-mono text-purple-700 dark:text-purple-400">
+                                #{subj.rank}
                               </td>
-                              <td className="px-5 py-3.5 font-sans font-bold text-slate-900 dark:text-white">
-                                {subj.name}
+                              <td className="px-4 py-4 font-sans font-bold text-slate-900 dark:text-white">
+                                <div className="flex flex-col gap-0.5">
+                                  <span>{subj.name}</span>
+                                  {subj.code && (
+                                    <span className="text-[10px] font-mono text-slate-500 dark:text-zinc-400 font-normal">
+                                      {subj.code}
+                                    </span>
+                                  )}
+                                </div>
                               </td>
-                              <td className="px-5 py-3.5 text-slate-600 dark:text-zinc-400 font-sans text-[11px]">
+                              <td className="px-4 py-4 text-slate-600 dark:text-zinc-400 font-sans text-xs">
                                 {subj.semesterName}
                               </td>
-                              <td className="px-5 py-3.5 text-right font-bold text-slate-700 dark:text-zinc-300">
+                              <td className="px-4 py-4 text-right font-bold text-slate-700 dark:text-zinc-300 font-mono">
                                 {subj.credits}
                               </td>
-                              <td className="px-5 py-3.5 text-right font-extrabold text-slate-900 dark:text-white text-sm">
-                                {safeFormatPct(subj.pct)}
+                              <td className="px-4 py-4 text-right font-extrabold text-slate-900 dark:text-white text-sm font-mono">
+                                {safeFormatPct(subj.effectiveScore)}
                               </td>
-                              <td className="px-5 py-3.5 pr-5 text-right font-sans">
-                                <Badge tone="accent">{subj.letterGrade}</Badge>
+                              <td className="px-4 py-4 text-center font-sans">
+                                <Badge tone="accent" className="font-bold">
+                                  {subj.letterGrade}
+                                </Badge>
+                              </td>
+                              <td className="px-4 py-4 pr-5 text-center font-sans">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                  Completed
+                                </span>
                               </td>
                             </tr>
                           ))}
@@ -689,117 +879,102 @@ export function AnalyticsPage() {
                 </Card>
               </div>
 
-              {/* Section 3: Grade Distribution Histogram & Credit Progress */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Grade Distribution Bar Chart */}
-                <Card className="p-5 bg-white dark:bg-zinc-950/70 border border-slate-200 dark:border-white/10">
-                  <CardHeader className="p-0 mb-4">
-                    <CardTitle className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                      <PieChart size={16} className="text-purple-400" /> Grade
-                      Distribution Histogram
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    {gradeDistribution.length === 0 ? (
-                      <div className="p-6 text-center text-xs text-zinc-500">
-                        No grade data available.
-                      </div>
-                    ) : (
-                      <div className="flex flex-col gap-3">
-                        {gradeDistribution.map(([grade, count]) => {
-                          const maxCount = Math.max(
-                            ...gradeDistribution.map(([_, c]) => c),
-                          );
-                          const widthPct = Math.max(
-                            8,
-                            Math.round((count / maxCount) * 100),
-                          );
-
-                          return (
-                            <div
-                              key={grade}
-                              className="flex items-center gap-3 text-xs font-mono"
-                            >
-                              <span className="w-8 font-bold text-purple-600 dark:text-purple-300 text-right">
-                                {grade}
-                              </span>
-                              <div className="flex-1 h-5 bg-white dark:bg-zinc-900 rounded-full overflow-hidden border border-slate-200 dark:border-white/5 p-0.5">
-                                <div
-                                  className="h-full bg-gradient-to-r from-purple-600 to-indigo-500 rounded-full transition-all duration-500"
-                                  style={{ width: `${widthPct}%` }}
-                                />
-                              </div>
-                              <span className="w-12 text-zinc-400 font-bold">
-                                {count} {count === 1 ? "course" : "courses"}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Credit Analysis & Progress Indicator */}
-                <Card className="p-5 bg-white dark:bg-zinc-950/70 border border-slate-200 dark:border-white/10 flex flex-col justify-between">
-                  <CardHeader className="p-0 mb-4">
-                    <CardTitle className="text-sm font-bold text-slate-900 dark:text-white flex items-center justify-between">
-                      <span className="flex items-center gap-2">
-                        <Zap size={16} className="text-emerald-400" /> Degree
-                        Credit Progress
-                      </span>
+              {/* Section 3: Degree Credit Progress */}
+              <Card className="p-6 bg-white dark:bg-zinc-950/70 border border-slate-200 dark:border-white/10">
+                <CardHeader className="p-0 mb-4">
+                  <CardTitle className="text-sm font-bold text-slate-900 dark:text-white flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      <Zap size={18} className="text-emerald-400" /> Degree Credit
+                      Progress
+                    </span>
+                    {creditAnalysis.isConfigured && (
                       <span className="text-xs font-mono text-emerald-400 font-bold">
                         {creditAnalysis.progressPct}% Complete
                       </span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-0 flex flex-col gap-5">
-                    {/* Visual Progress Bar */}
-                    <div className="flex flex-col gap-2">
-                      <div className="h-4 w-full bg-white dark:bg-zinc-900 rounded-full overflow-hidden border border-slate-200 dark:border-white/10 p-0.5">
-                        <div
-                          className="h-full bg-gradient-to-r from-purple-500 via-indigo-500 to-emerald-400 rounded-full transition-all duration-700 shadow-[0_0_15px_rgba(16,185,129,0.3)]"
-                          style={{ width: `${creditAnalysis.progressPct}%` }}
-                        />
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0 flex flex-col gap-5">
+                  {creditAnalysis.isConfigured ? (
+                    /* Scenario 1: Total Degree Credits Configured */
+                    <>
+                      <div className="flex flex-col gap-2">
+                        <div className="h-4 w-full bg-white dark:bg-zinc-900 rounded-full overflow-hidden border border-slate-200 dark:border-white/10 p-0.5">
+                          <div
+                            className="h-full bg-gradient-to-r from-purple-500 via-indigo-500 to-emerald-400 rounded-full transition-all duration-700 shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+                            style={{ width: `${creditAnalysis.progressPct}%` }}
+                          />
+                        </div>
+                        <div className="flex justify-between text-[11px] font-mono text-zinc-400">
+                          <span>0 Credits</span>
+                          <span className="text-slate-900 dark:text-white font-bold">
+                            {creditAnalysis.completedCredits} /{" "}
+                            {creditAnalysis.degreeTotal} Credits (
+                            {creditAnalysis.progressPct}%)
+                          </span>
+                          <span>
+                            {creditAnalysis.degreeTotal} Total Target
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex justify-between text-[11px] font-mono text-zinc-400">
-                        <span>0 Credits</span>
-                        <span className="text-slate-900 dark:text-white font-bold">
-                          {creditAnalysis.completedCredits} Earned
-                        </span>
-                        <span>{creditAnalysis.degreeTotal} Total Target</span>
-                      </div>
-                    </div>
 
-                    <div className="grid grid-cols-3 gap-3 text-center text-xs font-mono">
-                      <div className="p-3 bg-white/80 dark:bg-zinc-900/60 rounded-xl border border-slate-200 dark:border-white/5">
-                        <span className="text-[10px] text-zinc-400 block font-sans font-semibold uppercase">
-                          Completed
-                        </span>
-                        <span className="font-extrabold text-slate-900 dark:text-white text-base mt-1 block">
-                          {creditAnalysis.completedCredits}
-                        </span>
+                      <div className="grid grid-cols-3 gap-3 text-center text-xs font-mono">
+                        <div className="p-3 bg-white/80 dark:bg-zinc-900/60 rounded-xl border border-slate-200 dark:border-white/5">
+                          <span className="text-[10px] text-zinc-400 block font-sans font-semibold uppercase">
+                            Completed
+                          </span>
+                          <span className="font-extrabold text-slate-900 dark:text-white text-base mt-1 block">
+                            {creditAnalysis.completedCredits}
+                          </span>
+                        </div>
+                        <div className="p-3 bg-white/80 dark:bg-zinc-900/60 rounded-xl border border-slate-200 dark:border-white/5">
+                          <span className="text-[10px] text-purple-600 dark:text-purple-300 block font-sans font-semibold uppercase">
+                            Remaining
+                          </span>
+                          <span className="font-extrabold text-purple-400 text-base mt-1 block">
+                            {creditAnalysis.remainingCredits}
+                          </span>
+                        </div>
+                        <div className="p-3 bg-white/80 dark:bg-zinc-900/60 rounded-xl border border-slate-200 dark:border-white/5">
+                          <span className="text-[10px] text-emerald-400 block font-sans font-semibold uppercase">
+                            Total Target
+                          </span>
+                          <span className="font-extrabold text-emerald-400 text-base mt-1 block">
+                            {creditAnalysis.degreeTotal}
+                          </span>
+                        </div>
                       </div>
-                      <div className="p-3 bg-white/80 dark:bg-zinc-900/60 rounded-xl border border-slate-200 dark:border-white/5">
-                        <span className="text-[10px] text-purple-600 dark:text-purple-300 block font-sans font-semibold uppercase">
-                          Remaining
-                        </span>
-                        <span className="font-extrabold text-purple-400 text-base mt-1 block">
-                          {creditAnalysis.remainingCredits}
-                        </span>
+                    </>
+                  ) : (
+                    /* Scenario 2: Total Credits Unknown / Unconfigured */
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 bg-slate-50 dark:bg-zinc-900/60 rounded-xl border border-slate-200 dark:border-white/10 gap-4">
+                      <div>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-3xl font-extrabold font-mono text-slate-900 dark:text-white">
+                            {creditAnalysis.completedCredits}
+                          </span>
+                          <span className="text-sm font-semibold text-emerald-400">
+                            Credits Earned
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 dark:text-zinc-400 mt-2">
+                          Configure your total graduation credits to enable
+                          degree progress tracking.
+                        </p>
                       </div>
-                      <div className="p-3 bg-white/80 dark:bg-zinc-900/60 rounded-xl border border-slate-200 dark:border-white/5">
-                        <span className="text-[10px] text-emerald-400 block font-sans font-semibold uppercase">
-                          Total Target
-                        </span>
-                        <span className="font-extrabold text-emerald-400 text-base mt-1 block">
-                          {creditAnalysis.degreeTotal}
-                        </span>
-                      </div>
+                      <Link to="/app/settings">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-1.5 text-xs whitespace-nowrap"
+                        >
+                          Set Total Credits
+                        </Button>
+                      </Link>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
+                  )}
+                </CardContent>
+              </Card>
 
               {/* Section 4: AI Academic Insights */}
               <Card className="glow-purple border border-purple-500/30 bg-gradient-to-r from-purple-950/40 via-zinc-900 to-blue-950/40 p-6">
@@ -807,15 +982,21 @@ export function AnalyticsPage() {
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-500/30 shadow-lg">
                     <Sparkles size={24} />
                   </div>
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2.5">
                     <h3 className="text-sm font-extrabold text-purple-200 uppercase tracking-wider">
-                      AI Academic Trend & Consistency Observations
+                      AI Academic Insights & Trend Observations
                     </h3>
-                    <p className="text-xs sm:text-sm text-zinc-200 leading-relaxed">
-                      {completedSemesters.length > 0
-                        ? `Across your evaluated semesters, your academic standing maintains a ${consistencyScore.label.toLowerCase()} (${consistencyScore.score}%). Your peak performance was recorded in ${bestSemester?.name || "earlier terms"} with an SGPA of ${bestSemester?.sgpa ? bestSemester.sgpa.toFixed(2) : "N/A"}. Maintaining focused effort on core subjects will optimize your cumulative CGPA trajectory.`
-                        : "Record your active semester subjects to unlock personalized AI academic trend observations and consistency analysis."}
-                    </p>
+                    <div className="flex flex-col gap-2">
+                      {aiAcademicInsights.map((insight, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-start gap-2 text-xs sm:text-sm text-zinc-200 leading-relaxed"
+                        >
+                          <span className="text-purple-400 font-bold">•</span>
+                          <span>{insight}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </Card>
@@ -834,8 +1015,58 @@ export function AnalyticsPage() {
                 </Card>
               ) : (
                 <div className="flex flex-col gap-6">
+                  {/* Print-Only Official Academic Transcript Document Header */}
+                  <div className="hidden print:block mb-6 p-6 border border-slate-300 rounded-2xl bg-white text-slate-900 shadow-sm">
+                    <div className="flex items-center justify-between border-b border-slate-200 pb-4 mb-4">
+                      <div>
+                        <h1 className="text-2xl font-black tracking-tight text-slate-900">
+                          OFFICIAL ACADEMIC TRANSCRIPT
+                        </h1>
+                        <p className="text-xs text-slate-500 font-medium mt-0.5">
+                          GradeWise AI — Comprehensive Academic Record & Performance Overview
+                        </p>
+                      </div>
+                      <div className="text-right text-xs font-mono text-slate-500">
+                        <p>Date: {new Date().toLocaleDateString()}</p>
+                        <p className="font-bold text-slate-800 mt-0.5">
+                          Status: Verified Official Record
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4 text-center text-xs font-mono">
+                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                        <span className="text-[10px] text-slate-500 block font-sans font-semibold uppercase">
+                          Semesters Evaluated
+                        </span>
+                        <span className="font-extrabold text-slate-900 text-lg mt-0.5 block">
+                          {completedSemesters.length}
+                        </span>
+                      </div>
+                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                        <span className="text-[10px] text-slate-500 block font-sans font-semibold uppercase">
+                          Total Credits Earned
+                        </span>
+                        <span className="font-extrabold text-purple-700 text-lg mt-0.5 block">
+                          {creditAnalysis.completedCredits}
+                        </span>
+                      </div>
+                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                        <span className="text-[10px] text-slate-500 block font-sans font-semibold uppercase">
+                          Cumulative CGPA
+                        </span>
+                        <span className="font-extrabold text-emerald-700 text-lg mt-0.5 block">
+                          {completedSemesters.length > 0 &&
+                          typeof completedSemesters[completedSemesters.length - 1].cgpa === "number"
+                            ? completedSemesters[completedSemesters.length - 1].cgpa?.toFixed(2)
+                            : "N/A"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Digital Academic Transcript Header Bar */}
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between no-print">
                     <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400 flex items-center gap-2">
                       <GraduationCap size={16} className="text-purple-400" />{" "}
                       Chronological Academic Transcript (
@@ -849,7 +1080,7 @@ export function AnalyticsPage() {
                       variant="outline"
                       size="sm"
                       onClick={handleExportTranscript}
-                      className="gap-1.5 text-xs"
+                      className="gap-1.5 text-xs no-print"
                     >
                       <Download size={14} /> Export Transcript
                     </Button>
@@ -877,7 +1108,7 @@ export function AnalyticsPage() {
                       return (
                         <Card
                           key={semId}
-                          className={`overflow-hidden transition-all duration-200 border ${
+                          className={`overflow-hidden transition-all duration-200 border print-break-inside-avoid ${
                             isSelected
                               ? "border-purple-500/60 bg-gradient-to-br from-zinc-900 via-zinc-900 to-purple-950/20 shadow-[0_0_25px_rgba(124,58,237,0.15)]"
                               : "border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-zinc-950/60 hover:border-purple-500/30"
@@ -945,7 +1176,7 @@ export function AnalyticsPage() {
                                   setSelectedSemesterId(semId);
                                   setIsEditModalOpen(true);
                                 }}
-                                className="ml-2 p-2 rounded-xl bg-purple-600/20 hover:bg-purple-600 text-purple-600 dark:text-purple-300 hover:text-slate-900 dark:text-white transition border border-purple-500/30"
+                                className="ml-2 p-2 rounded-xl bg-purple-600/20 hover:bg-purple-600 text-purple-600 dark:text-purple-300 hover:text-slate-900 dark:text-white transition border border-purple-500/30 no-print"
                                 title="Edit Semester"
                               >
                                 <Edit3 size={14} />
@@ -956,20 +1187,27 @@ export function AnalyticsPage() {
                           {/* Semester Subjects Breakdown Table */}
                           <CardContent className="p-0">
                             <div className="overflow-x-auto">
-                              <table className="w-full text-left text-xs">
+                              <table className="w-full text-left text-xs border-collapse">
                                 <thead className="bg-slate-50 dark:bg-zinc-950/60 text-zinc-400 border-b border-slate-200 dark:border-white/10 font-semibold uppercase text-[10px] tracking-wider">
                                   <tr>
-                                    <th className="p-3.5 pl-6">
-                                      Subject Course
-                                    </th>
-                                    <th className="p-3.5">Code</th>
-                                    <th className="p-3.5">Credits</th>
-                                    <th className="p-3.5">Marks Obtained</th>
-                                    <th className="p-3.5">Max Marks</th>
-                                    <th className="p-3.5">Score %</th>
-                                    <th className="p-3.5 pr-6 text-right">
-                                      Letter Grade
-                                    </th>
+                                    {visibleColumns.map((col, cIdx) => (
+                                      <th
+                                        key={col.key}
+                                        className={`p-3.5 ${
+                                          cIdx === 0 ? "pl-6" : ""
+                                        } ${
+                                          cIdx === visibleColumns.length - 1
+                                            ? "pr-6"
+                                            : ""
+                                        } ${
+                                          col.align === "right"
+                                            ? "text-right"
+                                            : "text-left"
+                                        }`}
+                                      >
+                                        {col.label}
+                                      </th>
+                                    ))}
                                   </tr>
                                 </thead>
                                 <tbody className="divide-y divide-white/5 font-mono">
@@ -980,63 +1218,181 @@ export function AnalyticsPage() {
                                         subj?.id ||
                                         subj?._id ||
                                         `subj-${semId}-${subIdx}`;
-                                      const displayName =
-                                        subj?.subjectName ||
-                                        subj?.name ||
-                                        "Subject";
-                                      const displayCode =
-                                        subj?.subjectCode || subj?.code || "—";
-                                      const displayMarksObtained =
-                                        subj?.marksObtained !== null &&
-                                        subj?.marksObtained !== undefined
-                                          ? subj.marksObtained
-                                          : "—";
-                                      const displayMaxMarks =
-                                        subj?.maxMarks !== null &&
-                                        subj?.maxMarks !== undefined
-                                          ? subj.maxMarks
-                                          : "—";
-                                      const displayPct = safeFormatPct(
-                                        subj?.finalPercentage ?? subj?.pct,
-                                      );
-                                      const displayGrade =
-                                        subj?.grade || subj?.letterGrade || "—";
 
                                       return (
                                         <tr
                                           key={subjId}
                                           className="hover:bg-purple-500/5 transition-colors"
                                         >
-                                          <td className="p-3.5 pl-6 font-sans font-bold text-slate-900 dark:text-white">
-                                            {displayName}
-                                          </td>
-                                          <td className="p-3.5 text-zinc-400">
-                                            {displayCode}
-                                          </td>
-                                          <td className="p-3.5 text-slate-700 dark:text-zinc-300">
-                                            {subj?.credits ?? 3}
-                                          </td>
-                                          <td className="p-3.5 text-zinc-200">
-                                            {displayMarksObtained}
-                                          </td>
-                                          <td className="p-3.5 text-zinc-400">
-                                            {displayMaxMarks}
-                                          </td>
-                                          <td className="p-3.5 font-bold text-purple-600 dark:text-purple-300">
-                                            {displayPct}
-                                          </td>
-                                          <td className="p-3.5 pr-6 text-right font-sans">
-                                            <Badge tone="accent">
-                                              {displayGrade}
-                                            </Badge>
-                                          </td>
+                                          {visibleColumns.map((col, cIdx) => {
+                                            const isFirst = cIdx === 0;
+                                            const isLast =
+                                              cIdx === visibleColumns.length - 1;
+                                            const alignClass =
+                                              col.align === "right"
+                                                ? "text-right"
+                                                : "text-left";
+                                            const paddingClass = `p-3.5 ${
+                                              isFirst ? "pl-6" : ""
+                                            } ${isLast ? "pr-6" : ""}`;
+
+                                            switch (col.key) {
+                                              case "subjectName":
+                                                return (
+                                                  <td
+                                                    key={col.key}
+                                                    className={`${paddingClass} ${alignClass} font-sans font-bold text-slate-900 dark:text-white`}
+                                                  >
+                                                    {subj?.subjectName ||
+                                                      subj?.name ||
+                                                      "Subject"}
+                                                  </td>
+                                                );
+                                              case "subjectCode":
+                                                return (
+                                                  <td
+                                                    key={col.key}
+                                                    className={`${paddingClass} ${alignClass} text-zinc-400`}
+                                                  >
+                                                    {subj?.subjectCode ||
+                                                      subj?.code ||
+                                                      "—"}
+                                                  </td>
+                                                );
+                                              case "credits":
+                                                return (
+                                                  <td
+                                                    key={col.key}
+                                                    className={`${paddingClass} ${alignClass} text-slate-700 dark:text-zinc-300`}
+                                                  >
+                                                    {subj?.credits ?? 3}
+                                                  </td>
+                                                );
+                                              case "marksObtained":
+                                                return (
+                                                  <td
+                                                    key={col.key}
+                                                    className={`${paddingClass} ${alignClass} text-zinc-200`}
+                                                  >
+                                                    {subj?.marksObtained !==
+                                                      null &&
+                                                    subj?.marksObtained !==
+                                                      undefined
+                                                      ? subj.marksObtained
+                                                      : "—"}
+                                                  </td>
+                                                );
+                                              case "maxMarks":
+                                                return (
+                                                  <td
+                                                    key={col.key}
+                                                    className={`${paddingClass} ${alignClass} text-zinc-400`}
+                                                  >
+                                                    {subj?.maxMarks !== null &&
+                                                    subj?.maxMarks !== undefined
+                                                      ? subj.maxMarks
+                                                      : "—"}
+                                                  </td>
+                                                );
+                                              case "scorePct":
+                                                return (
+                                                  <td
+                                                    key={col.key}
+                                                    className={`${paddingClass} ${alignClass} font-bold text-purple-600 dark:text-purple-300`}
+                                                  >
+                                                    {safeFormatPct(
+                                                      subj?.finalPercentage ??
+                                                        subj?.pct,
+                                                    )}
+                                                  </td>
+                                                );
+                                              case "letterGrade":
+                                                return (
+                                                  <td
+                                                    key={col.key}
+                                                    className={`${paddingClass} ${alignClass} font-sans`}
+                                                  >
+                                                    <Badge tone="accent">
+                                                      {subj?.grade ||
+                                                        subj?.letterGrade ||
+                                                        "—"}
+                                                    </Badge>
+                                                  </td>
+                                                );
+                                              case "status": {
+                                                const statusKey = resolveSubjectStatus(subj);
+                                                const statusCfg =
+                                                  SUBJECT_STATUS_CONFIG[statusKey] ||
+                                                  SUBJECT_STATUS_CONFIG.in_progress;
+                                                return (
+                                                  <td
+                                                    key={col.key}
+                                                    className={`${paddingClass} ${alignClass} font-sans`}
+                                                  >
+                                                    <span
+                                                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${statusCfg.className}`}
+                                                    >
+                                                      {statusCfg.label}
+                                                    </span>
+                                                  </td>
+                                                );
+                                              }
+                                              case "gradePoint": {
+                                                const gpVal =
+                                                  subj?.gradePoint !== null &&
+                                                  subj?.gradePoint !== undefined
+                                                    ? subj.gradePoint
+                                                    : typeof subj?.finalPercentage ===
+                                                      "number"
+                                                    ? (
+                                                        subj.finalPercentage /
+                                                        10
+                                                      ).toFixed(1)
+                                                    : "—";
+                                                return (
+                                                  <td
+                                                    key={col.key}
+                                                    className={`${paddingClass} ${alignClass} font-bold text-slate-700 dark:text-zinc-300`}
+                                                  >
+                                                    {gpVal}
+                                                  </td>
+                                                );
+                                              }
+                                              case "remarks": {
+                                                const isFail =
+                                                  subj?.grade === "F" ||
+                                                  subj?.letterGrade === "F";
+                                                const remarkText =
+                                                  (subj as any)?.remarks ||
+                                                  (isFail ? "Fail" : "Pass");
+                                                return (
+                                                  <td
+                                                    key={col.key}
+                                                    className={`${paddingClass} ${alignClass} font-sans`}
+                                                  >
+                                                    <span
+                                                      className={`text-[11px] font-bold ${
+                                                        isFail
+                                                          ? "text-rose-600 dark:text-rose-400"
+                                                          : "text-emerald-600 dark:text-emerald-400"
+                                                      }`}
+                                                    >
+                                                      {remarkText}
+                                                    </span>
+                                                  </td>
+                                                );
+                                              }
+                                              default:
+                                                return null;
+                                            }
+                                          })}
                                         </tr>
                                       );
                                     })
                                   ) : (
                                     <tr>
                                       <td
-                                        colSpan={7}
+                                        colSpan={visibleColumns.length || 1}
                                         className="p-6 text-center text-zinc-500 font-sans text-xs italic"
                                       >
                                         No detailed subject records stored for

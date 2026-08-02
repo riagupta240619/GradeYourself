@@ -230,3 +230,92 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ── Print Optimization for Full Multi-Page Academic Transcript Export ──── */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm 10mm 12mm 10mm;
+  }
+
+  /* 1. Reset all container scroll & height limits for complete multi-page rendering */
+  html,
+  body,
+  #root,
+  main,
+  div,
+  section,
+  article,
+  .h-screen,
+  .overflow-hidden,
+  .overflow-y-auto,
+  .overflow-x-auto,
+  .max-h-\[340px\],
+  .max-h-\[90vh\] {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+    position: static !important;
+    display: block !important;
+    float: none !important;
+    flex: none !important;
+    transform: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  body {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    font-size: 11pt !important;
+    line-height: 1.4 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* 2. Hide non-printable navigation, buttons, and popups */
+  header,
+  nav,
+  aside,
+  button,
+  .no-print,
+  [data-sonner-toaster],
+  [role="dialog"] {
+    display: none !important;
+  }
+
+  /* 3. Page break and card formatting rules */
+  .print-break-inside-avoid,
+  .transcript-card {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    margin-bottom: 1.5rem !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    background-color: #ffffff !important;
+  }
+
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 10pt !important;
+  }
+
+  th,
+  td {
+    border-bottom: 1px solid #e2e8f0 !important;
+    padding: 6px 10px !important;
+    color: #0f172a !important;
+  }
+
+  tr {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  thead {
+    display: table-header-group !important;
+    background-color: #f8fafc !important;
+  }
+}
+

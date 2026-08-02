@@ -128,6 +128,18 @@ const subjectSchema = new mongoose.Schema(
       type: Number,
       default: null,
     },
+    status: {
+      type: String,
+      enum: [
+        "completed",
+        "in_progress",
+        "reappear",
+        "backlog",
+        "incomplete",
+        "withheld_result",
+      ],
+      default: "in_progress",
+    },
     assessments: [
       {
         id: { type: String },
