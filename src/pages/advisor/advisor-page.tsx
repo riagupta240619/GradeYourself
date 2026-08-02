@@ -42,14 +42,19 @@ export function AdvisorPage() {
         <p className="text-xs sm:text-sm text-zinc-400 mt-1">Real-time intelligent recommendations calculated from your live subject marks and exam weightages.</p>
       </div>
 
-      <Card className="glow-purple border-purple-500/30 bg-gradient-to-br from-zinc-900 via-zinc-900 to-purple-950/20">
+      <Card className="glow-purple border border-purple-200 dark:border-purple-500/30 bg-gradient-to-br from-purple-50/80 via-white to-slate-50 dark:bg-zinc-900 shadow-sm">
         <CardContent className="pt-6 flex items-center gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-purple-500/20 text-purple-400 border border-purple-500/30">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-500/30">
             <Sparkles size={24} />
           </div>
           <div>
+<<<<<<< Updated upstream
             <h3 className="text-sm font-bold text-white">Automated Study Optimization Active</h3>
             <p className="text-xs text-zinc-400 mt-0.5">Engine analyzed 4 active subjects and identified 3 high-impact action items for this semester.</p>
+=======
+            <h3 className="text-sm font-bold text-slate-800 dark:text-white">Automated Study Optimization Active</h3>
+            <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">Engine analyzed 4 active subjects and identified 3 high-impact action items for this semester.</p>
+>>>>>>> Stashed changes
           </div>
         </CardContent>
       </Card>

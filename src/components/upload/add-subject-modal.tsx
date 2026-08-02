@@ -8,11 +8,12 @@ import { SemesterService, type SemesterWithTotalCredits } from "@/services/semes
 interface AddSubjectModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
 const PALETTE = ["#6366f1", "#22c55e", "#f59e0b", "#ec4899", "#06b6d4", "#8b5cf6", "#14b8a6"];
 
-export function AddSubjectModal({ isOpen, onClose }: AddSubjectModalProps) {
+export function AddSubjectModal({ isOpen, onClose, onSuccess }: AddSubjectModalProps) {
   const [semesters, setSemesters] = useState<SemesterWithTotalCredits[]>([]);
   const [activeTab, setActiveTab] = useState<"form" | "bulk">("form");
   const [targetSemId, setTargetSemId] = useState<string>("");
@@ -120,6 +121,7 @@ export function AddSubjectModal({ isOpen, onClose }: AddSubjectModalProps) {
 
       setSuccessMsg(`Subject "${name}" added successfully!`);
       window.dispatchEvent(new CustomEvent("academic-data-updated"));
+      onSuccess?.();
       setTimeout(() => {
         resetForm();
         onClose();
@@ -205,6 +207,7 @@ export function AddSubjectModal({ isOpen, onClose }: AddSubjectModalProps) {
 
       setSuccessMsg(`Successfully imported ${parsedSubjects.length} subject(s)!`);
       window.dispatchEvent(new CustomEvent("academic-data-updated"));
+      onSuccess?.();
       setTimeout(() => {
         resetForm();
         onClose();

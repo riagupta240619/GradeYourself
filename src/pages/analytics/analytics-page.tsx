@@ -343,83 +343,125 @@ export function AnalyticsPage() {
               {/* Section 1: Performance Summary Grid (4 Cards) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* 1. Best Semester */}
+<<<<<<< Updated upstream
                 <Card className="p-4 bg-gradient-to-br from-zinc-900 to-purple-950/30 border border-purple-500/30">
                   <div className="flex items-center justify-between text-xs text-purple-300 font-bold uppercase tracking-wider mb-2">
+=======
+                <Card className="p-4 bg-gradient-to-br from-purple-50/70 via-white to-slate-50 dark:from-zinc-950 dark:via-zinc-900 dark:to-purple-950/30 border border-purple-200 dark:border-purple-500/30 shadow-xs">
+                  <div className="flex items-center justify-between text-xs text-purple-700 dark:text-purple-300 font-bold uppercase tracking-wider mb-2">
+>>>>>>> Stashed changes
                     <span>Best Semester</span>
-                    <Trophy size={16} className="text-amber-400" />
+                    <Trophy size={16} className="text-amber-500 dark:text-amber-400" />
                   </div>
                   {bestSemester ? (
                     <div>
+<<<<<<< Updated upstream
                       <p className="font-extrabold text-white text-lg">{bestSemester.name}</p>
+=======
+                      <p className="font-extrabold text-slate-800 dark:text-white text-lg">{bestSemester.name}</p>
+>>>>>>> Stashed changes
                       <div className="flex items-center justify-between mt-2 text-xs">
                         <span className="font-mono text-purple-300 font-bold text-sm">
                           SGPA {bestSemester.sgpa ? bestSemester.sgpa.toFixed(2) : "N/A"}
                         </span>
-                        <span className="text-zinc-400 font-mono">{bestSemester.creditsEarned} Credits</span>
+                        <span className="text-slate-500 dark:text-zinc-400 font-mono">{bestSemester.creditsEarned} Credits</span>
                       </div>
                     </div>
                   ) : (
-                    <p className="text-xs text-zinc-500 mt-2">No completed terms</p>
+                    <p className="text-xs text-slate-500 dark:text-zinc-500 mt-2">No completed terms</p>
                   )}
                 </Card>
 
                 {/* 2. Lowest Semester */}
+<<<<<<< Updated upstream
                 <Card className="p-4 bg-zinc-950/70 border border-white/10">
                   <div className="flex items-center justify-between text-xs text-zinc-400 font-bold uppercase tracking-wider mb-2">
+=======
+                <Card className="p-4 bg-white dark:bg-zinc-950/70 border border-slate-200 dark:border-white/10 shadow-xs">
+                  <div className="flex items-center justify-between text-xs text-slate-500 dark:text-zinc-400 font-bold uppercase tracking-wider mb-2">
+>>>>>>> Stashed changes
                     <span>Lowest Semester</span>
-                    <AlertTriangle size={16} className="text-rose-400" />
+                    <AlertTriangle size={16} className="text-rose-500 dark:text-rose-400" />
                   </div>
                   {lowestSemester ? (
                     <div>
+<<<<<<< Updated upstream
                       <p className="font-extrabold text-white text-lg">{lowestSemester.name}</p>
+=======
+                      <p className="font-extrabold text-slate-800 dark:text-white text-lg">{lowestSemester.name}</p>
+>>>>>>> Stashed changes
                       <div className="flex items-center justify-between mt-2 text-xs">
-                        <span className="font-mono text-amber-400 font-bold text-sm">
+                        <span className="font-mono text-amber-600 dark:text-amber-400 font-bold text-sm">
                           SGPA {lowestSemester.sgpa ? lowestSemester.sgpa.toFixed(2) : "N/A"}
                         </span>
-                        <span className="text-zinc-400 font-mono">{lowestSemester.creditsEarned} Credits</span>
+                        <span className="text-slate-500 dark:text-zinc-400 font-mono">{lowestSemester.creditsEarned} Credits</span>
                       </div>
                     </div>
                   ) : (
-                    <p className="text-xs text-zinc-500 mt-2">No completed terms</p>
+                    <p className="text-xs text-slate-500 dark:text-zinc-500 mt-2">No completed terms</p>
                   )}
                 </Card>
 
                 {/* 3. Most Improved Semester */}
+<<<<<<< Updated upstream
                 <Card className="p-4 bg-zinc-950/70 border border-white/10">
                   <div className="flex items-center justify-between text-xs text-zinc-400 font-bold uppercase tracking-wider mb-2">
+=======
+                <Card className="p-4 bg-white dark:bg-zinc-950/70 border border-slate-200 dark:border-white/10 shadow-xs">
+                  <div className="flex items-center justify-between text-xs text-slate-500 dark:text-zinc-400 font-bold uppercase tracking-wider mb-2">
+>>>>>>> Stashed changes
                     <span>Most Improved</span>
-                    <TrendingUp size={16} className="text-emerald-400" />
+                    <TrendingUp size={16} className="text-emerald-500 dark:text-emerald-400" />
                   </div>
                   {mostImprovedSemester ? (
                     <div>
+<<<<<<< Updated upstream
                       <p className="font-extrabold text-white text-lg">{mostImprovedSemester.name}</p>
+=======
+                      <p className="font-extrabold text-slate-800 dark:text-white text-lg">{mostImprovedSemester.name}</p>
+>>>>>>> Stashed changes
                       <div className="flex items-center justify-between mt-2 text-xs">
-                        <span className="font-mono text-emerald-400 font-bold text-sm">
+                        <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold text-sm">
                           +{mostImprovedSemester.delta.toFixed(2)} SGPA
                         </span>
-                        <span className="text-zinc-400 font-mono">Gain</span>
+                        <span className="text-slate-500 dark:text-zinc-400 font-mono">Gain</span>
                       </div>
                     </div>
                   ) : (
                     <div>
+<<<<<<< Updated upstream
                       <p className="font-extrabold text-white text-lg">Steady Pace</p>
                       <p className="text-xs text-zinc-400 mt-2 font-mono">Requires 2+ terms</p>
+=======
+                      <p className="font-extrabold text-slate-800 dark:text-white text-lg">Steady Pace</p>
+                      <p className="text-xs text-slate-500 dark:text-zinc-400 mt-2 font-mono">Requires 2+ terms</p>
+>>>>>>> Stashed changes
                     </div>
                   )}
                 </Card>
 
                 {/* 4. Academic Consistency Score */}
+<<<<<<< Updated upstream
                 <Card className="p-4 bg-zinc-950/70 border border-white/10">
                   <div className="flex items-center justify-between text-xs text-zinc-400 font-bold uppercase tracking-wider mb-2">
+=======
+                <Card className="p-4 bg-white dark:bg-zinc-950/70 border border-slate-200 dark:border-white/10 shadow-xs">
+                  <div className="flex items-center justify-between text-xs text-slate-500 dark:text-zinc-400 font-bold uppercase tracking-wider mb-2">
+>>>>>>> Stashed changes
                     <span>Consistency Score</span>
-                    <ShieldCheck size={16} className="text-purple-400" />
+                    <ShieldCheck size={16} className="text-purple-600 dark:text-purple-400" />
                   </div>
                   <div>
                     <div className="flex items-baseline gap-2">
+<<<<<<< Updated upstream
                       <span className="font-extrabold text-white text-xl font-mono">{consistencyScore.score}%</span>
                       <span className="text-xs text-emerald-400 font-semibold">{consistencyScore.label}</span>
+=======
+                      <span className="font-extrabold text-slate-800 dark:text-white text-xl font-mono">{consistencyScore.score}%</span>
+                      <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold">{consistencyScore.label}</span>
+>>>>>>> Stashed changes
                     </div>
-                    <p className="text-[11px] text-zinc-400 mt-2">Based on SGPA stability across terms</p>
+                    <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-2">Based on SGPA stability across terms</p>
                   </div>
                 </Card>
               </div>
@@ -435,11 +477,19 @@ export function AnalyticsPage() {
                     </div>
                     {highestSubject ? (
                       <div>
+<<<<<<< Updated upstream
                         <h3 className="font-extrabold text-white text-lg">{highestSubject.name}</h3>
                         <p className="text-xs text-zinc-400 mt-0.5">{highestSubject.code || "Course"} • {highestSubject.credits} Credits</p>
                         <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/10">
                           <Badge tone="accent">{highestSubject.letterGrade || "A+"}</Badge>
                           <span className="font-mono font-extrabold text-white text-lg">{safeFormatPct(highestSubject.pct)}</span>
+=======
+                        <h3 className="font-extrabold text-slate-800 dark:text-white text-xl">{highestSubject.name}</h3>
+                        <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1 font-medium">{highestSubject.code || "Course"} • {highestSubject.credits} Credits</p>
+                        <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-200 dark:border-white/10">
+                          <Badge tone="accent">{highestSubject.letterGrade || "A+"}</Badge>
+                          <span className="font-mono font-extrabold text-slate-800 dark:text-white text-2xl">{safeFormatPct(highestSubject.pct)}</span>
+>>>>>>> Stashed changes
                         </div>
                       </div>
                     ) : (
@@ -454,9 +504,15 @@ export function AnalyticsPage() {
                     </div>
                     {lowestSubject ? (
                       <div>
+<<<<<<< Updated upstream
                         <h3 className="font-extrabold text-white text-lg">{lowestSubject.name}</h3>
                         <p className="text-xs text-zinc-400 mt-0.5">{lowestSubject.code || "Course"} • {lowestSubject.credits} Credits</p>
                         <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/10">
+=======
+                        <h3 className="font-extrabold text-slate-800 dark:text-white text-xl">{lowestSubject.name}</h3>
+                        <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1 font-medium">{lowestSubject.code || "Course"} • {lowestSubject.credits} Credits</p>
+                        <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-200 dark:border-white/10">
+>>>>>>> Stashed changes
                           <Badge tone="warning">{lowestSubject.letterGrade || "B"}</Badge>
                           <span className="font-mono font-extrabold text-amber-400 text-lg">{safeFormatPct(lowestSubject.pct)}</span>
                         </div>
@@ -591,16 +647,20 @@ export function AnalyticsPage() {
               </div>
 
               {/* Section 4: AI Academic Insights */}
-              <Card className="glow-purple border border-purple-500/30 bg-gradient-to-r from-purple-950/40 via-zinc-900 to-blue-950/40 p-6">
+              <Card className="glow-purple border border-purple-200 dark:border-purple-500/30 bg-gradient-to-r from-purple-50/80 via-white to-blue-50/80 dark:from-purple-950/40 dark:via-zinc-900 dark:to-blue-950/40 p-6">
                 <div className="flex items-start gap-4">
+<<<<<<< Updated upstream
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-purple-500/20 text-purple-400 border border-purple-500/30 shadow-lg">
+=======
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-500/30 shadow-md">
+>>>>>>> Stashed changes
                     <Sparkles size={24} />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <h3 className="text-sm font-extrabold text-purple-200 uppercase tracking-wider">
+                    <h3 className="text-sm font-extrabold text-purple-900 dark:text-purple-200 uppercase tracking-wider">
                       AI Academic Trend & Consistency Observations
                     </h3>
-                    <p className="text-xs sm:text-sm text-zinc-200 leading-relaxed">
+                    <p className="text-xs sm:text-sm text-slate-700 dark:text-zinc-200 leading-relaxed">
                       {completedSemesters.length > 0
                         ? `Across your evaluated semesters, your academic standing maintains a ${consistencyScore.label.toLowerCase()} (${consistencyScore.score}%). Your peak performance was recorded in ${bestSemester?.name || "earlier terms"} with an SGPA of ${bestSemester?.sgpa ? bestSemester.sgpa.toFixed(2) : "N/A"}. Maintaining focused effort on core subjects will optimize your cumulative CGPA trajectory.`
                         : "Record your active semester subjects to unlock personalized AI academic trend observations and consistency analysis."}
@@ -644,22 +704,38 @@ export function AnalyticsPage() {
                         <Card
                           key={semId}
                           className={`overflow-hidden transition-all duration-200 border ${isSelected
+<<<<<<< Updated upstream
                               ? "border-purple-500/60 bg-gradient-to-br from-zinc-900 via-zinc-900 to-purple-950/20 shadow-[0_0_25px_rgba(124,58,237,0.15)]"
                               : "border-white/10 bg-zinc-950/60 hover:border-purple-500/30"
+=======
+                              ? "border-purple-400/60 dark:border-purple-500/60 bg-white dark:bg-zinc-900 shadow-md dark:shadow-none"
+                              : "border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950/60 hover:border-purple-500/30"
+>>>>>>> Stashed changes
                             }`}
                         >
                           {/* Semester Transcript Header */}
                           <div
                             onClick={() => setSelectedSemesterId(semId)}
+<<<<<<< Updated upstream
                             className="flex flex-col sm:flex-row sm:items-center justify-between p-5 bg-zinc-950/90 border-b border-white/10 gap-4 cursor-pointer"
                           >
                             <div className="flex items-center gap-3.5">
                               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30 font-bold text-sm font-mono">
+=======
+                            className="flex flex-col sm:flex-row sm:items-center justify-between p-5 bg-slate-50/60 dark:bg-zinc-950/90 border-b border-slate-200 dark:border-white/10 gap-4 cursor-pointer"
+                          >
+                            <div className="flex items-center gap-3.5">
+                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-500/30 font-bold text-sm font-mono">
+>>>>>>> Stashed changes
                                 #{sem.semesterNumber || sIdx + 1}
                               </div>
                               <div>
                                 <div className="flex items-center gap-2">
+<<<<<<< Updated upstream
                                   <h3 className="font-extrabold text-white text-lg tracking-tight">{sem.name || `Semester ${sem.semesterNumber}`}</h3>
+=======
+                                  <h3 className="font-extrabold text-slate-800 dark:text-white text-lg tracking-tight">{sem.name || `Semester ${sem.semesterNumber}`}</h3>
+>>>>>>> Stashed changes
                                   <Badge tone="success" className="text-[10px]">
                                     <CheckCircle2 size={11} className="mr-1 inline" /> Completed
                                   </Badge>
@@ -672,18 +748,28 @@ export function AnalyticsPage() {
 
                             <div className="flex flex-wrap items-center gap-4 text-xs font-mono">
                               <div className="flex flex-col">
+<<<<<<< Updated upstream
                                 <span className="text-zinc-400 text-[10px] uppercase font-bold font-sans">SGPA</span>
                                 <span className="text-purple-300 font-extrabold text-base">{semSgpaFormatted}</span>
+=======
+                                <span className="text-slate-500 dark:text-zinc-400 text-[10px] uppercase font-bold font-sans">SGPA</span>
+                                <span className="text-purple-600 dark:text-purple-300 font-extrabold text-base">{semSgpaFormatted}</span>
+>>>>>>> Stashed changes
                               </div>
-                              <div className="h-6 w-px bg-white/10 hidden sm:block" />
+                              <div className="h-6 w-px bg-slate-200 dark:bg-white/10 hidden sm:block" />
                               <div className="flex flex-col">
+<<<<<<< Updated upstream
                                 <span className="text-zinc-400 text-[10px] uppercase font-bold font-sans">CGPA</span>
                                 <span className="text-white font-extrabold text-base">{semCgpaFormatted}</span>
+=======
+                                <span className="text-slate-500 dark:text-zinc-400 text-[10px] uppercase font-bold font-sans">CGPA</span>
+                                <span className="text-slate-800 dark:text-white font-extrabold text-base">{semCgpaFormatted}</span>
+>>>>>>> Stashed changes
                               </div>
-                              <div className="h-6 w-px bg-white/10 hidden sm:block" />
+                              <div className="h-6 w-px bg-slate-200 dark:bg-white/10 hidden sm:block" />
                               <div className="flex flex-col">
-                                <span className="text-zinc-400 text-[10px] uppercase font-bold font-sans">Credits Earned</span>
-                                <span className="text-emerald-400 font-extrabold text-base">{semCredits}</span>
+                                <span className="text-slate-500 dark:text-zinc-400 text-[10px] uppercase font-bold font-sans">Credits Earned</span>
+                                <span className="text-emerald-600 dark:text-emerald-400 font-extrabold text-base">{semCredits}</span>
                               </div>
                               <button
                                 onClick={(e) => {
@@ -691,7 +777,11 @@ export function AnalyticsPage() {
                                   setSelectedSemesterId(semId);
                                   setIsEditModalOpen(true);
                                 }}
+<<<<<<< Updated upstream
                                 className="ml-2 p-2 rounded-xl bg-purple-600/20 hover:bg-purple-600 text-purple-300 hover:text-white transition border border-purple-500/30"
+=======
+                                className="ml-2 p-2 rounded-xl bg-purple-50 dark:bg-purple-600/20 hover:bg-purple-600 text-purple-600 dark:text-purple-300 hover:text-white transition border border-purple-200 dark:border-purple-500/30"
+>>>>>>> Stashed changes
                                 title="Edit Semester"
                               >
                                 <Edit3 size={14} />
@@ -703,7 +793,11 @@ export function AnalyticsPage() {
                           <CardContent className="p-0">
                             <div className="overflow-x-auto">
                               <table className="w-full text-left text-xs">
+<<<<<<< Updated upstream
                                 <thead className="bg-zinc-950/60 text-zinc-400 border-b border-white/10 font-semibold uppercase text-[10px] tracking-wider">
+=======
+                                <thead className="bg-slate-50 dark:bg-zinc-950/60 text-slate-500 dark:text-zinc-400 border-b border-slate-200 dark:border-white/10 font-semibold uppercase text-[10px] tracking-wider">
+>>>>>>> Stashed changes
                                   <tr>
                                     <th className="p-3.5 pl-6">Subject Course</th>
                                     <th className="p-3.5">Code</th>
@@ -714,7 +808,7 @@ export function AnalyticsPage() {
                                     <th className="p-3.5 pr-6 text-right">Letter Grade</th>
                                   </tr>
                                 </thead>
-                                <tbody className="divide-y divide-white/5 font-mono">
+                                <tbody className="divide-y divide-slate-100 dark:divide-white/5 font-mono">
                                   {Array.isArray(sem.subjects) && sem.subjects.length > 0 ? (
                                     sem.subjects.map((subj, subIdx) => {
                                       const subjId = subj?.id || subj?._id || `subj-${semId}-${subIdx}`;
@@ -726,6 +820,7 @@ export function AnalyticsPage() {
                                       const displayGrade = subj?.grade || subj?.letterGrade || "—";
 
                                       return (
+<<<<<<< Updated upstream
                                         <tr key={subjId} className="hover:bg-purple-500/5 transition-colors">
                                           <td className="p-3.5 pl-6 font-sans font-bold text-white">{displayName}</td>
                                           <td className="p-3.5 text-zinc-400">{displayCode}</td>
@@ -733,6 +828,15 @@ export function AnalyticsPage() {
                                           <td className="p-3.5 text-zinc-200">{displayMarksObtained}</td>
                                           <td className="p-3.5 text-zinc-400">{displayMaxMarks}</td>
                                           <td className="p-3.5 font-bold text-purple-300">{displayPct}</td>
+=======
+                                        <tr key={subjId} className="hover:bg-purple-50/50 dark:hover:bg-purple-500/5 transition-colors">
+                                          <td className="p-3.5 pl-6 font-sans font-bold text-slate-800 dark:text-white">{displayName}</td>
+                                          <td className="p-3.5 text-slate-500 dark:text-zinc-400">{displayCode}</td>
+                                          <td className="p-3.5 text-slate-700 dark:text-zinc-300">{subj?.credits ?? 3}</td>
+                                          <td className="p-3.5 text-slate-800 dark:text-zinc-200">{displayMarksObtained}</td>
+                                          <td className="p-3.5 text-slate-500 dark:text-zinc-400">{displayMaxMarks}</td>
+                                          <td className="p-3.5 font-bold text-purple-600 dark:text-purple-300">{displayPct}</td>
+>>>>>>> Stashed changes
                                           <td className="p-3.5 pr-6 text-right font-sans">
                                             <Badge tone="accent">{displayGrade}</Badge>
                                           </td>

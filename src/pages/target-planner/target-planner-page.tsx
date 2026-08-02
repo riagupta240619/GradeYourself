@@ -193,8 +193,13 @@ export function TargetPlannerPage() {
         <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-300 mb-2">
           <Target size={12} className="text-purple-400" /> Current Semester AI Target Planner
         </div>
+<<<<<<< Updated upstream
         <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Active Semester Target Planner</h1>
         <p className="text-xs sm:text-sm text-zinc-400 mt-1">
+=======
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-800 dark:text-white">Active Semester Target Planner</h1>
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1">
+>>>>>>> Stashed changes
           Real-time predictions for your current active semester subjects.
         </p>
       </div>
@@ -202,12 +207,19 @@ export function TargetPlannerPage() {
       {/* Target Setting & Overview Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Target Slider Card */}
-        <Card className="glow-purple border-purple-500/30 bg-gradient-to-br from-zinc-900 via-zinc-900 to-purple-950/30 md:col-span-2 p-5">
+        <Card className="glow-purple border border-purple-200 dark:border-purple-500/30 bg-gradient-to-br from-purple-50/70 via-purple-50/20 to-white dark:bg-none dark:bg-zinc-900 md:col-span-2 p-5 shadow-sm">
           <div className="flex items-center justify-between mb-2">
+<<<<<<< Updated upstream
             <label className="text-xs font-bold uppercase tracking-wider text-zinc-300 flex items-center gap-1.5">
               <Calculator size={14} className="text-purple-400" /> Target CGPA Goal
             </label>
             <span className="text-xs font-bold text-purple-300 bg-purple-500/20 px-2.5 py-1 rounded-full border border-purple-500/30">
+=======
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-zinc-300 flex items-center gap-1.5">
+              <Calculator size={14} className="text-purple-600 dark:text-purple-400" /> Target CGPA Goal
+            </label>
+            <span className="text-xs font-bold text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-500/20 px-2.5 py-1 rounded-full border border-purple-200 dark:border-purple-500/30">
+>>>>>>> Stashed changes
               {targetCgpa.toFixed(2)} CGPA Goal
             </span>
           </div>
@@ -218,39 +230,59 @@ export function TargetPlannerPage() {
             max={100}
             value={target}
             onChange={(e) => handleSliderChange(Number(e.target.value))}
-            className="w-full h-2 rounded-lg bg-zinc-800 appearance-none cursor-pointer accent-purple-500 my-4"
+            className="w-full h-2 rounded-lg bg-slate-200 dark:bg-zinc-800 appearance-none cursor-pointer accent-purple-500 my-4"
           />
 
           <div className="flex items-baseline justify-between pt-2 border-t border-white/10">
             <div className="flex items-baseline gap-2">
+<<<<<<< Updated upstream
               <span className="text-3xl sm:text-4xl font-extrabold font-tabular text-white tracking-tight">{target}%</span>
               <span className="text-xs text-zinc-400">Required Benchmark</span>
+=======
+              <span className="text-3xl sm:text-4xl font-extrabold font-tabular text-slate-800 dark:text-white tracking-tight">{target}%</span>
+              <span className="text-xs text-slate-500 dark:text-zinc-400">Required Benchmark</span>
+>>>>>>> Stashed changes
             </div>
             <Badge tone={tone as any}>{feasibility}</Badge>
           </div>
         </Card>
 
         {/* Current & Required SGPA Overview Card */}
+<<<<<<< Updated upstream
         <Card className="border border-white/10 bg-zinc-950/60 p-5 flex flex-col justify-between space-y-3">
+=======
+        <Card className="border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950/60 p-5 flex flex-col justify-between space-y-3 shadow-sm">
+>>>>>>> Stashed changes
           <div>
             <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block mb-1">Planning Metrics</span>
             <div className="space-y-1.5 text-xs">
               <div className="flex items-center justify-between">
+<<<<<<< Updated upstream
                 <span className="text-zinc-400">Official CGPA:</span>
                 <span className="font-bold text-white font-mono">{currentCgpa ? currentCgpa.toFixed(2) : "N/A"}</span>
+=======
+                <span className="text-slate-500 dark:text-zinc-400">Official CGPA:</span>
+                <span className="font-bold text-slate-800 dark:text-white font-mono">{currentCgpa ? currentCgpa.toFixed(2) : "N/A"}</span>
+>>>>>>> Stashed changes
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-zinc-400">Current Sem Credits:</span>
-                <span className="font-bold text-amber-400 font-mono">{currentSemesterCredits}</span>
+                <span className="text-slate-500 dark:text-zinc-400">Current Sem Credits:</span>
+                <span className="font-bold text-amber-600 dark:text-amber-400 font-mono">{currentSemesterCredits}</span>
               </div>
             </div>
           </div>
 
+<<<<<<< Updated upstream
           <div className="pt-2 border-t border-white/10">
             <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400 block">Required SGPA This Semester</span>
             <span className="text-2xl font-extrabold text-white font-mono mt-0.5 block">
+=======
+          <div className="pt-2 border-t border-slate-200 dark:border-white/10">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400 block">Required SGPA This Semester</span>
+            <span className="text-2xl font-extrabold text-slate-800 dark:text-white font-mono mt-0.5 block">
+>>>>>>> Stashed changes
               {requiredSgpaThisSemester > (scale === "4.0" ? 4.0 : 10.0) ? (
-                <span className="text-rose-400 text-lg">Impossible (&gt;{scale === "4.0" ? "4.0" : "10.0"})</span>
+                <span className="text-rose-600 dark:text-rose-400 text-lg">Impossible (&gt;{scale === "4.0" ? "4.0" : "10.0"})</span>
               ) : (
                 requiredSgpaThisSemester.toFixed(2)
               )}
@@ -261,7 +293,7 @@ export function TargetPlannerPage() {
 
       {/* Main Subjects Predictions List */}
       {loading ? (
-        <Card className="p-8 text-center text-xs text-zinc-400 animate-pulse">
+        <Card className="p-8 text-center text-xs text-slate-500 dark:text-zinc-400 animate-pulse">
           Loading current semester subjects...
         </Card>
       ) : subjects.length === 0 ? (
@@ -271,8 +303,13 @@ export function TargetPlannerPage() {
             <BookOpen size={24} />
           </div>
           <div>
+<<<<<<< Updated upstream
             <h3 className="text-base font-bold text-white">No current semester subjects available.</h3>
             <p className="text-xs text-zinc-400 mt-1 max-w-sm mx-auto">
+=======
+            <h3 className="text-base font-bold text-slate-800 dark:text-white">No current semester subjects available.</h3>
+            <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1 max-w-sm mx-auto">
+>>>>>>> Stashed changes
               Add active subjects for the current semester on the Dashboard or click below to begin target planning.
             </p>
           </div>
@@ -289,7 +326,7 @@ export function TargetPlannerPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div className="flex items-center gap-2">
-              <Sparkles size={16} className="text-purple-400" />
+              <Sparkles size={16} className="text-purple-600 dark:text-purple-400" />
               <CardTitle>Current Semester Subject Targets ({subjects.length})</CardTitle>
             </div>
             <Badge tone={tone as any}>{feasibility} Goal</Badge>
@@ -300,12 +337,17 @@ export function TargetPlannerPage() {
               <motion.div
                 key={subject.id || subject._id}
                 whileHover={{ x: 2 }}
+<<<<<<< Updated upstream
                 className="flex flex-col sm:flex-row sm:items-center justify-between rounded-xl border border-white/10 bg-zinc-950/60 p-4 text-xs gap-3"
+=======
+                className="flex flex-col sm:flex-row sm:items-center justify-between rounded-xl border border-slate-200 bg-slate-50/70 dark:border-white/10 dark:bg-zinc-950/60 p-4 text-xs gap-3"
+>>>>>>> Stashed changes
               >
                 <div className="flex items-start gap-3">
                   <span className="h-3 w-3 rounded-full mt-1 shrink-0 shadow-sm" style={{ backgroundColor: subject.colorTag || "#3b82f6" }} />
                   <div>
                     <div className="flex items-center gap-2">
+<<<<<<< Updated upstream
                       <span className="font-bold text-white text-sm">{subject.name}</span>
                       <span className="text-[11px] text-zinc-400 font-mono">({subject.code || "No Code"})</span>
                       <Badge tone="accent" className="text-[10px]">{subject.credits} Credits</Badge>
@@ -313,6 +355,15 @@ export function TargetPlannerPage() {
 
                     <div className="flex flex-wrap items-center gap-3 text-[11px] text-zinc-400 mt-1">
                       <span>Obtained Marks: <strong className="text-zinc-200">{evaluatedMarks > 0 ? evaluatedMarks : "—"}</strong></span>
+=======
+                      <span className="font-bold text-slate-800 dark:text-white text-sm">{subject.name}</span>
+                      <span className="text-[11px] text-slate-500 dark:text-zinc-400 font-mono">({subject.code || "No Code"})</span>
+                      <Badge tone="accent" className="text-[10px]">{subject.credits} Credits</Badge>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-500 dark:text-zinc-400 mt-1">
+                      <span>Obtained Marks: <strong className="text-slate-800 dark:text-zinc-200">{evaluatedMarks > 0 ? evaluatedMarks : "—"}</strong></span>
+>>>>>>> Stashed changes
                       <span>•</span>
                       <span>Remaining Exams: <strong className="text-purple-300">{remainingTypes.length > 0 ? remainingTypes.join(", ") : "All Completed"}</strong></span>
                     </div>

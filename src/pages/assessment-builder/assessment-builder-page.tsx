@@ -281,8 +281,13 @@ export function AssessmentBuilderPage() {
           <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-300 mb-2">
             <Sliders size={12} className="text-purple-400" /> Universal Scheme Architect
           </div>
+<<<<<<< Updated upstream
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Assessment Scheme Builder</h1>
           <p className="text-xs sm:text-sm text-zinc-400 mt-1">
+=======
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-800 dark:text-white">Assessment Scheme Builder</h1>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1">
+>>>>>>> Stashed changes
             Build, import, and configure evaluation schemes for any university
           </p>
         </div>

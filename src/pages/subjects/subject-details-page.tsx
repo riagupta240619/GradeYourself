@@ -232,7 +232,7 @@ export function SubjectDetailsPage() {
       </div>
 
       {/* Main Course Header Card */}
-      <Card className="glow-purple border-purple-500/30 bg-gradient-to-br from-zinc-900 via-zinc-900 to-purple-950/20">
+      <Card className="glow-purple border border-purple-200 dark:border-purple-500/30 bg-gradient-to-br from-purple-50/80 via-purple-50/20 to-white dark:bg-none dark:bg-zinc-900 shadow-sm">
         <CardContent className="pt-6">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             {/* Left Section: Meta & Details */}
@@ -241,7 +241,11 @@ export function SubjectDetailsPage() {
               <div className="flex flex-wrap items-center gap-3">
                 <span className="h-4 w-4 shrink-0 rounded-full shadow-sm" style={{ backgroundColor: subject.colorTag || "#3b82f6" }} />
                 <h1
+<<<<<<< Updated upstream
                   className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white truncate max-w-full"
+=======
+                  className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-800 dark:text-white truncate max-w-full"
+>>>>>>> Stashed changes
                   title={subject.name}
                 >
                   {subject.name}
@@ -258,11 +262,16 @@ export function SubjectDetailsPage() {
 
               {/* Row 2: Current Score & Prediction */}
               <div className="flex flex-wrap items-center gap-4 text-xs">
-                <div className="flex items-center gap-1.5 text-zinc-400">
+                <div className="flex items-center gap-1.5 text-slate-500 dark:text-zinc-400">
                   <span>Current Score:</span>
                   {hasMarks ? (
+<<<<<<< Updated upstream
                     <span className="font-mono font-bold text-white text-sm">
                       {pct.toFixed(1)}% <span className="text-xs font-semibold text-purple-300">({pctToLetter(pct)})</span>
+=======
+                    <span className="font-mono font-bold text-slate-800 dark:text-white text-sm">
+                      {pct.toFixed(1)}% <span className="text-xs font-semibold text-purple-600 dark:text-purple-300">({pctToLetter(pct)})</span>
+>>>>>>> Stashed changes
                     </span>
                   ) : (
                     <span className="font-semibold text-zinc-400">Unavailable</span>
@@ -326,7 +335,11 @@ export function SubjectDetailsPage() {
               <CardHeader className="bg-zinc-950/70 border-b border-white/5 py-3 px-5 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <Layers size={16} className="text-purple-400" />
+<<<<<<< Updated upstream
                   <span className="font-bold text-white text-sm">{comp.name}</span>
+=======
+                  <span className="font-bold text-slate-800 dark:text-white text-sm">{comp.name}</span>
+>>>>>>> Stashed changes
                   <Badge tone="accent" className="text-[10px] uppercase font-mono tracking-wider">
                     Weight: {comp.weightPct}%
                   </Badge>

@@ -320,7 +320,11 @@ export function OnboardingPage() {
                         value={college}
                         onChange={(e) => setCollege(e.target.value)}
                         placeholder="e.g. Stanford University or Chitkara University"
+<<<<<<< Updated upstream
                         className="w-full rounded-xl border border-white/10 bg-zinc-950/60 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+=======
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-zinc-950/60 px-4 py-2.5 text-sm text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+>>>>>>> Stashed changes
                       />
                       <datalist id="college-suggestions">
                         {PRESET_COLLEGES.map((c) => (
@@ -338,7 +342,11 @@ export function OnboardingPage() {
                           value={course}
                           onChange={(e) => setCourse(e.target.value)}
                           placeholder="e.g. B.Tech / B.S."
+<<<<<<< Updated upstream
                           className="w-full rounded-xl border border-white/10 bg-zinc-950/60 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+=======
+                          className="w-full rounded-xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-zinc-950/60 px-4 py-2.5 text-sm text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+>>>>>>> Stashed changes
                         />
                         <datalist id="course-suggestions">
                           {PRESET_COURSES.map((c) => (
@@ -355,7 +363,11 @@ export function OnboardingPage() {
                           value={branch}
                           onChange={(e) => setBranch(e.target.value)}
                           placeholder="e.g. Computer Science"
+<<<<<<< Updated upstream
                           className="w-full rounded-xl border border-white/10 bg-zinc-950/60 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+=======
+                          className="w-full rounded-xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-zinc-950/60 px-4 py-2.5 text-sm text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+>>>>>>> Stashed changes
                         />
                         <datalist id="branch-suggestions">
                           {PRESET_BRANCHES.map((b) => (
@@ -388,7 +400,11 @@ export function OnboardingPage() {
                           value={academicSession}
                           onChange={(e) => setAcademicSession(e.target.value)}
                           placeholder="e.g. 2025 - 2026"
+<<<<<<< Updated upstream
                           className="w-full rounded-xl border border-white/10 bg-zinc-950/60 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+=======
+                          className="w-full rounded-xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-zinc-950/60 px-4 py-2.5 text-sm text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+>>>>>>> Stashed changes
                         />
                         <datalist id="session-suggestions">
                           {PRESET_SESSIONS.map((s) => (

@@ -150,15 +150,19 @@ export function SimulatorPage() {
       </div>
 
       {/* Simulation Controls Card */}
-      <Card className="glow-purple border-purple-500/30 bg-gradient-to-br from-zinc-900 via-zinc-900 to-purple-950/20">
+      <Card className="glow-purple border border-purple-200 dark:border-purple-500/30 bg-gradient-to-br from-purple-50/80 via-white to-slate-50 dark:bg-zinc-900 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle>{finalType.name} Simulation — {subject.name}</CardTitle>
+          <CardTitle className="text-slate-800 dark:text-white">{finalType.name} Simulation — {subject.name}</CardTitle>
           <Badge tone="accent">Weightage: {finalType.weightPct || 50}%</Badge>
         </CardHeader>
 
         <CardContent className="pt-2">
           <div className="flex items-center justify-between mb-2">
+<<<<<<< Updated upstream
             <span className="text-xs font-medium text-zinc-300">Simulated Score</span>
+=======
+            <span className="text-xs font-medium text-slate-600 dark:text-zinc-300">Simulated Score</span>
+>>>>>>> Stashed changes
             <span className="text-sm font-bold font-mono text-purple-400">
               {finalMarks} / {finalType.maxMarks} Marks
             </span>

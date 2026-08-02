@@ -152,17 +152,22 @@ export function ProfilePage() {
       )}
 
       {/* User Header Profile Banner */}
-      <Card className="glow-purple border-purple-500/30 bg-gradient-to-br from-zinc-900 via-zinc-900 to-purple-950/30 shadow-xl">
+      <Card className="glow-purple border border-purple-200 dark:border-purple-500/30 bg-gradient-to-br from-purple-50/80 via-white to-slate-50 dark:bg-zinc-900 shadow-md">
         <CardContent className="pt-6 flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
           <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-purple-600 to-blue-600 text-3xl font-bold text-white shadow-xl">
             {initial}
-            <span className="absolute -bottom-1 -right-1 h-4.5 w-4.5 rounded-full bg-emerald-500 ring-4 ring-zinc-950" />
+            <span className="absolute -bottom-1 -right-1 h-4.5 w-4.5 rounded-full bg-emerald-500 ring-4 ring-white dark:ring-zinc-950" />
           </div>
 
           <div className="flex flex-col gap-1 flex-1">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+<<<<<<< Updated upstream
               <h2 className="text-2xl font-extrabold text-white tracking-tight">{user?.name || "Student User"}</h2>
               <span className="text-xs text-zinc-400 font-mono">{user?.email}</span>
+=======
+              <h2 className="text-2xl font-extrabold text-slate-800 dark:text-white tracking-tight">{user?.name || "Student User"}</h2>
+              <span className="text-xs text-slate-500 dark:text-zinc-400 font-mono">{user?.email}</span>
+>>>>>>> Stashed changes
             </div>
             <p className="text-xs text-purple-300 font-medium">{user?.college || "University Institution"}</p>
             

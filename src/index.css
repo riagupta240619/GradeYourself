@@ -32,22 +32,23 @@
 }
 
 :root {
-  --bg-base: #09090b;
-  --bg-surface: #18181b;
-  --bg-elevated: #27272a;
-  --border-hairline: rgba(255, 255, 255, 0.08);
-  --text-primary: #ffffff;
-  --text-secondary: #a1a1aa;
-  --text-tertiary: #71717a;
+  --bg-base: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-elevated: #f1f5f9;
+  --border-hairline: #e2e8f0;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-tertiary: #64748b;
   --color-accent: #7c3aed;
 }
 
+/* ── Dark Mode Tokens (Preserved) ───────────────────────────────────────── */
 .dark {
   --bg-base: #09090b;
-  --bg-surface: #18181b;
-  --bg-elevated: #27272a;
+  --bg-surface: #141417;
+  --bg-elevated: #202025;
   --border-hairline: rgba(255, 255, 255, 0.08);
-  --text-primary: #ffffff;
+  --text-primary: #f4f4f5; /* Soft zinc-100 off-white */
   --text-secondary: #a1a1aa;
   --text-tertiary: #71717a;
   --color-accent: #7c3aed;

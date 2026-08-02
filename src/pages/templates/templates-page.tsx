@@ -56,8 +56,13 @@ export function TemplatesPage() {
           <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-xs font-semibold text-purple-300 mb-2">
             <Layers size={12} className="text-purple-400" /> Scheme Repository
           </div>
+<<<<<<< Updated upstream
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Community & University Grading Schemes</h1>
           <p className="text-xs sm:text-sm text-zinc-400 mt-1">
+=======
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-800 dark:text-white">Community & University Grading Schemes</h1>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1">
+>>>>>>> Stashed changes
             Pre-configured evaluation schemes for Chitkara University, Standard Theory, & Lab courses.
           </p>
         </div>
@@ -96,8 +101,13 @@ export function TemplatesPage() {
                 <CardContent className="flex flex-col gap-4 pt-6">
                   <div className="flex items-start justify-between gap-2">
                     <div>
+<<<<<<< Updated upstream
                       <h3 className="font-bold text-white text-base leading-snug">{t.university}</h3>
                       <p className="text-xs text-purple-300 font-medium mt-0.5">{t.name}</p>
+=======
+                      <h3 className="font-bold text-slate-800 dark:text-white text-base leading-snug">{t.university}</h3>
+                      <p className="text-xs text-purple-600 dark:text-purple-300 font-medium mt-0.5">{t.name}</p>
+>>>>>>> Stashed changes
                     </div>
                     {t.verified ? (
                       <Badge tone="success">

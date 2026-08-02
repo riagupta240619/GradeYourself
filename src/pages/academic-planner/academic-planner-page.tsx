@@ -284,7 +284,7 @@ function AcademicPlannerContent() {
       ) : (
         <div className="flex flex-col gap-8">
           {/* Section 1: Academic Goal Selection */}
-          <Card className="border border-purple-500/30 bg-gradient-to-br from-zinc-950 via-zinc-900 to-purple-950/20 p-6">
+          <Card className="border border-slate-200 bg-white dark:border-purple-500/30 dark:bg-gradient-to-br dark:from-zinc-950 dark:via-zinc-900 dark:to-purple-950/20 p-6 shadow-sm">
             <div className="flex flex-col gap-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
@@ -349,16 +349,16 @@ function AcademicPlannerContent() {
                     step="0.05"
                     value={targetVal}
                     onChange={(e) => handleSaveTarget(parseFloat(e.target.value))}
-                    className="w-full h-2.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                    className="w-full h-2.5 bg-slate-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-purple-500"
                   />
-                  <div className="flex justify-between text-[10px] text-zinc-500 font-mono">
+                  <div className="flex justify-between text-[10px] text-slate-500 dark:text-zinc-500 font-mono">
                     <span>{scale === "4.0" ? "2.00 (Pass)" : "5.00 (Pass)"}</span>
                     <span>{scale === "4.0" ? "3.50 (First Class)" : "8.50 (First Class)"}</span>
                     <span>{scale === "4.0" ? "4.00 (Max)" : "10.00 (Max)"}</span>
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-2 p-4 rounded-xl bg-zinc-950/70 border border-white/10">
+                <div className="flex flex-col gap-2 p-4 rounded-xl bg-white dark:bg-zinc-950/70 border border-slate-200 dark:border-white/10">
                   <span className="text-[11px] text-zinc-400 uppercase font-bold">Quick Target Input</span>
                   <div className="flex items-center gap-2">
                     <input
@@ -368,7 +368,7 @@ function AcademicPlannerContent() {
                       step="0.01"
                       value={targetVal}
                       onChange={(e) => handleSaveTarget(parseFloat(e.target.value) || 0)}
-                      className="w-full bg-zinc-900 border border-white/10 rounded-lg px-3 py-1.5 text-white font-mono font-bold text-base focus:outline-none focus:border-purple-500"
+                      className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-1.5 text-slate-900 dark:text-white font-mono font-bold text-base focus:outline-none focus:border-purple-500"
                     />
                     <Button size="sm" onClick={() => handleSaveTarget(targetVal)} className="shrink-0 gap-1">
                       <Save size={14} /> Sync
@@ -381,33 +381,33 @@ function AcademicPlannerContent() {
 
           {/* Section 2: Current Position Cards (5 Metrics) */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-            <Card className="p-4 bg-zinc-950/70 border border-white/10">
+            <Card className="p-4 bg-white dark:bg-zinc-950/70 border border-slate-200 dark:border-white/10">
               <span className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider">Current CGPA</span>
-              <p className="font-extrabold text-white text-xl font-mono mt-1">
+              <p className="font-extrabold text-slate-900 dark:text-white text-xl font-mono mt-1">
                 {currentCgpa > 0 ? currentCgpa.toFixed(2) : "—"}
               </p>
-              <span className="text-[11px] text-purple-400 font-medium">Completed Terms</span>
+              <span className="text-[11px] text-purple-600 dark:text-purple-400 font-medium">Completed Terms</span>
             </Card>
 
-            <Card className="p-4 bg-zinc-950/70 border border-white/10">
+            <Card className="p-4 bg-white dark:bg-zinc-950/70 border border-slate-200 dark:border-white/10">
               <span className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider">Completed Credits</span>
-              <p className="font-extrabold text-white text-xl font-mono mt-1">{completedCredits}</p>
+              <p className="font-extrabold text-slate-900 dark:text-white text-xl font-mono mt-1">{completedCredits}</p>
               <span className="text-[11px] text-zinc-400">Past Semesters</span>
             </Card>
 
-            <Card className="p-4 bg-zinc-950/70 border border-purple-500/30 bg-purple-500/5">
-              <span className="text-[10px] text-purple-300 uppercase font-bold tracking-wider">Current Sem Credits</span>
+            <Card className="p-4 bg-white dark:bg-zinc-950/70 border border-purple-500/30 bg-purple-500/5">
+              <span className="text-[10px] text-purple-600 dark:text-purple-300 uppercase font-bold tracking-wider">Current Sem Credits</span>
               <p className="font-extrabold text-purple-400 text-xl font-mono mt-1">{currentSemesterCredits}</p>
-              <span className="text-[11px] text-purple-300 font-medium">{subjects.length} Active Courses</span>
+              <span className="text-[11px] text-purple-600 dark:text-purple-300 font-medium">{subjects.length} Active Courses</span>
             </Card>
 
-            <Card className="p-4 bg-zinc-950/70 border border-white/10">
+            <Card className="p-4 bg-white dark:bg-zinc-950/70 border border-slate-200 dark:border-white/10">
               <span className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider">Graded Assessments</span>
               <p className="font-extrabold text-emerald-400 text-xl font-mono mt-1">{assessmentCounts.completed}</p>
               <span className="text-[11px] text-emerald-400 font-medium">Marks Entered</span>
             </Card>
 
-            <Card className="p-4 bg-zinc-950/70 border border-white/10 col-span-2 sm:col-span-1">
+            <Card className="p-4 bg-white dark:bg-zinc-950/70 border border-slate-200 dark:border-white/10 col-span-2 sm:col-span-1">
               <span className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider">Remaining Ungraded</span>
               <p className="font-extrabold text-amber-400 text-xl font-mono mt-1">{assessmentCounts.remaining}</p>
               <span className="text-[11px] text-amber-400 font-medium">To Be Scored</span>
@@ -417,37 +417,37 @@ function AcademicPlannerContent() {
           {/* Section 3: Target Calculation & Feasibility Banner */}
           <Card className={`p-6 border ${
             feasibilityStatus === "unattainable"
-              ? "border-rose-500/40 bg-gradient-to-r from-rose-950/40 via-zinc-900 to-rose-950/20"
-              : "border-purple-500/40 bg-gradient-to-r from-purple-950/40 via-zinc-900 to-blue-950/30"
+              ? "border-rose-200 bg-rose-50/60 dark:border-rose-500/40 dark:bg-gradient-to-r dark:from-rose-950/40 dark:via-zinc-900 dark:to-rose-950/20"
+              : "border-slate-200 bg-white dark:border-purple-500/40 dark:bg-gradient-to-r dark:from-purple-950/40 dark:via-zinc-900 dark:to-blue-950/30"
           }`}>
             <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-3">
-                  <h3 className="text-lg font-extrabold text-white">Section 3: Target Feasibility Analysis</h3>
+                  <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Section 3: Target Feasibility Analysis</h3>
                   {feasibilityStatus === "unattainable" ? (
-                    <Badge tone="warning" className="bg-rose-500/20 text-rose-300 border-rose-500/40 font-bold px-3 py-1">
+                    <Badge tone="warning" className="bg-rose-100 text-rose-800 border-rose-300 dark:bg-rose-500/20 dark:text-rose-300 dark:border-rose-500/40 font-bold px-3 py-1">
                       <ShieldAlert size={14} className="mr-1 inline" /> Target No Longer Achievable
                     </Badge>
                   ) : feasibilityStatus === "high_effort" ? (
-                    <Badge tone="accent" className="bg-amber-500/20 text-amber-300 border-amber-500/40 font-bold px-3 py-1">
+                    <Badge tone="accent" className="bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/40 font-bold px-3 py-1">
                       High Effort Stretch Target
                     </Badge>
                   ) : (
-                    <Badge tone="accent" className="bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold px-3 py-1">
+                    <Badge tone="accent" className="bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/40 font-bold px-3 py-1">
                       Target Fully Achievable
                     </Badge>
                   )}
                 </div>
 
                 {feasibilityStatus === "unattainable" ? (
-                  <div className="space-y-2 text-xs text-rose-200 mt-1">
+                  <div className="space-y-2 text-xs text-rose-900 dark:text-rose-200 mt-1">
                     <p>
                       Based on marks already obtained in completed assessments, achieving your target of <strong>{targetVal.toFixed(2)} CGPA</strong> is mathematically impossible.
                     </p>
                     {allShortfallAssessments.length > 0 && (
-                      <div className="p-3 bg-zinc-950/80 rounded-xl border border-rose-500/30">
+                      <div className="p-3 bg-slate-50 dark:bg-zinc-950/80 rounded-xl border border-rose-500/30">
                         <span className="font-bold text-rose-300 block mb-1">Assessments contributing to shortfall:</span>
-                        <ul className="list-disc list-inside space-y-0.5 text-zinc-300 font-mono text-[11px]">
+                        <ul className="list-disc list-inside space-y-0.5 text-slate-700 dark:text-zinc-300 font-mono text-[11px]">
                           {allShortfallAssessments.slice(0, 3).map((item, idx) => (
                             <li key={idx}>
                               {item.subjectName}: {item.name} ({item.mark} / {item.maxMarks})
@@ -466,19 +466,19 @@ function AcademicPlannerContent() {
 
               {/* Required SGPA & Max Achievable Metrics */}
               <div className="flex flex-wrap items-center gap-4 shrink-0 font-mono">
-                <div className="p-3 bg-zinc-950/80 rounded-xl border border-white/10 text-center min-w-[120px]">
+                <div className="p-3 bg-slate-50 dark:bg-zinc-950/80 rounded-xl border border-slate-200 dark:border-white/10 text-center min-w-[120px]">
                   <span className="text-[10px] text-zinc-400 font-sans font-bold block uppercase">Required SGPA</span>
                   <span className={`text-xl font-extrabold ${targetRequiredSgpa > (scale === "4.0" ? 4 : 10) ? "text-rose-400" : "text-purple-400"}`}>
                     {targetRequiredSgpa.toFixed(2)}
                   </span>
                 </div>
 
-                <div className="p-3 bg-zinc-950/80 rounded-xl border border-white/10 text-center min-w-[120px]">
+                <div className="p-3 bg-slate-50 dark:bg-zinc-950/80 rounded-xl border border-slate-200 dark:border-white/10 text-center min-w-[120px]">
                   <span className="text-[10px] text-zinc-400 font-sans font-bold block uppercase">Max Possible SGPA</span>
                   <span className="text-xl font-extrabold text-emerald-400">{maxPossibleMetrics.maxSgpa.toFixed(2)}</span>
                 </div>
 
-                <div className="p-3 bg-zinc-950/80 rounded-xl border border-white/10 text-center min-w-[120px]">
+                <div className="p-3 bg-slate-50 dark:bg-zinc-950/80 rounded-xl border border-slate-200 dark:border-white/10 text-center min-w-[120px]">
                   <span className="text-[10px] text-zinc-400 font-sans font-bold block uppercase">Max Possible CGPA</span>
                   <span className="text-xl font-extrabold text-emerald-400">{maxPossibleMetrics.maxCgpa.toFixed(2)}</span>
                 </div>
