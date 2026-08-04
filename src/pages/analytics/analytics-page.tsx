@@ -29,7 +29,8 @@ import {
   type CompletedSemesterDetail,
   type SubjectStatus,
   resolveSubjectStatus,
-  getSubjectEffectiveScore,
+  getSubjectGradeNumericScore,
+  getSubjectNormalizedGrade,
   SUBJECT_STATUS_CONFIG,
 } from "@/services/analytics-service";
 import { DashboardService } from "@/services/dashboard-service";
@@ -287,197 +288,235 @@ export function AnalyticsPage() {
     return maxDelta > 0 ? bestSem : null;
   }, [completedSemesters]);
 
-  const { user } = useAuth();
-  const totalDegreeCreditsConfigured =
-    user?.totalDegreeCredits && user.totalDegreeCredits > 0
-      ? user.totalDegreeCredits
-      : null;
-
-  const evaluatedCompletedSubjects = useMemo(() => {
+  const allCompletedSubjects = useMemo(() => {
     if (!completedSemesters.length) return [];
     const list: Array<{
+      id: string;
       name: string;
       code: string;
       credits: number;
-      pct: number;
-      letterGrade: string;
-      gradePoint: number;
+      grade: string;
+      gradeScore: number;
+      pct: number | null;
       semesterName: string;
-      effectiveScore: number;
-      tier: "Excellent" | "Good" | "Average" | "Needs Improvement";
-      status: SubjectStatus;
+      semesterNumber: number;
     }> = [];
 
     for (const sem of completedSemesters) {
+      const semName = sem.name || `Semester ${sem.semesterNumber}`;
       for (const subj of sem.subjects || []) {
         const status = resolveSubjectStatus(subj);
         if (status === "completed") {
-          const score = getSubjectEffectiveScore(subj);
-          if (score !== null && !isNaN(score)) {
-            let tier: "Excellent" | "Good" | "Average" | "Needs Improvement" = "Good";
-            if (score >= 90) tier = "Excellent";
-            else if (score >= 75) tier = "Good";
-            else if (score >= 60) tier = "Average";
-            else tier = "Needs Improvement";
+          const gradeScore = getSubjectGradeNumericScore(subj);
+          const gradeLabel = getSubjectNormalizedGrade(subj);
 
-            list.push({
-              name: subj.name || subj.subjectName || "Subject",
-              code: subj.code || subj.subjectCode || "",
-              credits: Number(subj.credits) || 3,
-              pct: score,
-              letterGrade: subj.grade || subj.letterGrade || "—",
-              gradePoint: subj.gradePoint || 0,
-              semesterName: sem.name,
-              effectiveScore: score,
-              tier,
-              status,
-            });
+          let realPct: number | null = null;
+          if (
+            typeof subj.finalPercentage === "number" &&
+            subj.finalPercentage > 0 &&
+            subj.finalPercentage !== 75
+          ) {
+            realPct = subj.finalPercentage;
+          } else if (
+            typeof subj.marksObtained === "number" &&
+            typeof subj.maxMarks === "number" &&
+            subj.maxMarks > 0
+          ) {
+            realPct = Math.round((subj.marksObtained / subj.maxMarks) * 1000) / 10;
           }
+
+          list.push({
+            id: subj.id || subj._id || `${semName}-${subj.code || subj.name}`,
+            name: subj.name || subj.subjectName || "Subject",
+            code: subj.code || subj.subjectCode || "",
+            credits: Number(subj.credits) || 0,
+            grade: gradeLabel,
+            gradeScore,
+            pct: realPct,
+            semesterName: semName,
+            semesterNumber: sem.semesterNumber || 1,
+          });
         }
       }
     }
-
     return list;
   }, [completedSemesters]);
 
-  const highestSubjectResult = useMemo(() => {
-    if (!evaluatedCompletedSubjects.length) return null;
-    let maxScore = -Infinity;
-    for (const s of evaluatedCompletedSubjects) {
-      if (s.effectiveScore > maxScore) maxScore = s.effectiveScore;
-    }
-    const topSubjects = evaluatedCompletedSubjects.filter(
-      (s) => Math.abs(s.effectiveScore - maxScore) < 0.05,
+  const totalCompletedCredits = useMemo(() => {
+    return completedSemesters.reduce(
+      (sum, sem) => sum + (sem.creditsEarned || sem.credits || 0),
+      0
     );
-    return {
-      score: maxScore,
-      subjects: topSubjects,
-      isTie: topSubjects.length > 1,
-      primary: topSubjects[0],
-    };
-  }, [evaluatedCompletedSubjects]);
+  }, [completedSemesters]);
 
-  const lowestSubjectResult = useMemo(() => {
-    if (!evaluatedCompletedSubjects.length) return null;
-    let minScore = Infinity;
-    for (const s of evaluatedCompletedSubjects) {
-      if (s.effectiveScore < minScore) minScore = s.effectiveScore;
-    }
-    const lowSubjects = evaluatedCompletedSubjects.filter(
-      (s) => Math.abs(s.effectiveScore - minScore) < 0.05,
-    );
-    return {
-      score: minScore,
-      subjects: lowSubjects,
-      isTie: lowSubjects.length > 1,
-      primary: lowSubjects[0],
-    };
-  }, [evaluatedCompletedSubjects]);
-
-  const rankedSubjects = useMemo(() => {
-    if (!evaluatedCompletedSubjects.length) return [];
-    const sorted = [...evaluatedCompletedSubjects].sort(
-      (a, b) => b.effectiveScore - a.effectiveScore,
-    );
-
-    let currentRank = 1;
-    return sorted.map((item, idx, arr) => {
-      if (
-        idx > 0 &&
-        Math.abs(item.effectiveScore - arr[idx - 1].effectiveScore) >= 0.05
-      ) {
-        currentRank = idx + 1;
-      }
-      return { ...item, rank: currentRank };
+  // Leaderboard: Subject Performance Ranking
+  // Sorted by: 1. Grade score (desc), 2. Percentage if available (desc), 3. Credits (desc), 4. Name (asc)
+  const leaderboardSubjects = useMemo(() => {
+    const sorted = [...allCompletedSubjects].sort((a, b) => {
+      if (b.gradeScore !== a.gradeScore) return b.gradeScore - a.gradeScore;
+      if (a.pct !== null && b.pct !== null && b.pct !== a.pct) return b.pct - a.pct;
+      if (b.credits !== a.credits) return b.credits - a.credits;
+      return a.name.localeCompare(b.name);
     });
-  }, [evaluatedCompletedSubjects]);
 
-  const creditAnalysis = useMemo(() => {
-    const completedCredits = completedSemesters.reduce((sum, sem) => {
-      if (Array.isArray(sem.subjects) && sem.subjects.length > 0) {
-        return (
-          sum +
-          sem.subjects.reduce((sSum, subj) => {
-            const status = resolveSubjectStatus(subj);
-            return status === "completed"
-              ? sSum + (Number(subj.credits) || 3)
-              : sSum;
-          }, 0)
-        );
-      }
-      return sum + (sem.creditsEarned || sem.credits || 20);
-    }, 0);
+    return sorted.map((item, idx) => ({
+      ...item,
+      rank: idx + 1,
+    }));
+  }, [allCompletedSubjects]);
 
-    const degreeTotal = totalDegreeCreditsConfigured;
-    const progressPct =
-      degreeTotal && degreeTotal > 0
-        ? Math.min(100, Math.round((completedCredits / degreeTotal) * 100))
-        : null;
+  // Top 5 Highest Scoring Subjects
+  const topHighestSubjects = useMemo(() => {
+    return leaderboardSubjects.slice(0, 5);
+  }, [leaderboardSubjects]);
 
-    return {
-      completedCredits,
-      remainingCredits:
-        degreeTotal && degreeTotal > 0
-          ? Math.max(0, degreeTotal - completedCredits)
-          : null,
-      degreeTotal,
-      progressPct,
-      isConfigured: degreeTotal !== null && degreeTotal > 0,
-    };
-  }, [completedSemesters, totalDegreeCreditsConfigured]);
+  // Bottom 5 Lowest Scoring Subjects
+  // Sorted by Grade Score (asc), Percentage (asc), Credits (asc), Name (asc)
+  const bottomLowestSubjects = useMemo(() => {
+    const sortedAsc = [...allCompletedSubjects].sort((a, b) => {
+      if (a.gradeScore !== b.gradeScore) return a.gradeScore - b.gradeScore;
+      if (a.pct !== null && b.pct !== null && a.pct !== b.pct) return a.pct - b.pct;
+      if (a.credits !== b.credits) return a.credits - b.credits;
+      return a.name.localeCompare(b.name);
+    });
+    return sortedAsc.slice(0, 5);
+  }, [allCompletedSubjects]);
 
+  // AI Academic Insights & Trend Observations
   const aiAcademicInsights = useMemo(() => {
-    if (!completedSemesters.length || !evaluatedCompletedSubjects.length) {
+    if (!completedSemesters.length || !allCompletedSubjects.length) {
       return [
-        "Complete at least one semester with evaluated subjects to unlock personalized AI academic trend observations.",
+        "Import your academic transcript to unlock personalized AI dynamic insights and trend analysis.",
       ];
     }
 
     const insights: string[] = [];
 
-    if (bestSemester && bestSemester.sgpa) {
+    // Highest scoring subject
+    if (leaderboardSubjects.length > 0) {
+      const topSubj = leaderboardSubjects[0];
+      const highestCount = leaderboardSubjects.filter(
+        (s) => s.gradeScore === topSubj.gradeScore
+      ).length;
+      if (highestCount > 1) {
+        insights.push(
+          `Highest scoring grade is '${topSubj.grade}' achieved in ${highestCount} subjects (including ${topSubj.name}).`
+        );
+      } else {
+        insights.push(
+          `Highest scoring subject is ${topSubj.name} (${topSubj.code}) with Grade '${topSubj.grade}' in ${topSubj.semesterName}.`
+        );
+      }
+    }
+
+    // Lowest scoring subject
+    if (bottomLowestSubjects.length > 0) {
+      const lowSubj = bottomLowestSubjects[0];
       insights.push(
-        `${bestSemester.name} is your highest performing semester with an SGPA of ${bestSemester.sgpa.toFixed(2)}.`,
+        `Lowest scoring subject recorded is ${lowSubj.name} (${lowSubj.code}) with Grade '${lowSubj.grade}' in ${lowSubj.semesterName}.`
       );
     }
 
+    // Strongest semester
+    if (bestSemester && typeof bestSemester.sgpa === "number") {
+      insights.push(
+        `${bestSemester.name} is your highest performing term with an SGPA of ${bestSemester.sgpa.toFixed(2)} (${bestSemester.creditsEarned || bestSemester.credits || 0} credits).`
+      );
+    }
+
+    // Semester with greatest improvement
     if (mostImprovedSemester && mostImprovedSemester.delta > 0) {
       insights.push(
-        `Your average SGPA improved by +${mostImprovedSemester.delta.toFixed(2)} between consecutive terms (${mostImprovedSemester.name}).`,
+        `Semester with the greatest improvement: ${mostImprovedSemester.name} (+${mostImprovedSemester.delta.toFixed(2)} SGPA increase over previous term).`
       );
     }
 
-    const highSgpaSems = completedSemesters.filter(
-      (s) => typeof s.sgpa === "number" && s.sgpa >= 9.0,
+    // Average SGPA & Total Completed Subjects
+    const totalSubjs = allCompletedSubjects.length;
+    const ssemWithSgpa = completedSemesters.filter(
+      (s) => typeof s.sgpa === "number"
     );
-    if (highSgpaSems.length >= 2) {
+    const avgSgpa =
+      ssemWithSgpa.length > 0
+        ? (
+            ssemWithSgpa.reduce((acc, s) => acc + (s.sgpa || 0), 0) /
+            ssemWithSgpa.length
+          ).toFixed(2)
+        : null;
+
+    if (avgSgpa) {
       insights.push(
-        `You maintained an SGPA above 9.0 across ${highSgpaSems.length} completed semesters.`,
+        `Across ${completedSemesters.length} completed terms, your average SGPA is ${avgSgpa} across ${totalSubjs} total evaluated subjects.`
       );
     }
 
-    const totalEarned = creditAnalysis.completedCredits;
+    // Average credits per semester
+    const avgCreditsPerSem = (
+      totalCompletedCredits / completedSemesters.length
+    ).toFixed(1);
     insights.push(
-      `You have earned ${totalEarned} completed credits across ${completedSemesters.length} semester${completedSemesters.length > 1 ? "s" : ""}.`,
+      `Average workload: ${avgCreditsPerSem} credits per semester (${totalCompletedCredits} total earned credits).`
     );
 
-    if (highestSubjectResult) {
-      const nameStr = highestSubjectResult.isTie
-        ? `${highestSubjectResult.subjects.length} subjects (including ${highestSubjectResult.primary.name})`
-        : highestSubjectResult.primary.name;
+    // Grade breakdown & Most common grade
+    const gradeCounts: Record<string, number> = {};
+    allCompletedSubjects.forEach((s) => {
+      gradeCounts[s.grade] = (gradeCounts[s.grade] || 0) + 1;
+    });
+
+    let mostCommonGrade = "";
+    let maxGradeCount = 0;
+    Object.entries(gradeCounts).forEach(([g, count]) => {
+      if (count > maxGradeCount) {
+        maxGradeCount = count;
+        mostCommonGrade = g;
+      }
+    });
+
+    if (mostCommonGrade) {
+      const pctOfTotal = Math.round((maxGradeCount / totalSubjs) * 100);
       insights.push(
-        `Peak academic score recorded in ${nameStr} (${safeFormatPct(highestSubjectResult.score)}).`,
+        `Most common grade: '${mostCommonGrade}' (achieved in ${maxGradeCount} of ${totalSubjs} subjects — ${pctOfTotal}%).`
       );
+    }
+
+    const gradeBreakdownItems: string[] = [];
+    if (gradeCounts["O"]) gradeBreakdownItems.push(`${gradeCounts["O"]} 'O' grades`);
+    if (gradeCounts["A+"]) gradeBreakdownItems.push(`${gradeCounts["A+"]} 'A+' grades`);
+    if (gradeCounts["A"]) gradeBreakdownItems.push(`${gradeCounts["A"]} 'A' grades`);
+    if (gradeCounts["B+"]) gradeBreakdownItems.push(`${gradeCounts["B+"]} 'B+' grades`);
+    if (gradeBreakdownItems.length > 0) {
+      insights.push(`Grade distribution: ${gradeBreakdownItems.join(", ")}.`);
+    }
+
+    // Academic Trend
+    if (completedSemesters.length >= 2) {
+      const sgpas = completedSemesters
+        .map((s) => s.sgpa)
+        .filter((v): v is number => typeof v === "number");
+      if (sgpas.length >= 2) {
+        const first = sgpas[0];
+        const last = sgpas[sgpas.length - 1];
+        const diff = last - first;
+        let trendLabel = "Stable";
+        if (diff >= 0.2) trendLabel = "Improving";
+        else if (diff <= -0.2) trendLabel = "Declining";
+
+        insights.push(
+          `Overall Academic Trend: ${trendLabel} (${diff >= 0 ? "+" : ""}${diff.toFixed(2)} SGPA change from ${completedSemesters[0].name} to ${completedSemesters[completedSemesters.length - 1].name}).`
+        );
+      }
     }
 
     return insights;
   }, [
     completedSemesters,
-    evaluatedCompletedSubjects,
+    allCompletedSubjects,
+    leaderboardSubjects,
+    bottomLowestSubjects,
     bestSemester,
     mostImprovedSemester,
-    creditAnalysis,
-    highestSubjectResult,
+    totalCompletedCredits,
   ]);
 
   const toggleSubjectExpand = (id: string) => {
@@ -653,145 +692,104 @@ export function AnalyticsPage() {
                 </Card>
               </div>
 
-              {/* Section 2: Subject Highlights & Performance Ranking */}
+              {/* Section 2: Subject Highlights & Performance Ranking Leaderboard */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Highest & Lowest Highlight Cards */}
                 <div className="flex flex-col gap-4">
-                  {/* Highest Scoring Subject Card */}
+                  {/* Highest Scoring Subjects Card */}
                   <Card className="p-5 bg-white dark:bg-zinc-950/70 border border-emerald-200 dark:border-emerald-500/30 shadow-sm flex flex-col justify-between">
                     <div>
                       <div className="flex items-center justify-between text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider mb-3">
-                        <span>
-                          Highest Scoring Subject
-                          {highestSubjectResult?.isTie
-                            ? `s (${highestSubjectResult.subjects.length})`
-                            : ""}
+                        <span className="flex items-center gap-1.5">
+                          <Award size={16} className="text-emerald-500" />
+                          Highest Scoring Subjects
                         </span>
-                        <Award
-                          size={18}
-                          className="text-emerald-600 dark:text-emerald-400"
-                        />
+                        <Badge tone="success" className="text-[10px] font-bold">
+                          Top {topHighestSubjects.length}
+                        </Badge>
                       </div>
-                      {highestSubjectResult ? (
-                        highestSubjectResult.isTie ? (
-                          <div className="flex flex-col gap-1.5 my-2">
-                            {highestSubjectResult.subjects.map((s, idx) => (
-                              <div
-                                key={idx}
-                                className="flex items-center gap-2 text-xs font-extrabold text-slate-900 dark:text-white"
-                              >
-                                <span className="text-emerald-500">•</span>
-                                <span>{s.name}</span>
-                                {s.code && (
-                                  <span className="text-[10px] text-zinc-400 font-mono">
-                                    ({s.code})
-                                  </span>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div>
-                            <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">
-                              {highestSubjectResult.primary.name}
-                            </h3>
-                            <p className="text-xs text-slate-500 dark:text-zinc-400 font-medium mt-1">
-                              {highestSubjectResult.primary.semesterName} •{" "}
-                              {highestSubjectResult.primary.credits} Credits
-                              {highestSubjectResult.primary.code
-                                ? ` • ${highestSubjectResult.primary.code}`
-                                : ""}
-                            </p>
-                          </div>
-                        )
-                      ) : (
-                        <p className="text-xs text-slate-500 dark:text-zinc-500 italic py-2">
-                          Complete at least one semester to determine the
-                          highest scoring subject.
+
+                      {topHighestSubjects.length === 0 ? (
+                        <p className="text-xs text-slate-500 dark:text-zinc-500 italic py-4">
+                          Complete at least one semester to view highest scoring subjects.
                         </p>
+                      ) : (
+                        <div className="flex flex-col gap-2 my-1">
+                          {topHighestSubjects.map((subj) => (
+                            <div
+                              key={subj.id}
+                              className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-zinc-900/70 border border-slate-200 dark:border-white/5 hover:border-emerald-500/30 transition-colors"
+                            >
+                              <div className="flex flex-col min-w-0 pr-2">
+                                <span className="font-extrabold text-xs text-slate-900 dark:text-white truncate">
+                                  {subj.name}
+                                </span>
+                                <span className="text-[10px] text-slate-500 dark:text-zinc-400 font-mono flex items-center gap-1.5 mt-0.5">
+                                  {subj.code && <span>{subj.code}</span>}
+                                  {subj.code && <span>•</span>}
+                                  <span>{subj.semesterName}</span>
+                                  <span>•</span>
+                                  <span>{subj.credits} Cr</span>
+                                </span>
+                              </div>
+                              <Badge tone="success" className="font-extrabold text-xs shrink-0 px-2 py-0.5">
+                                {subj.grade}
+                              </Badge>
+                            </div>
+                          ))}
+                        </div>
                       )}
                     </div>
-                    {highestSubjectResult && (
-                      <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-200 dark:border-white/10">
-                        <Badge tone="accent" className="font-bold">
-                          Grade{" "}
-                          {highestSubjectResult.primary.letterGrade || "O"}
-                        </Badge>
-                        <span className="font-mono font-extrabold text-slate-900 dark:text-white text-xl">
-                          {safeFormatPct(highestSubjectResult.score)}
-                        </span>
-                      </div>
-                    )}
                   </Card>
 
-                  {/* Lowest Scoring Subject Card */}
-                  <Card className="p-5 bg-white dark:bg-zinc-950/70 border border-rose-200 dark:border-rose-500/30 shadow-sm flex flex-col justify-between">
+                  {/* Lowest Scoring Subjects Card */}
+                  <Card className="p-5 bg-white dark:bg-zinc-950/70 border border-amber-200 dark:border-amber-500/30 shadow-sm flex flex-col justify-between">
                     <div>
-                      <div className="flex items-center justify-between text-xs font-bold text-rose-700 dark:text-rose-400 uppercase tracking-wider mb-3">
-                        <span>
-                          Lowest Scoring Subject
-                          {lowestSubjectResult?.isTie
-                            ? `s (${lowestSubjectResult.subjects.length})`
-                            : ""}
+                      <div className="flex items-center justify-between text-xs font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider mb-3">
+                        <span className="flex items-center gap-1.5">
+                          <AlertTriangle size={16} className="text-amber-500" />
+                          Lowest Scoring Subjects
                         </span>
-                        <AlertTriangle
-                          size={18}
-                          className="text-rose-600 dark:text-rose-400"
-                        />
+                        <Badge tone="warning" className="text-[10px] font-bold">
+                          Bottom {bottomLowestSubjects.length}
+                        </Badge>
                       </div>
-                      {lowestSubjectResult ? (
-                        lowestSubjectResult.isTie ? (
-                          <div className="flex flex-col gap-1.5 my-2">
-                            {lowestSubjectResult.subjects.map((s, idx) => (
-                              <div
-                                key={idx}
-                                className="flex items-center gap-2 text-xs font-extrabold text-slate-900 dark:text-white"
-                              >
-                                <span className="text-rose-500">•</span>
-                                <span>{s.name}</span>
-                                {s.code && (
-                                  <span className="text-[10px] text-zinc-400 font-mono">
-                                    ({s.code})
-                                  </span>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div>
-                            <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">
-                              {lowestSubjectResult.primary.name}
-                            </h3>
-                            <p className="text-xs text-slate-500 dark:text-zinc-400 font-medium mt-1">
-                              {lowestSubjectResult.primary.semesterName} •{" "}
-                              {lowestSubjectResult.primary.credits} Credits
-                              {lowestSubjectResult.primary.code
-                                ? ` • ${lowestSubjectResult.primary.code}`
-                                : ""}
-                            </p>
-                          </div>
-                        )
-                      ) : (
-                        <p className="text-xs text-slate-500 dark:text-zinc-500 italic py-2">
-                          Complete at least one semester to determine the lowest
-                          scoring subject.
+
+                      {bottomLowestSubjects.length === 0 ? (
+                        <p className="text-xs text-slate-500 dark:text-zinc-500 italic py-4">
+                          Complete at least one semester to view lowest scoring subjects.
                         </p>
+                      ) : (
+                        <div className="flex flex-col gap-2 my-1">
+                          {bottomLowestSubjects.map((subj) => (
+                            <div
+                              key={subj.id}
+                              className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-zinc-900/70 border border-slate-200 dark:border-white/5 hover:border-amber-500/30 transition-colors"
+                            >
+                              <div className="flex flex-col min-w-0 pr-2">
+                                <span className="font-extrabold text-xs text-slate-900 dark:text-white truncate">
+                                  {subj.name}
+                                </span>
+                                <span className="text-[10px] text-slate-500 dark:text-zinc-400 font-mono flex items-center gap-1.5 mt-0.5">
+                                  {subj.code && <span>{subj.code}</span>}
+                                  {subj.code && <span>•</span>}
+                                  <span>{subj.semesterName}</span>
+                                  <span>•</span>
+                                  <span>{subj.credits} Cr</span>
+                                </span>
+                              </div>
+                              <Badge tone="warning" className="font-extrabold text-xs shrink-0 px-2 py-0.5">
+                                {subj.grade}
+                              </Badge>
+                            </div>
+                          ))}
+                        </div>
                       )}
                     </div>
-                    {lowestSubjectResult && (
-                      <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-200 dark:border-white/10">
-                        <Badge tone="warning" className="font-bold">
-                          Grade {lowestSubjectResult.primary.letterGrade || "B"}
-                        </Badge>
-                        <span className="font-mono font-extrabold text-amber-600 dark:text-amber-400 text-xl">
-                          {safeFormatPct(lowestSubjectResult.score)}
-                        </span>
-                      </div>
-                    )}
                   </Card>
                 </div>
 
-                {/* Sorted Subject Performance Ranking Table */}
+                {/* Subject Performance Ranking Leaderboard Table */}
                 <Card className="lg:col-span-2 border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-900/90 shadow-sm overflow-hidden flex flex-col">
                   <CardHeader className="bg-slate-50 dark:bg-zinc-950 py-3.5 px-5 border-b border-slate-200 dark:border-white/10 flex flex-row items-center justify-between">
                     <CardTitle className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -799,76 +797,82 @@ export function AnalyticsPage() {
                         size={18}
                         className="text-purple-600 dark:text-purple-400"
                       />{" "}
-                      Subject Performance Ranking ({rankedSubjects.length})
+                      Subject Performance Ranking
                     </CardTitle>
-                    <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium">
-                      Completed Subjects Only
+                    <span className="text-xs text-slate-500 dark:text-zinc-400 font-mono font-medium">
+                      {leaderboardSubjects.length} Completed Subjects
                     </span>
                   </CardHeader>
-                  <CardContent className="p-0 overflow-x-auto max-h-[380px] overflow-y-auto">
-                    {rankedSubjects.length === 0 ? (
+                  <CardContent className="p-0 overflow-x-auto max-h-[420px] overflow-y-auto">
+                    {leaderboardSubjects.length === 0 ? (
                       <div className="p-8 text-center text-xs text-slate-500 dark:text-zinc-500 italic">
-                        Complete at least one semester with completed subjects
-                        to view rankings.
+                        Complete at least one semester with completed subjects to view rankings.
                       </div>
                     ) : (
-                      <table className="w-full min-w-full border-separate border-spacing-0 text-xs text-left table-fixed">
+                      <table className="w-full min-w-full border-separate border-spacing-0 text-xs text-left">
                         <thead className="bg-slate-100 dark:bg-zinc-950 text-slate-600 dark:text-zinc-400 font-bold uppercase tracking-wider text-[10px] sticky top-0 border-b border-slate-200 dark:border-white/10 z-10">
                           <tr>
                             <th className="px-4 py-3.5 w-16">Rank</th>
-                            <th className="px-4 py-3.5">Subject Name</th>
+                            <th className="px-4 py-3.5">Subject</th>
                             <th className="px-4 py-3.5">Semester</th>
-                            <th className="px-4 py-3.5 text-right w-16">
-                              Credits
-                            </th>
-                            <th className="px-4 py-3.5 text-right w-24">
-                              Score %
-                            </th>
-                            <th className="px-4 py-3.5 text-center w-20">
-                              Grade
-                            </th>
-                            <th className="px-4 py-3.5 pr-5 text-center w-24">
-                              Status
-                            </th>
+                            <th className="px-4 py-3.5 text-center w-20">Grade</th>
+                            <th className="px-4 py-3.5 text-right w-20">Credits</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-200 dark:divide-white/10">
-                          {rankedSubjects.map((subj, idx) => (
+                        <tbody className="divide-y divide-slate-200 dark:divide-white/10 font-sans">
+                          {leaderboardSubjects.map((subj) => (
                             <tr
-                              key={idx}
-                              className="hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+                              key={subj.id}
+                              className="hover:bg-purple-500/5 transition-colors"
                             >
-                              <td className="px-4 py-4 font-bold font-mono text-purple-700 dark:text-purple-400">
-                                #{subj.rank}
+                              <td className="px-4 py-3 font-bold font-mono">
+                                <span
+                                  className={`inline-flex items-center justify-center min-w-[28px] h-7 px-2 rounded-lg text-xs font-bold ${
+                                    subj.rank === 1
+                                      ? "bg-amber-500/20 text-amber-500 border border-amber-500/30"
+                                      : subj.rank === 2
+                                      ? "bg-slate-200 dark:bg-slate-700/40 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600"
+                                      : subj.rank === 3
+                                      ? "bg-amber-700/20 text-amber-600 dark:text-amber-500 border border-amber-700/30"
+                                      : "text-purple-600 dark:text-purple-400 bg-purple-500/10"
+                                  }`}
+                                >
+                                  #{subj.rank}
+                                </span>
                               </td>
-                              <td className="px-4 py-4 font-sans font-bold text-slate-900 dark:text-white">
+                              <td className="px-4 py-3">
                                 <div className="flex flex-col gap-0.5">
-                                  <span>{subj.name}</span>
+                                  <span className="font-extrabold text-slate-900 dark:text-white text-xs">
+                                    {subj.name}
+                                  </span>
                                   {subj.code && (
-                                    <span className="text-[10px] font-mono text-slate-500 dark:text-zinc-400 font-normal">
+                                    <span className="text-[10px] font-mono text-slate-500 dark:text-zinc-400">
                                       {subj.code}
                                     </span>
                                   )}
                                 </div>
                               </td>
-                              <td className="px-4 py-4 text-slate-600 dark:text-zinc-400 font-sans text-xs">
+                              <td className="px-4 py-3 text-slate-600 dark:text-zinc-400 text-xs">
                                 {subj.semesterName}
                               </td>
-                              <td className="px-4 py-4 text-right font-bold text-slate-700 dark:text-zinc-300 font-mono">
-                                {subj.credits}
-                              </td>
-                              <td className="px-4 py-4 text-right font-extrabold text-slate-900 dark:text-white text-sm font-mono">
-                                {safeFormatPct(subj.effectiveScore)}
-                              </td>
-                              <td className="px-4 py-4 text-center font-sans">
-                                <Badge tone="accent" className="font-bold">
-                                  {subj.letterGrade}
+                              <td className="px-4 py-3 text-center">
+                                <Badge
+                                  tone={
+                                    subj.grade === "O"
+                                      ? "success"
+                                      : subj.grade === "A+"
+                                      ? "accent"
+                                      : subj.grade === "A"
+                                      ? "info"
+                                      : "warning"
+                                  }
+                                  className="font-extrabold"
+                                >
+                                  {subj.grade}
                                 </Badge>
                               </td>
-                              <td className="px-4 py-4 pr-5 text-center font-sans">
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                                  Completed
-                                </span>
+                              <td className="px-4 py-3 text-right font-bold text-slate-700 dark:text-zinc-300 font-mono text-xs">
+                                {subj.credits}
                               </td>
                             </tr>
                           ))}
@@ -879,110 +883,13 @@ export function AnalyticsPage() {
                 </Card>
               </div>
 
-              {/* Section 3: Degree Credit Progress */}
-              <Card className="p-6 bg-white dark:bg-zinc-950/70 border border-slate-200 dark:border-white/10">
-                <CardHeader className="p-0 mb-4">
-                  <CardTitle className="text-sm font-bold text-slate-900 dark:text-white flex items-center justify-between">
-                    <span className="flex items-center gap-2">
-                      <Zap size={18} className="text-emerald-400" /> Degree Credit
-                      Progress
-                    </span>
-                    {creditAnalysis.isConfigured && (
-                      <span className="text-xs font-mono text-emerald-400 font-bold">
-                        {creditAnalysis.progressPct}% Complete
-                      </span>
-                    )}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0 flex flex-col gap-5">
-                  {creditAnalysis.isConfigured ? (
-                    /* Scenario 1: Total Degree Credits Configured */
-                    <>
-                      <div className="flex flex-col gap-2">
-                        <div className="h-4 w-full bg-white dark:bg-zinc-900 rounded-full overflow-hidden border border-slate-200 dark:border-white/10 p-0.5">
-                          <div
-                            className="h-full bg-gradient-to-r from-purple-500 via-indigo-500 to-emerald-400 rounded-full transition-all duration-700 shadow-[0_0_15px_rgba(16,185,129,0.3)]"
-                            style={{ width: `${creditAnalysis.progressPct}%` }}
-                          />
-                        </div>
-                        <div className="flex justify-between text-[11px] font-mono text-zinc-400">
-                          <span>0 Credits</span>
-                          <span className="text-slate-900 dark:text-white font-bold">
-                            {creditAnalysis.completedCredits} /{" "}
-                            {creditAnalysis.degreeTotal} Credits (
-                            {creditAnalysis.progressPct}%)
-                          </span>
-                          <span>
-                            {creditAnalysis.degreeTotal} Total Target
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-3 gap-3 text-center text-xs font-mono">
-                        <div className="p-3 bg-white/80 dark:bg-zinc-900/60 rounded-xl border border-slate-200 dark:border-white/5">
-                          <span className="text-[10px] text-zinc-400 block font-sans font-semibold uppercase">
-                            Completed
-                          </span>
-                          <span className="font-extrabold text-slate-900 dark:text-white text-base mt-1 block">
-                            {creditAnalysis.completedCredits}
-                          </span>
-                        </div>
-                        <div className="p-3 bg-white/80 dark:bg-zinc-900/60 rounded-xl border border-slate-200 dark:border-white/5">
-                          <span className="text-[10px] text-purple-600 dark:text-purple-300 block font-sans font-semibold uppercase">
-                            Remaining
-                          </span>
-                          <span className="font-extrabold text-purple-400 text-base mt-1 block">
-                            {creditAnalysis.remainingCredits}
-                          </span>
-                        </div>
-                        <div className="p-3 bg-white/80 dark:bg-zinc-900/60 rounded-xl border border-slate-200 dark:border-white/5">
-                          <span className="text-[10px] text-emerald-400 block font-sans font-semibold uppercase">
-                            Total Target
-                          </span>
-                          <span className="font-extrabold text-emerald-400 text-base mt-1 block">
-                            {creditAnalysis.degreeTotal}
-                          </span>
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    /* Scenario 2: Total Credits Unknown / Unconfigured */
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 bg-slate-50 dark:bg-zinc-900/60 rounded-xl border border-slate-200 dark:border-white/10 gap-4">
-                      <div>
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-3xl font-extrabold font-mono text-slate-900 dark:text-white">
-                            {creditAnalysis.completedCredits}
-                          </span>
-                          <span className="text-sm font-semibold text-emerald-400">
-                            Credits Earned
-                          </span>
-                        </div>
-                        <p className="text-xs text-slate-500 dark:text-zinc-400 mt-2">
-                          Configure your total graduation credits to enable
-                          degree progress tracking.
-                        </p>
-                      </div>
-                      <Link to="/app/settings">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="gap-1.5 text-xs whitespace-nowrap"
-                        >
-                          Set Total Credits
-                        </Button>
-                      </Link>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Section 4: AI Academic Insights */}
+              {/* Section 3: AI Academic Insights */}
               <Card className="glow-purple border border-purple-500/30 bg-gradient-to-r from-purple-950/40 via-zinc-900 to-blue-950/40 p-6">
                 <div className="flex items-start gap-4">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-500/30 shadow-lg">
                     <Sparkles size={24} />
                   </div>
-                  <div className="flex flex-col gap-2.5">
+                  <div className="flex flex-col gap-2.5 w-full">
                     <h3 className="text-sm font-extrabold text-purple-200 uppercase tracking-wider">
                       AI Academic Insights & Trend Observations
                     </h3>
@@ -1048,7 +955,7 @@ export function AnalyticsPage() {
                           Total Credits Earned
                         </span>
                         <span className="font-extrabold text-purple-700 text-lg mt-0.5 block">
-                          {creditAnalysis.completedCredits}
+                          {totalCompletedCredits}
                         </span>
                       </div>
                       <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">

@@ -80,34 +80,77 @@ export function resolveSubjectStatus(subj: any): SubjectStatus {
   return "in_progress";
 }
 
+export const GRADE_RANK_MAP: Record<string, { rankValue: number; label: string }> = {
+  "O": { rankValue: 10.0, label: "O" },
+  "O+": { rankValue: 10.0, label: "O+" },
+  "OUTSTANDING": { rankValue: 10.0, label: "O" },
+  "A+": { rankValue: 9.0, label: "A+" },
+  "EXCELLENT": { rankValue: 9.0, label: "A+" },
+  "A": { rankValue: 8.0, label: "A" },
+  "VERY GOOD": { rankValue: 8.0, label: "A" },
+  "B+": { rankValue: 7.0, label: "B+" },
+  "GOOD": { rankValue: 7.0, label: "B+" },
+  "B": { rankValue: 6.0, label: "B" },
+  "ABOVE AVERAGE": { rankValue: 6.0, label: "B" },
+  "C+": { rankValue: 5.5, label: "C+" },
+  "C": { rankValue: 5.0, label: "C" },
+  "AVERAGE": { rankValue: 5.0, label: "C" },
+  "P": { rankValue: 4.0, label: "P" },
+  "D": { rankValue: 4.0, label: "D" },
+  "PASS": { rankValue: 4.0, label: "P" },
+  "F": { rankValue: 0.0, label: "F" },
+  "FAIL": { rankValue: 0.0, label: "F" },
+  "E": { rankValue: 0.0, label: "E" },
+};
+
+export function getSubjectGradeNumericScore(subj: any): number {
+  if (!subj) return 0;
+  const rawGrade = (subj.grade || subj.letterGrade || "").toString().trim().toUpperCase();
+  if (rawGrade && rawGrade in GRADE_RANK_MAP) {
+    return GRADE_RANK_MAP[rawGrade].rankValue;
+  }
+  if (typeof subj.gradePoint === "number" && !isNaN(subj.gradePoint) && subj.gradePoint > 0) {
+    return subj.gradePoint <= 10 ? subj.gradePoint : subj.gradePoint / 10;
+  }
+  if (
+    typeof subj.marksObtained === "number" &&
+    typeof subj.maxMarks === "number" &&
+    subj.maxMarks > 0
+  ) {
+    return (subj.marksObtained / subj.maxMarks) * 10;
+  }
+  const pct = subj.finalPercentage ?? subj.pct;
+  if (typeof pct === "number" && !isNaN(pct) && pct > 0 && pct <= 100 && pct !== 75) {
+    return pct / 10;
+  }
+  return 0;
+}
+
+export function getSubjectNormalizedGrade(subj: any): string {
+  if (!subj) return "—";
+  const rawGrade = (subj.grade || subj.letterGrade || "").toString().trim().toUpperCase();
+  if (rawGrade && rawGrade in GRADE_RANK_MAP) {
+    return GRADE_RANK_MAP[rawGrade].label;
+  }
+  if (rawGrade && rawGrade !== "N/A" && rawGrade !== "—" && rawGrade !== "-") {
+    return rawGrade;
+  }
+  const score = getSubjectGradeNumericScore(subj);
+  if (score >= 10) return "O";
+  if (score >= 9) return "A+";
+  if (score >= 8) return "A";
+  if (score >= 7) return "B+";
+  if (score >= 6) return "B";
+  if (score >= 5) return "C";
+  if (score >= 4) return "P";
+  if (score > 0) return "F";
+  return "—";
+}
+
 export function getSubjectEffectiveScore(subj: any): number | null {
   if (!subj) return null;
-
-  // Priority 1: finalPercentage or pct
-  const pctVal = subj.finalPercentage ?? subj.pct;
-  if (typeof pctVal === "number" && !isNaN(pctVal) && pctVal >= 0) {
-    return Math.round(pctVal * 10) / 10;
-  }
-
-  // Priority 2: marksObtained / maxMarks
-  const marks = subj.marksObtained;
-  const max = subj.maxMarks;
-  if (
-    typeof marks === "number" &&
-    !isNaN(marks) &&
-    typeof max === "number" &&
-    !isNaN(max) &&
-    max > 0
-  ) {
-    return Math.round((marks / max) * 1000) / 10;
-  }
-
-  // Priority 3: gradePoint
-  const gp = subj.gradePoint;
-  if (typeof gp === "number" && !isNaN(gp) && gp >= 0) {
-    return gp <= 10 ? Math.round(gp * 100) / 10 : Math.round(gp * 10) / 10;
-  }
-
+  const score = getSubjectGradeNumericScore(subj);
+  if (score > 0) return score;
   return null;
 }
 
