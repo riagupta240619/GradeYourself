@@ -103,10 +103,26 @@ export const GRADE_RANK_MAP: Record<string, { rankValue: number; label: string }
   "E": { rankValue: 0.0, label: "E" },
 };
 
+const INVALID_GRADE_STRINGS = new Set([
+  "IN PROGRESS",
+  "IN_PROGRESS",
+  "COMPLETED",
+  "PENDING",
+  "NOT ATTEMPTED",
+  "INCOMPLETE",
+  "WITHHELD_RESULT",
+  "WITHHELD",
+  "N/A",
+  "—",
+  "-",
+  "NULL",
+  "UNDEFINED",
+]);
+
 export function getSubjectGradeNumericScore(subj: any): number {
   if (!subj) return 0;
   const rawGrade = (subj.grade || subj.letterGrade || "").toString().trim().toUpperCase();
-  if (rawGrade && rawGrade in GRADE_RANK_MAP) {
+  if (rawGrade && !INVALID_GRADE_STRINGS.has(rawGrade) && rawGrade in GRADE_RANK_MAP) {
     return GRADE_RANK_MAP[rawGrade].rankValue;
   }
   if (typeof subj.gradePoint === "number" && !isNaN(subj.gradePoint) && subj.gradePoint > 0) {
@@ -120,7 +136,7 @@ export function getSubjectGradeNumericScore(subj: any): number {
     return (subj.marksObtained / subj.maxMarks) * 10;
   }
   const pct = subj.finalPercentage ?? subj.pct;
-  if (typeof pct === "number" && !isNaN(pct) && pct > 0 && pct <= 100 && pct !== 75) {
+  if (typeof pct === "number" && !isNaN(pct) && pct > 0 && pct <= 100) {
     return pct / 10;
   }
   return 0;
@@ -129,20 +145,21 @@ export function getSubjectGradeNumericScore(subj: any): number {
 export function getSubjectNormalizedGrade(subj: any): string {
   if (!subj) return "—";
   const rawGrade = (subj.grade || subj.letterGrade || "").toString().trim().toUpperCase();
-  if (rawGrade && rawGrade in GRADE_RANK_MAP) {
+  if (rawGrade && !INVALID_GRADE_STRINGS.has(rawGrade) && rawGrade in GRADE_RANK_MAP) {
     return GRADE_RANK_MAP[rawGrade].label;
   }
-  if (rawGrade && rawGrade !== "N/A" && rawGrade !== "—" && rawGrade !== "-") {
+  if (rawGrade && !INVALID_GRADE_STRINGS.has(rawGrade)) {
     return rawGrade;
   }
   const score = getSubjectGradeNumericScore(subj);
-  if (score >= 10) return "O";
-  if (score >= 9) return "A+";
-  if (score >= 8) return "A";
-  if (score >= 7) return "B+";
-  if (score >= 6) return "B";
-  if (score >= 5) return "C";
-  if (score >= 4) return "P";
+  if (score >= 9.5) return "O";
+  if (score >= 8.5) return "A+";
+  if (score >= 7.5) return "A";
+  if (score >= 6.5) return "B+";
+  if (score >= 5.5) return "B";
+  if (score >= 4.5) return "C+";
+  if (score >= 4.0) return "C";
+  if (score >= 3.5) return "D";
   if (score > 0) return "F";
   return "—";
 }

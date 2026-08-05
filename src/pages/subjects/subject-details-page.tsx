@@ -33,6 +33,8 @@ import { EditSchemeModal } from "@/components/subjects/edit-scheme-modal";
 export function SubjectDetailsPage() {
   const [addSubjectModalOpen, setAddSubjectModalOpen] = useState(false);
   const [editSchemeModalOpen, setEditSchemeModalOpen] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [backendSubjects, setBackendSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -172,21 +174,52 @@ export function SubjectDetailsPage() {
     }
   }
 
-  async function handleDeleteSubject() {
+  function handleDeleteSubject() {
+    if (!subject) return;
+    setShowDeleteModal(true);
+  }
+
+  async function confirmDelete() {
     if (!subject) return;
     const targetId = subject.id || subject._id;
     if (!targetId) return;
 
-    if (confirm(`Are you sure you want to delete "${subject.name}"?`)) {
-      try {
-        await SubjectService.deleteSubject(targetId);
+    setIsDeleting(true);
+    try {
+      const remaining = backendSubjects.filter(
+        (s) => (s.id || s._id) !== targetId,
+      );
+      const nextSelectedId =
+        remaining.length > 0
+          ? remaining[0].id || remaining[0]._id || null
+          : null;
+
+      setBackendSubjects(remaining);
+      setSelectedId(nextSelectedId);
+
+      await SubjectService.deleteSubject(targetId);
+      toast.info(`Deleted "${subject.name}"`);
+      window.dispatchEvent(new CustomEvent("academic-data-updated"));
+
+      const fresh = await SubjectService.getSubjects();
+      setBackendSubjects(fresh || []);
+      if (fresh && fresh.length > 0) {
+        const stillExists = fresh.some(
+          (s) => (s.id || s._id) === nextSelectedId,
+        );
+        if (!stillExists) {
+          setSelectedId(fresh[0].id || fresh[0]._id || null);
+        }
+      } else {
         setSelectedId(null);
-        toast.info(`Deleted ${subject.name}`);
-        window.dispatchEvent(new CustomEvent("academic-data-updated"));
-        fetchSubjects();
-      } catch (err) {
-        console.error("Failed to delete subject on backend:", err);
       }
+    } catch (err) {
+      console.error("Failed to delete subject on backend:", err);
+      toast.error("Failed to delete subject. Please try again.");
+      fetchSubjects();
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteModal(false);
     }
   }
 
@@ -538,6 +571,48 @@ export function SubjectDetailsPage() {
           window.dispatchEvent(new CustomEvent("academic-data-updated"));
         }}
       />
+
+      {/* Custom Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-md rounded-2xl bg-zinc-900 border border-zinc-800 p-6 shadow-2xl space-y-5">
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400">
+                <Trash2 size={24} />
+              </div>
+              <div>
+                <h3 className="text-lg font-extrabold text-white">Delete Course</h3>
+                <p className="text-xs text-zinc-400">This action cannot be undone</p>
+              </div>
+            </div>
+
+            <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
+              Are you sure you want to delete <strong className="text-white font-bold">{subject?.name}</strong>? This will permanently remove the course and all associated marks from your active current semester.
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowDeleteModal(false)}
+                disabled={isDeleting}
+                className="text-xs"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={confirmDelete}
+                disabled={isDeleting}
+                className="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs"
+              >
+                {isDeleting ? "Deleting..." : "Yes, Delete Course"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

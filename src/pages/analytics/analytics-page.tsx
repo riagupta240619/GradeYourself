@@ -288,6 +288,33 @@ export function AnalyticsPage() {
     return maxDelta > 0 ? bestSem : null;
   }, [completedSemesters]);
 
+  const VALID_ACADEMIC_GRADES_SET = useMemo(
+    () =>
+      new Set([
+        "O",
+        "O+",
+        "OUTSTANDING",
+        "A+",
+        "EXCELLENT",
+        "A",
+        "VERY GOOD",
+        "B+",
+        "GOOD",
+        "B",
+        "ABOVE AVERAGE",
+        "C+",
+        "C",
+        "AVERAGE",
+        "P",
+        "D",
+        "PASS",
+        "F",
+        "FAIL",
+        "E",
+      ]),
+    [],
+  );
+
   const allCompletedSubjects = useMemo(() => {
     if (!completedSemesters.length) return [];
     const list: Array<{
@@ -305,16 +332,22 @@ export function AnalyticsPage() {
     for (const sem of completedSemesters) {
       const semName = sem.name || `Semester ${sem.semesterNumber}`;
       for (const subj of sem.subjects || []) {
-        const status = resolveSubjectStatus(subj);
-        if (status === "completed") {
-          const gradeScore = getSubjectGradeNumericScore(subj);
-          const gradeLabel = getSubjectNormalizedGrade(subj);
+        const gradeLabel = getSubjectNormalizedGrade(subj);
+        const gradeScore = getSubjectGradeNumericScore(subj);
 
+        // Filter out non-academic grade values (IN PROGRESS, COMPLETED, PENDING, etc.)
+        const isAcademicGrade =
+          gradeLabel !== "—" &&
+          gradeLabel !== "N/A" &&
+          gradeLabel !== "In Progress" &&
+          gradeLabel !== "Completed" &&
+          (VALID_ACADEMIC_GRADES_SET.has(gradeLabel.toUpperCase()) || gradeScore > 0);
+
+        if (isAcademicGrade) {
           let realPct: number | null = null;
           if (
             typeof subj.finalPercentage === "number" &&
-            subj.finalPercentage > 0 &&
-            subj.finalPercentage !== 75
+            subj.finalPercentage > 0
           ) {
             realPct = subj.finalPercentage;
           } else if (
@@ -340,7 +373,7 @@ export function AnalyticsPage() {
       }
     }
     return list;
-  }, [completedSemesters]);
+  }, [completedSemesters, VALID_ACADEMIC_GRADES_SET]);
 
   const totalCompletedCredits = useMemo(() => {
     return completedSemesters.reduce(
@@ -365,12 +398,12 @@ export function AnalyticsPage() {
     }));
   }, [allCompletedSubjects]);
 
-  // Top 5 Highest Scoring Subjects
+  // Top 4 Highest Scoring Subjects
   const topHighestSubjects = useMemo(() => {
-    return leaderboardSubjects.slice(0, 5);
+    return leaderboardSubjects.slice(0, 4);
   }, [leaderboardSubjects]);
 
-  // Bottom 5 Lowest Scoring Subjects
+  // Bottom 4 Lowest Scoring Subjects
   // Sorted by Grade Score (asc), Percentage (asc), Credits (asc), Name (asc)
   const bottomLowestSubjects = useMemo(() => {
     const sortedAsc = [...allCompletedSubjects].sort((a, b) => {
@@ -379,7 +412,7 @@ export function AnalyticsPage() {
       if (a.credits !== b.credits) return a.credits - b.credits;
       return a.name.localeCompare(b.name);
     });
-    return sortedAsc.slice(0, 5);
+    return sortedAsc.slice(0, 4);
   }, [allCompletedSubjects]);
 
   // AI Academic Insights & Trend Observations
@@ -693,11 +726,11 @@ export function AnalyticsPage() {
               </div>
 
               {/* Section 2: Subject Highlights & Performance Ranking Leaderboard */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
                 {/* Highest & Lowest Highlight Cards */}
                 <div className="flex flex-col gap-4">
                   {/* Highest Scoring Subjects Card */}
-                  <Card className="p-5 bg-white dark:bg-zinc-950/70 border border-emerald-200 dark:border-emerald-500/30 shadow-sm flex flex-col justify-between">
+                  <Card className="p-5 bg-white dark:bg-zinc-950/70 border border-emerald-200 dark:border-emerald-500/30 shadow-sm">
                     <div>
                       <div className="flex items-center justify-between text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider mb-3">
                         <span className="flex items-center gap-1.5">
@@ -711,7 +744,7 @@ export function AnalyticsPage() {
 
                       {topHighestSubjects.length === 0 ? (
                         <p className="text-xs text-slate-500 dark:text-zinc-500 italic py-4">
-                          Complete at least one semester to view highest scoring subjects.
+                          Import transcript to view highest scoring subjects.
                         </p>
                       ) : (
                         <div className="flex flex-col gap-2 my-1">
@@ -743,7 +776,7 @@ export function AnalyticsPage() {
                   </Card>
 
                   {/* Lowest Scoring Subjects Card */}
-                  <Card className="p-5 bg-white dark:bg-zinc-950/70 border border-amber-200 dark:border-amber-500/30 shadow-sm flex flex-col justify-between">
+                  <Card className="p-5 bg-white dark:bg-zinc-950/70 border border-amber-200 dark:border-amber-500/30 shadow-sm">
                     <div>
                       <div className="flex items-center justify-between text-xs font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider mb-3">
                         <span className="flex items-center gap-1.5">
@@ -757,7 +790,7 @@ export function AnalyticsPage() {
 
                       {bottomLowestSubjects.length === 0 ? (
                         <p className="text-xs text-slate-500 dark:text-zinc-500 italic py-4">
-                          Complete at least one semester to view lowest scoring subjects.
+                          Import transcript to view lowest scoring subjects.
                         </p>
                       ) : (
                         <div className="flex flex-col gap-2 my-1">
@@ -790,8 +823,8 @@ export function AnalyticsPage() {
                 </div>
 
                 {/* Subject Performance Ranking Leaderboard Table */}
-                <Card className="lg:col-span-2 border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-900/90 shadow-sm overflow-hidden flex flex-col">
-                  <CardHeader className="bg-slate-50 dark:bg-zinc-950 py-3.5 px-5 border-b border-slate-200 dark:border-white/10 flex flex-row items-center justify-between">
+                <Card className="lg:col-span-2 border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-900/90 shadow-sm overflow-hidden flex flex-col h-full lg:max-h-[660px]">
+                  <CardHeader className="bg-slate-50 dark:bg-zinc-950 py-3.5 px-5 border-b border-slate-200 dark:border-white/10 flex flex-row items-center justify-between shrink-0">
                     <CardTitle className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                       <Trophy
                         size={18}
@@ -800,13 +833,13 @@ export function AnalyticsPage() {
                       Subject Performance Ranking
                     </CardTitle>
                     <span className="text-xs text-slate-500 dark:text-zinc-400 font-mono font-medium">
-                      {leaderboardSubjects.length} Completed Subjects
+                      {leaderboardSubjects.length} Ranked Subjects
                     </span>
                   </CardHeader>
-                  <CardContent className="p-0 overflow-x-auto max-h-[420px] overflow-y-auto">
+                  <CardContent className="p-0 flex-1 min-h-0 overflow-x-auto overflow-y-auto h-full [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-slate-100 dark:[&::-webkit-scrollbar-track]:bg-zinc-950/50 [&::-webkit-scrollbar-thumb]:bg-slate-300 dark:[&::-webkit-scrollbar-thumb]:bg-zinc-700/60 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-purple-500/50">
                     {leaderboardSubjects.length === 0 ? (
                       <div className="p-8 text-center text-xs text-slate-500 dark:text-zinc-500 italic">
-                        Complete at least one semester with completed subjects to view rankings.
+                        Complete at least one semester with academic grades to view rankings.
                       </div>
                     ) : (
                       <table className="w-full min-w-full border-separate border-spacing-0 text-xs text-left">
@@ -883,7 +916,7 @@ export function AnalyticsPage() {
                 </Card>
               </div>
 
-              {/* Section 3: AI Academic Insights */}
+              {/* Section 3: AI Academic Insights
               <Card className="glow-purple border border-purple-500/30 bg-gradient-to-r from-purple-950/40 via-zinc-900 to-blue-950/40 p-6">
                 <div className="flex items-start gap-4">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-500/30 shadow-lg">
@@ -906,7 +939,7 @@ export function AnalyticsPage() {
                     </div>
                   </div>
                 </div>
-              </Card>
+              </Card> */}
             </div>
           ) : (
             /* Past Results Transcript Tab (Live Digital Academic Transcript) */

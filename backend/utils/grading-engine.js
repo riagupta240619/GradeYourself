@@ -130,7 +130,7 @@ function calculateSubjectScore(subject, scale = "10.0") {
   if (totalWeightEvaluated === 0) {
     return {
       pct: null,
-      letter: "In Progress",
+      letter: null,
       gradePoint: null,
       status: "In Progress",
       isInProgress: true,

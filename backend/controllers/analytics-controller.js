@@ -24,6 +24,29 @@ function parseSemesterNumber(name, index) {
   return match ? parseInt(match[0], 10) : index + 1;
 }
 
+const NON_ACADEMIC_STATUS_STRINGS = [
+  "IN PROGRESS",
+  "IN_PROGRESS",
+  "COMPLETED",
+  "PENDING",
+  "NOT ATTEMPTED",
+  "INCOMPLETE",
+  "WITHHELD_RESULT",
+  "WITHHELD",
+  "N/A",
+  "—",
+  "-",
+];
+
+function sanitizeAcademicGrade(rawGrade) {
+  if (!rawGrade) return null;
+  const str = String(rawGrade).trim().toUpperCase();
+  if (NON_ACADEMIC_STATUS_STRINGS.includes(str)) {
+    return null;
+  }
+  return String(rawGrade).trim();
+}
+
 /**
  * Extract ONLY user-entered/stored assessment breakdown items.
  * Does NOT generate fake default placeholders.
@@ -200,7 +223,12 @@ const getAnalyticsSummary = async (req, res, next) => {
             ? Number(subj.finalPercentage)
             : score.pct;
 
-        const grade = subj.grade || score.letter;
+        let grade = sanitizeAcademicGrade(subj.grade) || sanitizeAcademicGrade(score.letter);
+        if (!grade && typeof finalPercentage === "number" && !isNaN(finalPercentage) && finalPercentage > 0) {
+          const gInfo = scale === "4.0" ? pctToGrade4Scale(finalPercentage) : pctToGrade10Scale(finalPercentage);
+          grade = gInfo.letter;
+        }
+
         const gradePoint =
           subj.gradePoint !== null && subj.gradePoint !== undefined
             ? Number(subj.gradePoint)
@@ -234,19 +262,21 @@ const getAnalyticsSummary = async (req, res, next) => {
         };
 
         semSubjectDetails.push(subjDetail);
-        semTotalMarksSum += finalPercentage;
+        if (typeof finalPercentage === "number") semTotalMarksSum += finalPercentage;
         semCreditsEarned += subj.credits || 3;
 
-        allSubjects.push({
-          name: subj.name,
-          code: subj.code || "",
-          credits: subj.credits || 3,
-          status: subj.status || "completed",
-          pct: finalPercentage,
-          letterGrade: grade,
-          gradePoint: gradePoint,
-          semester: semName,
-        });
+        if (grade) {
+          allSubjects.push({
+            name: subj.name,
+            code: subj.code || "",
+            credits: subj.credits || 3,
+            status: subj.status || "completed",
+            pct: finalPercentage,
+            letterGrade: grade,
+            gradePoint: gradePoint,
+            semester: semName,
+          });
+        }
       }
 
       // Sort subjects within semester by final percentage descending
