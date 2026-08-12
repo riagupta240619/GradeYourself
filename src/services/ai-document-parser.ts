@@ -297,24 +297,97 @@ export function parseTranscriptHierarchical(rawText: string): ExtractedAcademicD
   return finalDoc;
 }
 
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+  });
+}
+
+function getMimeTypeFromFileName(fileName: string): string {
+  const ext = fileName.split(".").pop()?.toLowerCase();
+  switch (ext) {
+    case "pdf": return "application/pdf";
+    case "png": return "image/png";
+    case "jpg":
+    case "jpeg": return "image/jpeg";
+    case "webp": return "image/webp";
+    case "bmp": return "image/bmp";
+    default: return "image/jpeg";
+  }
+}
+
+export interface ParseTranscriptInput {
+  file?: File;
+  rawText?: string;
+}
+
 /**
  * Main AI Document Understanding Gateway Service.
+ * Primary Path: Multimodal Vision API (Backend sends base64 document directly to Gemini Vision model).
+ * Fallback Path: Local OCR (Tesseract.js) + Cell-level spreadsheet engine.
  */
 export const AiDocumentParser = {
-  async parseTranscript(rawText: string): Promise<ExtractedAcademicDocument> {
-    try {
-      const res = await api.post<{
-        success: boolean;
-        useLocalFallback: boolean;
-        parsedData?: ExtractedAcademicDocument;
-        message?: string;
-      }>("/ai/parse-transcript", { rawText });
+  async parseTranscript(
+    input: ParseTranscriptInput | File | string
+  ): Promise<ExtractedAcademicDocument> {
+    let file: File | undefined;
+    let rawText: string | undefined;
 
-      if (res.data.success && res.data.parsedData && res.data.parsedData.semesters?.length > 0) {
-        return res.data.parsedData;
+    if (input instanceof File) {
+      file = input;
+    } else if (typeof input === "string") {
+      rawText = input;
+    } else if (input && typeof input === "object") {
+      file = input.file;
+      rawText = input.rawText;
+    }
+
+    // 1. Primary: Try Multimodal Vision API via GradeWise Backend
+    if (file) {
+      try {
+        const fileData = await fileToBase64(file);
+        const mimeType = file.type || getMimeTypeFromFileName(file.name);
+
+        const res = await api.post<{
+          success: boolean;
+          useLocalFallback: boolean;
+          parsedData?: ExtractedAcademicDocument;
+          message?: string;
+        }>("/ai/parse-transcript", {
+          fileData,
+          mimeType,
+          rawText,
+        });
+
+        if (res.data.success && res.data.parsedData && res.data.parsedData.semesters?.length > 0) {
+          return res.data.parsedData;
+        }
+      } catch (err) {
+        console.warn("Multimodal Vision API backend notice: executing local fallback", err);
       }
-    } catch (err) {
-      console.warn("Backend AI route notice: executing local cell-level spreadsheet engine", err);
+    } else if (rawText) {
+      try {
+        const res = await api.post<{
+          success: boolean;
+          useLocalFallback: boolean;
+          parsedData?: ExtractedAcademicDocument;
+          message?: string;
+        }>("/ai/parse-transcript", { rawText });
+
+        if (res.data.success && res.data.parsedData && res.data.parsedData.semesters?.length > 0) {
+          return res.data.parsedData;
+        }
+      } catch (err) {
+        console.warn("Text AI route notice: executing local text parser", err);
+      }
+    }
+
+    // 2. Fallback: Parse via raw text (must be provided or generated via local OCR)
+    if (!rawText) {
+      throw new TranscriptParsingError("No document file or OCR text provided for extraction.");
     }
 
     return parseTranscriptHierarchical(rawText);

@@ -36,7 +36,7 @@ export function AppRoutes() {
           <Route path="subjects" element={<SubjectDetailsPage />} />
           <Route path="analytics" element={<AnalyticsPage />} />
           <Route path="academic-planner" element={<AcademicPlannerPage />} />
-          <Route path="academic_planner" element={<AcademicPlannerPage />} />
+          <Route path="academic_planner" element={<Navigate to="/app/academic-planner" replace />} />
           {/* Legacy Redirects */}
           <Route path="target-planner" element={<Navigate to="/app/academic-planner" replace />} />
           <Route path="simulator" element={<Navigate to="/app/academic-planner" replace />} />

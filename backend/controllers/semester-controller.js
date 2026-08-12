@@ -2,13 +2,9 @@ const Semester = require("../models/semester-model");
 const SubjectModel = require("../models/subject-model");
 const User = require("../models/user-model");
 const { calculateSgpa, gradeToDetails } = require("../utils/grading-engine");
+const { resolveScale } = require("../utils/resolve-scale");
 
-/**
- * Resolve the user's grading scale from their profile.
- */
-function resolveScale(user) {
-  return user?.semesterSystem?.includes("4.0") ? "4.0" : "10.0";
-}
+
 
 /**
  * Calculate total credits for a semester using the authoritative Subject collection.
@@ -293,14 +289,16 @@ const updateFullSemester = async (req, res, next) => {
         user: req.user._id,
       });
 
+      // Resolve user and scale once before the loop (avoids N+1 DB queries)
+      const user = await User.findById(req.user._id);
+      const scale = resolveScale(user);
+
       for (const subInput of subjects) {
         if (!subInput.name && !subInput.subjectName) continue;
         const subjName = (subInput.subjectName || subInput.name).trim();
         const subjCode = (subInput.subjectCode || subInput.code || "").trim();
         const numCredits = Number(subInput.credits) || 3;
 
-        const user = await User.findById(req.user._id);
-        const scale = resolveScale(user);
         const gradeVal =
           subInput.grade ||
           subInput.letterGrade ||

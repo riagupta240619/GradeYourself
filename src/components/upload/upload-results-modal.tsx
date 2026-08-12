@@ -12,6 +12,7 @@ import {
   type ValidatedTranscriptDocument,
   type ValidatedSemester,
 } from "@/lib/utils/transcript-validator";
+import { getErrorMessage } from "@/utils/error-utils";
 
 interface UploadResultsModalProps {
   isOpen: boolean;
@@ -111,44 +112,57 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess, manualMode = fa
     setFileName(file.name);
 
     try {
-      // Step 1: Preprocessing & OCR Extraction (OCR is ONLY responsible for raw text)
-      setPipelineStep("ocr");
-      setStatusMessage("Preprocessing image/PDF & extracting raw text token stream...");
-
-      const ocrResult = await OcrEngine.extractRawText(file, (info) => {
-        setStatusMessage(info.status);
-        setOcrProgressPct(Math.round(info.progress * 100));
-      });
-
-      setRawOcrText(ocrResult.rawText);
-      if (ocrResult.preprocessedImageUrl) {
-        setPreprocessedUrl(ocrResult.preprocessedImageUrl);
-      } else {
-        // Data URL fallback for preview
+      // Initial Preview Data URL initialization
+      if (file.type.startsWith("image/")) {
         const reader = new FileReader();
         reader.onload = (e) => setPreprocessedUrl(e.target?.result as string);
-        if (file.type.startsWith("image/")) reader.readAsDataURL(file);
+        reader.readAsDataURL(file);
       }
 
-      // Step 2: LLM Document Understanding & Zero-Shot Semantic Parsing
+      // Step 1: Multimodal Vision AI Document Understanding
       setPipelineStep("llm");
-      setStatusMessage("AI Reasoning Engine: Dynamically determining university, semesters, & tables...");
+      setStatusMessage("Multimodal Vision AI: Analyzing visual document layout, tables, & semester blocks...");
 
-      const extractedDoc: ExtractedAcademicDocument = await AiDocumentParser.parseTranscript(ocrResult.rawText);
+      let extractedDoc: ExtractedAcademicDocument;
 
-      // Step 3: Validation Layer
+      try {
+        extractedDoc = await AiDocumentParser.parseTranscript({ file });
+      } catch (aiErr) {
+        console.warn("Multimodal Vision API attempt notice, executing local tesseract.js OCR fallback...", aiErr);
+
+        // Fallback Step: Preprocessing & OCR Extraction via tesseract.js
+        setPipelineStep("ocr");
+        setStatusMessage("Local Fallback: Preprocessing image/PDF & running tesseract.js OCR scanner...");
+
+        const ocrResult = await OcrEngine.extractRawText(file, (info) => {
+          setStatusMessage(info.status);
+          setOcrProgressPct(Math.round(info.progress * 100));
+        });
+
+        setRawOcrText(ocrResult.rawText);
+        if (ocrResult.preprocessedImageUrl) {
+          setPreprocessedUrl(ocrResult.preprocessedImageUrl);
+        }
+
+        setPipelineStep("llm");
+        setStatusMessage("Local Fallback: Parsing extracted OCR text token stream...");
+
+        extractedDoc = await AiDocumentParser.parseTranscript(ocrResult.rawText);
+      }
+
+      // Step 2: Validation Layer
       setPipelineStep("validating");
       setStatusMessage("Running deterministic validation & integrity verification...");
 
       const validated = validateTranscriptDocument(extractedDoc);
       setValidatedDoc(validated);
 
-      // Step 4: Ready for User Review Studio
+      // Step 3: Ready for User Review Studio
       setPipelineStep("review");
       setStatusMessage("Ready for verification");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Pipeline Failure:", err);
-      setErrorMsg(err.message || "Failed to parse transcript with AI. Please check file readability.");
+      setErrorMsg(getErrorMessage(err, "Failed to parse transcript with AI. Please check file readability."));
       setPipelineStep("idle");
     }
   }
@@ -339,9 +353,9 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess, manualMode = fa
         onClose();
         resetState();
       }, 1200);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Save error:", err);
-      setErrorMsg(err.response?.data?.message || err.message || "Failed to save transcript records to database.");
+      setErrorMsg(getErrorMessage(err, "Failed to save transcript records to database."));
       setPipelineStep("review");
     }
   }

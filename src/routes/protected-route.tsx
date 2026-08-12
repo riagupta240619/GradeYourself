@@ -2,11 +2,11 @@ import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
 
 export function ProtectedRoute() {
-  const { user, loading } = useAuth();
+  const { user, initializing } = useAuth();
   const location = useLocation();
 
   // Show a neutral loading screen while checking session via HttpOnly cookie
-  if (loading) {
+  if (initializing) {
     return (
       <div className="flex h-screen items-center justify-center" style={{ backgroundColor: "var(--bg-base)" }}>
         <div className="flex flex-col items-center gap-3">

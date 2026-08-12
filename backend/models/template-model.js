@@ -1,30 +1,8 @@
 const mongoose = require("mongoose");
-
-const assessmentTypeSchema = new mongoose.Schema({
-  id: { type: String, default: "" },
-  name: { type: String, required: true },
-  weightPct: { type: Number, required: true },
-  maxMarks: { type: Number, required: true },
-});
-
-const hierarchicalAssessmentSchema = new mongoose.Schema({
-  id: { type: String, required: true },
-  name: { type: String, required: true },
-  maxMarks: { type: Number, required: true },
-});
-
-const componentSchema = new mongoose.Schema({
-  id: { type: String, required: true },
-  name: { type: String, required: true },
-  weightPct: { type: Number, required: true },
-  rule: {
-    type: String,
-    enum: ["average", "sum", "highest", "best_n", "lowest", "custom"],
-    default: "average",
-  },
-  bestN: { type: Number },
-  assessments: [hierarchicalAssessmentSchema],
-});
+const {
+  assessmentTypeSchema,
+  componentSchema,
+} = require("./schemas/shared-schemas");
 
 const templateSchema = new mongoose.Schema(
   {

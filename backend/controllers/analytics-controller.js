@@ -7,14 +7,12 @@ const {
   calculateSubjectScore,
   calculateSgpa,
   calculateCgpa,
+  pctToGrade4Scale,
+  pctToGrade10Scale,
 } = require("../utils/grading-engine");
+const { resolveScale } = require("../utils/resolve-scale");
 
-/**
- * Resolve the user's grading scale from their profile.
- */
-function resolveScale(user) {
-  return user?.semesterSystem?.includes("4.0") ? "4.0" : "10.0";
-}
+
 
 /**
  * Helper to parse a numeric semester index or number from semester name.
@@ -376,9 +374,6 @@ const getAnalyticsSummary = async (req, res, next) => {
       totalSubjectsEvaluated: allSubjects.length,
       completedSemesters,
     };
-
-    console.log("Analytics Response:");
-    console.log(JSON.stringify(responsePayload, null, 2));
 
     res.status(200).json(responsePayload);
   } catch (error) {

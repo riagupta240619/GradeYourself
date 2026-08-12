@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/use-theme";
 import { useAuth } from "@/hooks/use-auth";
+import { getErrorMessage, getErrorStatus } from "@/utils/error-utils";
 import { CheckCircle2, AlertCircle, Lock, Save, Settings, User, Bell, Palette, Moon, Sun, Monitor, LogOut, Trash2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { LogoutModal } from "@/components/shared/logout-modal";
@@ -85,8 +86,8 @@ export function SettingsPage() {
       setShowDeleteAccountModal(false);
       toast.success("Your account and all associated data have been permanently deleted.");
       navigate("/", { replace: true });
-    } catch (err: any) {
-      if (err.response?.status === 401) {
+    } catch (err: unknown) {
+      if (getErrorStatus(err) === 401) {
         setShowDeleteAccountModal(false);
         toast.error("Your session has expired. Please sign in again to delete your account.");
         navigate("/login", { replace: true });
@@ -123,10 +124,10 @@ export function SettingsPage() {
       });
       setProfileMsg({ type: "success", text: "Profile details updated successfully!" });
       toast.success("Profile updated successfully!");
-    } catch (err: any) {
+    } catch (err: unknown) {
       setProfileMsg({
         type: "error",
-        text: err.response?.data?.message || "Failed to update profile details",
+        text: getErrorMessage(err, "Failed to update profile details"),
       });
     } finally {
       setIsUpdatingProfile(false);
@@ -160,10 +161,10 @@ export function SettingsPage() {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-    } catch (err: any) {
+    } catch (err: unknown) {
       setPasswordMsg({
         type: "error",
-        text: err.response?.data?.message || "Failed to change password. Verify current password.",
+        text: getErrorMessage(err, "Failed to change password. Verify current password."),
       });
     } finally {
       setIsChangingPassword(false);

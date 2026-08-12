@@ -9,13 +9,9 @@ const {
   calculateSubjectScore,
   findAtRiskSubjects,
 } = require("../utils/grading-engine");
+const { resolveScale } = require("../utils/resolve-scale");
 
-/**
- * Resolve the user's grading scale from their profile.
- */
-function resolveScale(user) {
-  return user?.semesterSystem?.includes("4.0") ? "4.0" : "10.0";
-}
+
 
 /**
  * Helper to parse a numeric semester index or number from semester name.
@@ -53,7 +49,7 @@ const getDashboardSummary = async (req, res, next) => {
         cgpa: null,
         sgpa: null,
         totalCredits: 0,
-        targetCgpa: user?.targetCgpa || (scale === "4.0" ? 3.8 : 9.0),
+        targetCgpa: user?.targetCgpa ?? (scale === "4.0" ? 3.8 : 9.0),
         completedSemesters: [],
         currentSemester: null,
         semesters: [],
@@ -257,7 +253,7 @@ const getDashboardSummary = async (req, res, next) => {
       totalCredits: completedCredits,
       completedCredits,
       currentSemesterCredits,
-      targetCgpa: scale === "4.0" ? 3.8 : 9.0,
+      targetCgpa: user?.targetCgpa ?? (scale === "4.0" ? 3.8 : 9.0),
       completedSemesters,
       currentSemester,
       semesters: rawSemesters,

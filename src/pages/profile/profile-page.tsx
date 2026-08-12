@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
+import { getErrorMessage } from "@/utils/error-utils";
 import {
   GraduationCap,
   Award,
@@ -122,9 +123,9 @@ export function ProfilePage() {
 
       toast.success("Academic profile updated successfully!");
       setIsEditing(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setErrorMsg(
-        err.response?.data?.message || "Failed to update profile details",
+        getErrorMessage(err, "Failed to update profile details"),
       );
     } finally {
       setIsSaving(false);

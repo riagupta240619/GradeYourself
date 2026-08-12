@@ -4,13 +4,9 @@ const SubjectModel = require("../models/subject-model");
 const Semester = require("../models/semester-model");
 const User = require("../models/user-model");
 const { calculateSubjectScore } = require("../utils/grading-engine");
+const { resolveScale } = require("../utils/resolve-scale");
 
-/**
- * Resolve the user's grading scale from their profile.
- */
-function resolveScale(user) {
-  return user?.semesterSystem?.includes("4.0") ? "4.0" : "10.0";
-}
+
 
 /**
  * Format subject with backend-calculated score, letter grade, and grade points.

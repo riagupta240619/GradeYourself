@@ -2,36 +2,46 @@
 
 /**
  * AI Academic Document Understanding Controller.
- * Invokes Gemini 2.5 Flash / 1.5 Flash LLM to semantically understand academic transcripts
- * without using hardcoded column positions, regexes, or parsing templates.
+ * Invokes Gemini Multimodal Vision API (or Text API fallback) to understand academic transcripts visually
+ * and extract structured academic table data (semesters, subjects, credits, grades) without losing column relationships.
  */
 
 const SYSTEM_PROMPT = `
-You are an expert Academic Document Understanding AI specializing in university transcripts.
-Your job is to read raw text from university transcripts and understand its structure hierarchically.
+You are an expert Multimodal Academic Document Understanding AI specializing in university transcripts and mark sheets.
+Your task is to analyze document images/PDFs visually, understand their tabular structure, and extract structured academic data.
 
-PRODUCTION ACCURACY RULES:
-1. SEMESTER HEADINGS ONLY USING STRICT SEMANTIC CONTEXT:
-   - Recognize explicit headers like "Semester 1", "Semester I", "1st Semester", "I Semester", "SEM 1", "SEM II", "Term 1", "Term I".
-   - Semester numbers MUST be valid numbers between 1 and 12.
-   - NEVER interpret subject codes (e.g. 24CSE0214, CS101), registration/roll numbers (e.g. 2110991001), serial numbers (e.g. S.No 1), years (e.g. 2024), total marks (200, 300), or credit values as semester numbers.
-2. GRADE 'O' PRESERVATION:
-   - Grade 'O' (Outstanding) is a valid university grade. NEVER convert or default 'O' to 'A'.
-3. NO GUESSING CREDITS:
-   - Extract exact numeric credits. If unparsed or missing, set credits to null. NEVER invent default values.
-4. STUDY PERIOD SEPARATION:
-   - Remove study period text ("1 SEM", "2 SEM", "SEM 1") from subject names. Keep full course titles intact without cutoff.
-5. STATUS COLUMN STRICTNESS:
-   - Do NOT populate "status" unless the transcript explicitly contains a Result/Status column.
-6. TOTAL SEMESTER CREDITS:
-   - Total credits = sum of extracted subject credits. Do not hallucinate total.
+MULTIMODAL TABLE EXTRACTION INSTRUCTIONS:
+1. VISUAL TABLE UNDERSTANDING:
+   - Identify visual table borders, column headers, and subject rows.
+   - For EVERY subject row in a semester table, preserve the strict 1-to-1 relationship across columns:
+     [SUBJECT CODE] | [SUBJECT NAME / TITLE] | [CREDITS] | [GRADE]
 
-SCHEMA:
+2. FIELD EXTRACTION RULES:
+   - "code": Extract the exact subject/course code (e.g. "24CAPS101", "24CSE0214", "CS101", "MATH101"). 
+     Do NOT put subject title text inside code. Do NOT truncate subject codes.
+   - "name": Extract the full, complete subject/course title (e.g. "CALCULUS AND STATISTICAL ANALYSIS", "DATA STRUCTURES USING OBJECT ORIENTED PROGRAMMING").
+     Do NOT cut off or truncate long names. Do NOT put code in the name.
+   - "credits": Extract exact numeric credits (e.g. 4, 3, 2, 1, 1.5). 
+     MUST be a number or null. If missing or unreadable, set to null. NEVER invent default credits or guess values.
+   - "grade": Extract the official letter grade (e.g. "O", "A+", "A", "B+", "B", "C+", "C", "D", "P", "F", "I", "S", "U", "PASS", "FAIL").
+     Preserve Grade "O" (Outstanding) as letter "O" (never digit 0 or A). If missing or unreadable, set to null.
+
+3. STRICT ACCURACY & INTEGRITY RULES:
+   - NEVER invent or hallucinate missing information.
+   - NEVER guess a grade or credit if unreadable (use null).
+   - NEVER merge two separate subject rows into a single row.
+   - NEVER split one subject row into multiple fake subjects.
+   - NEVER shift values between columns (e.g., do not put credit numbers in subject code, or subject code in subject name).
+   - Recognize semester sections separately ("Semester 1", "Semester 2", "Semester 3", etc.).
+   - Extract SGPA and CGPA per semester if explicitly printed in the document; otherwise set to null.
+   - Ignore header rows (e.g., "S.No", "Subject Code", "Subject Name", "Credits", "Grade"), disclaimers, signatures, footer notes, and non-subject noise.
+
+RETURN JSON STRICTLY COMPLYING WITH THIS SCHEMA:
 {
-  "university": "Name of University if found or empty string",
-  "institution": "Name of College/Institute if found or empty string",
-  "program": "Degree / Course / Program (e.g. B.Tech Computer Science) if found or empty string",
-  "department": "Department if found or empty string",
+  "university": "Name of University if visible or empty string",
+  "institution": "Name of College/Institute if visible or empty string",
+  "program": "Degree / Course / Program (e.g. B.Tech Computer Science) if visible or empty string",
+  "department": "Department if visible or empty string",
   "semesters": [
     {
       "semester": 1,
@@ -41,10 +51,10 @@ SCHEMA:
       "credits": 20,
       "subjects": [
         {
-          "code": "24CSE0214",
-          "name": "Backend Engineering-I",
-          "credits": 3,
-          "grade": "O",
+          "code": "24CAPS101",
+          "name": "Calculus and Statistical Analysis",
+          "credits": 4,
+          "grade": "A",
           "status": null,
           "remarks": ""
         }
@@ -56,10 +66,11 @@ SCHEMA:
 
 const parseTranscriptWithAi = async (req, res, next) => {
   try {
-    const { rawText } = req.body;
-    if (!rawText || typeof rawText !== "string" || rawText.trim() === "") {
+    const { fileData, mimeType, rawText } = req.body;
+
+    if (!fileData && (!rawText || typeof rawText !== "string" || rawText.trim() === "")) {
       res.status(400);
-      throw new Error("rawText is required for AI document understanding");
+      throw new Error("Either fileData (base64 image/PDF) or rawText is required for AI document understanding");
     }
 
     const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
@@ -68,39 +79,66 @@ const parseTranscriptWithAi = async (req, res, next) => {
       return res.status(200).json({
         success: false,
         useLocalFallback: true,
-        message: "No Gemini API key configured on server. Handing over to zero-shot semantic reconstructor.",
+        message: "No Gemini API key configured on server. Handing over to local OCR engine fallback.",
       });
     }
 
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    // Construct Gemini Multimodal / Text parts
+    const parts = [{ text: SYSTEM_PROMPT }];
 
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [
-          {
-            role: "user",
-            parts: [
-              { text: SYSTEM_PROMPT },
-              { text: `RAW TRANSCRIPT TEXT TO PARSE:\n\n${rawText}` }
-            ]
-          }
-        ],
-        generationConfig: {
-          temperature: 0.1,
-          responseMimeType: "application/json"
+    if (fileData && mimeType) {
+      // Strip base64 data URI header prefix if present
+      const cleanBase64 = fileData.replace(/^data:[^;]+;base64,/, "");
+      parts.push({
+        inline_data: {
+          mime_type: mimeType,
+          data: cleanBase64,
+        },
+      });
+      if (rawText) {
+        parts.push({ text: `OPTIONAL COMPLEMENTARY OCR TEXT FEED:\n\n${rawText}` });
+      }
+    } else if (rawText) {
+      parts.push({ text: `RAW TRANSCRIPT TEXT TO PARSE:\n\n${rawText}` });
+    }
+
+    // Try Gemini Multimodal models
+    const modelsToTry = ["gemini-2.5-flash", "gemini-1.5-flash", "gemini-2.0-flash"];
+    let response = null;
+    let lastErrorMsg = "";
+
+    for (const modelName of modelsToTry) {
+      try {
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+        const resCall = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ role: "user", parts }],
+            generationConfig: {
+              temperature: 0.1,
+              responseMimeType: "application/json",
+            },
+          }),
+        });
+
+        if (resCall.ok) {
+          response = resCall;
+          break;
+        } else {
+          lastErrorMsg = await resCall.text();
+          console.warn(`Gemini model ${modelName} status ${resCall.status}:`, lastErrorMsg);
         }
-      })
-    });
+      } catch (err) {
+        lastErrorMsg = err instanceof Error ? err.message : String(err);
+      }
+    }
 
-    if (!response.ok) {
-      const errText = await response.text();
-      console.warn("Gemini API request failed:", response.status, errText);
+    if (!response || !response.ok) {
       return res.status(200).json({
         success: false,
         useLocalFallback: true,
-        message: `Gemini API responded with status ${response.status}. Using zero-shot fallback.`,
+        message: `Gemini Multimodal API failed (${lastErrorMsg}). Using local OCR fallback.`,
       });
     }
 
@@ -111,7 +149,7 @@ const parseTranscriptWithAi = async (req, res, next) => {
       return res.status(200).json({
         success: false,
         useLocalFallback: true,
-        message: "Empty response from Gemini LLM. Using zero-shot fallback.",
+        message: "Empty response from Gemini LLM. Using local OCR fallback.",
       });
     }
 
@@ -128,7 +166,7 @@ const parseTranscriptWithAi = async (req, res, next) => {
     return res.status(200).json({
       success: false,
       useLocalFallback: true,
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
