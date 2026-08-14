@@ -292,7 +292,7 @@ export function AssessmentBuilderPage() {
           <Button
             size="md"
             variant="outline"
-            className="gap-2 text-xs font-bold text-slate-900 dark:text-white border-white/20 hover:bg-zinc-800"
+            className="gap-2 text-xs font-bold"
             onClick={handleCreateNewScheme}
           >
             <Plus size={15} /> Create New Scheme

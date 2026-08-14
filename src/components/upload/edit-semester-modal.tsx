@@ -262,9 +262,9 @@ export function EditSemesterModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4 overflow-y-auto">
-      <div className="relative w-full max-w-4xl rounded-2xl bg-slate-900 border border-slate-800 text-slate-100 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="relative w-full max-w-4xl rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Modal Header */}
-        <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/80">
+        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-950/80">
           <div>
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
               Transcript Settings & Editor
@@ -272,27 +272,27 @@ export function EditSemesterModal({
                 Semester {semester.semesterNumber}
               </span>
             </h2>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               Customize semester details and adjust visible transcript columns for web & print exports.
             </p>
           </div>
 
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 dark:text-white hover:bg-slate-800 transition"
+            className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800 transition"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Section Navigation Tabs */}
-        <div className="flex border-b border-slate-800 bg-slate-950/40 px-6 gap-2 pt-2">
+        <div className="flex border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950/40 px-6 gap-2 pt-2">
           <button
             onClick={() => setActiveTab("semester")}
             className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-t-xl transition-all border-t border-x ${
               activeTab === "semester"
-                ? "bg-slate-900 text-purple-400 border-slate-800 border-b-slate-900 shadow-sm"
-                : "border-transparent text-slate-400 hover:text-white hover:bg-slate-800/40"
+                ? "bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 border-slate-200 dark:border-slate-800 border-b-white dark:border-b-slate-900 shadow-sm"
+                : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800/40"
             }`}
           >
             <Edit3 size={14} /> 1. Semester Editing
@@ -301,8 +301,8 @@ export function EditSemesterModal({
             onClick={() => setActiveTab("display")}
             className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-t-xl transition-all border-t border-x ${
               activeTab === "display"
-                ? "bg-slate-900 text-purple-400 border-slate-800 border-b-slate-900 shadow-sm"
-                : "border-transparent text-slate-400 hover:text-white hover:bg-slate-800/40"
+                ? "bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 border-slate-200 dark:border-slate-800 border-b-white dark:border-b-slate-900 shadow-sm"
+                : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800/40"
             }`}
           >
             <Sliders size={14} /> 2. Display Columns ({columnConfigs.filter((c) => c.visible).length}/{columnConfigs.length})
@@ -312,7 +312,7 @@ export function EditSemesterModal({
         {/* Modal Body */}
         <div className="p-6 overflow-y-auto space-y-6 flex-1">
           {errorMsg && (
-            <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs">
+            <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-300 text-xs">
               {errorMsg}
             </div>
           )}
@@ -321,21 +321,21 @@ export function EditSemesterModal({
             /* Section 1: Semester Editing */
             <div className="space-y-6">
               {/* Semester Overview Inputs */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-slate-950/60 border border-slate-800">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800">
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1">
+                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
                     Semester Name
                   </label>
                   <input
                     type="text"
                     value={semesterName}
                     onChange={(e) => setSemesterName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500"
+                    className="w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500"
                     placeholder="e.g. Semester 1"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1">
+                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
                     Total Credits
                   </label>
                   <input
@@ -344,11 +344,11 @@ export function EditSemesterModal({
                     max="50"
                     value={credits}
                     onChange={(e) => setCredits(Number(e.target.value) || 20)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500"
+                    className="w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1">
+                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
                     Semester SGPA
                   </label>
                   <input
@@ -361,11 +361,11 @@ export function EditSemesterModal({
                       setSgpa(e.target.value === "" ? null : Number(e.target.value))
                     }
                     placeholder="0.00"
-                    className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500"
+                    className="w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1">
+                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
                     Cumulative CGPA
                   </label>
                   <input
@@ -378,7 +378,7 @@ export function EditSemesterModal({
                       setCgpa(e.target.value === "" ? null : Number(e.target.value))
                     }
                     placeholder="0.00"
-                    className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500"
+                    className="w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500"
                   />
                 </div>
               </div>
@@ -393,7 +393,7 @@ export function EditSemesterModal({
                     variant="outline"
                     size="sm"
                     onClick={handleAddSubject}
-                    className="border-slate-800 text-indigo-400 hover:bg-indigo-500/10 text-xs"
+                    className="border-slate-300 dark:border-slate-800 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10 text-xs"
                   >
                     <Plus className="w-3.5 h-3.5 mr-1" /> Add Subject
                   </Button>
@@ -402,12 +402,12 @@ export function EditSemesterModal({
                 {subjects.map((sub, sIdx) => (
                   <div
                     key={`edit-sub-${sIdx}`}
-                    className="p-4 rounded-xl bg-slate-950/50 border border-slate-800/80 space-y-3"
+                    className="p-4 rounded-xl bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800/80 space-y-3"
                   >
                     <div className="grid grid-cols-1 sm:grid-cols-7 gap-2.5 text-xs">
                       {/* Subject Name */}
                       <div className="sm:col-span-2">
-                        <label className="block text-[10px] text-slate-400 mb-0.5 font-semibold">
+                        <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-0.5 font-semibold">
                           Subject Name
                         </label>
                         <input
@@ -420,13 +420,13 @@ export function EditSemesterModal({
                               e.target.value,
                             )
                           }
-                          className="w-full px-2.5 py-1.5 rounded bg-slate-900 border border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500"
+                          className="w-full px-2.5 py-1.5 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500"
                         />
                       </div>
 
                       {/* Subject Code */}
                       <div>
-                        <label className="block text-[10px] text-slate-400 mb-0.5 font-semibold">
+                        <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-0.5 font-semibold">
                           Code
                         </label>
                         <input
@@ -439,13 +439,13 @@ export function EditSemesterModal({
                               e.target.value.toUpperCase(),
                             )
                           }
-                          className="w-full px-2.5 py-1.5 rounded bg-slate-900 border border-slate-700 text-indigo-300 font-mono focus:outline-none uppercase"
+                          className="w-full px-2.5 py-1.5 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-indigo-600 dark:text-indigo-300 font-mono focus:outline-none uppercase"
                         />
                       </div>
 
                       {/* Credits */}
                       <div>
-                        <label className="block text-[10px] text-slate-400 mb-0.5 font-semibold">
+                        <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-0.5 font-semibold">
                           Credits
                         </label>
                         <input
@@ -460,7 +460,7 @@ export function EditSemesterModal({
                               Number(e.target.value) || 3,
                             )
                           }
-                          className="w-full px-2.5 py-1.5 rounded bg-slate-900 border border-slate-700 text-slate-900 dark:text-white font-mono text-center focus:outline-none"
+                          className="w-full px-2.5 py-1.5 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white font-mono text-center focus:outline-none"
                         />
                       </div>
 
@@ -483,7 +483,7 @@ export function EditSemesterModal({
                             )
                           }
                           placeholder="85.0"
-                          className="w-full px-2.5 py-1.5 rounded bg-purple-950/40 border border-purple-500/40 text-purple-600 dark:text-purple-300 font-mono text-center font-bold focus:outline-none"
+                          className="w-full px-2.5 py-1.5 rounded bg-purple-50 dark:bg-purple-950/40 border border-purple-300 dark:border-purple-500/40 text-purple-600 dark:text-purple-300 font-mono text-center font-bold focus:outline-none"
                         />
                       </div>
 
@@ -501,7 +501,7 @@ export function EditSemesterModal({
                               e.target.value as SubjectStatus,
                             )
                           }
-                          className="w-full px-2 py-1.5 rounded bg-slate-900 border border-slate-700 text-slate-100 text-[11px] focus:outline-none focus:border-indigo-500 font-sans"
+                          className="w-full px-2 py-1.5 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-[11px] focus:outline-none focus:border-indigo-500 font-sans"
                         >
                           <option value="completed">Completed</option>
                           <option value="in_progress">In Progress</option>
@@ -515,7 +515,7 @@ export function EditSemesterModal({
                       {/* Grade & Delete */}
                       <div className="flex items-center gap-2">
                         <div className="flex-1">
-                          <label className="block text-[10px] text-slate-400 mb-0.5 font-semibold">
+                          <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-0.5 font-semibold">
                             Grade
                           </label>
                           <input
@@ -528,12 +528,12 @@ export function EditSemesterModal({
                                 e.target.value.toUpperCase(),
                               )
                             }
-                            className="w-full px-2.5 py-1.5 rounded bg-slate-900 border border-slate-700 text-emerald-400 font-mono text-center font-bold uppercase focus:outline-none"
+                            className="w-full px-2.5 py-1.5 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-emerald-600 dark:text-emerald-400 font-mono text-center font-bold uppercase focus:outline-none"
                           />
                         </div>
                         <button
                           onClick={() => handleDeleteSubject(sIdx)}
-                          className="mt-4 p-1.5 text-slate-500 hover:text-rose-400 transition"
+                          className="mt-4 p-1.5 text-slate-400 dark:text-slate-500 hover:text-rose-500 dark:hover:text-rose-400 transition"
                           title="Remove Subject"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -542,16 +542,16 @@ export function EditSemesterModal({
                     </div>
 
                     {/* Stored Assessment Components Sub-section */}
-                    <div className="pt-2 border-t border-slate-800/60">
+                    <div className="pt-2 border-t border-slate-200 dark:border-slate-800/60">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-[11px] font-semibold text-slate-400 flex items-center gap-1">
-                          <BookOpen className="w-3.5 h-3.5 text-purple-400" />{" "}
+                        <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                          <BookOpen className="w-3.5 h-3.5 text-purple-500 dark:text-purple-400" />{" "}
                           Stored Assessment Components (
                           {sub.assessments?.length || 0})
                         </span>
                         <button
                           onClick={() => handleAddAssessment(sIdx)}
-                          className="text-[10px] text-indigo-400 hover:text-indigo-300 flex items-center gap-1 font-medium"
+                          className="text-[10px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 flex items-center gap-1 font-medium"
                         >
                           <Plus className="w-3 h-3" /> Add Assessment Component
                         </button>
@@ -562,7 +562,7 @@ export function EditSemesterModal({
                           {sub.assessments.map((ast, aIdx) => (
                             <div
                               key={`ast-${sIdx}-${aIdx}`}
-                              className="p-2 rounded bg-slate-900 border border-slate-800 flex items-center gap-2"
+                              className="p-2 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center gap-2"
                             >
                               <input
                                 type="text"
@@ -576,7 +576,7 @@ export function EditSemesterModal({
                                   )
                                 }
                                 placeholder="Component Name"
-                                className="w-28 bg-transparent text-[11px] font-medium text-slate-900 dark:text-white border-b border-slate-700 focus:outline-none"
+                                className="w-28 bg-transparent text-[11px] font-medium text-slate-900 dark:text-white border-b border-slate-300 dark:border-slate-700 focus:outline-none"
                               />
                               <div className="flex items-center gap-1 text-[11px] font-mono">
                                 <input
@@ -593,9 +593,9 @@ export function EditSemesterModal({
                                     )
                                   }
                                   placeholder="Marks"
-                                  className="w-12 px-1 py-0.5 rounded bg-slate-950 text-center text-slate-900 dark:text-white border border-slate-800"
+                                  className="w-12 px-1 py-0.5 rounded bg-slate-50 dark:bg-slate-950 text-center text-slate-900 dark:text-white border border-slate-200 dark:border-slate-800"
                                 />
-                                <span className="text-slate-500">/</span>
+                                <span className="text-slate-400 dark:text-slate-500">/</span>
                                 <input
                                   type="number"
                                   value={ast.maxMarks ?? 100}
@@ -610,12 +610,12 @@ export function EditSemesterModal({
                                     )
                                   }
                                   placeholder="Max"
-                                  className="w-12 px-1 py-0.5 rounded bg-slate-950 text-center text-slate-400 border border-slate-800"
+                                  className="w-12 px-1 py-0.5 rounded bg-slate-50 dark:bg-slate-950 text-center text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-800"
                                 />
                               </div>
                               <button
                                 onClick={() => handleDeleteAssessment(sIdx, aIdx)}
-                                className="p-1 text-slate-500 hover:text-rose-400 text-xs ml-auto"
+                                className="p-1 text-slate-400 dark:text-slate-500 hover:text-rose-500 dark:hover:text-rose-400 text-xs ml-auto"
                               >
                                 <X className="w-3 h-3" />
                               </button>
@@ -623,7 +623,7 @@ export function EditSemesterModal({
                           ))}
                         </div>
                       ) : (
-                        <p className="text-[11px] text-slate-500 italic">
+                        <p className="text-[11px] text-slate-400 dark:text-slate-500 italic">
                           No breakdown components stored for this subject.
                         </p>
                       )}
@@ -635,18 +635,18 @@ export function EditSemesterModal({
           ) : (
             /* Section 2: Display Columns Settings */
             <div className="space-y-6">
-              <div className="p-4 rounded-xl bg-purple-950/20 border border-purple-500/20 flex items-start gap-3 text-xs text-purple-200">
-                <Sliders className="w-5 h-5 text-purple-400 shrink-0 mt-0.5" />
+              <div className="p-4 rounded-xl bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-500/20 flex items-start gap-3 text-xs text-purple-700 dark:text-purple-200">
+                <Sliders className="w-5 h-5 text-purple-500 dark:text-purple-400 shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="font-bold text-white text-sm">Transcript Display Settings</h4>
-                  <p className="mt-0.5 text-zinc-300">
+                  <h4 className="font-bold text-slate-900 dark:text-white text-sm">Transcript Display Settings</h4>
+                  <p className="mt-0.5 text-slate-600 dark:text-zinc-300">
                     Toggle individual column visibility and adjust ordering. Hidden columns are completely removed from the table view, PDF downloads, and print exports.
                   </p>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">
                   Display Columns Configuration
                 </h3>
 
@@ -656,8 +656,8 @@ export function EditSemesterModal({
                       key={col.key}
                       className={`flex items-center justify-between p-3.5 rounded-xl border transition-all ${
                         col.visible
-                          ? "bg-slate-950/70 border-slate-800 text-slate-100"
-                          : "bg-slate-950/30 border-slate-900 text-slate-500"
+                          ? "bg-slate-50 dark:bg-slate-950/70 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100"
+                          : "bg-slate-100/60 dark:bg-slate-950/30 border-slate-200 dark:border-slate-900 text-slate-400 dark:text-slate-500"
                       }`}
                     >
                       <label className="flex items-center gap-3.5 cursor-pointer select-none flex-1">
@@ -665,7 +665,7 @@ export function EditSemesterModal({
                           type="checkbox"
                           checked={col.visible}
                           onChange={() => handleToggleColumn(col.key)}
-                          className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-purple-600 focus:ring-purple-500 focus:ring-offset-slate-900 cursor-pointer"
+                          className="w-4 h-4 rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-purple-600 focus:ring-purple-500 focus:ring-offset-white dark:focus:ring-offset-slate-900 cursor-pointer"
                         />
                         <span className="font-semibold text-sm">
                           {col.label}
@@ -676,8 +676,8 @@ export function EditSemesterModal({
                         <span
                           className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
                             col.visible
-                              ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                              : "bg-zinc-800/40 text-zinc-500 border-zinc-800"
+                              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                              : "bg-zinc-200/40 dark:bg-zinc-800/40 text-zinc-500 border-zinc-300 dark:border-zinc-800"
                           }`}
                         >
                           {col.visible ? (
@@ -692,12 +692,12 @@ export function EditSemesterModal({
                         </span>
 
                         {/* Column Reordering Buttons */}
-                        <div className="flex items-center gap-1 bg-slate-900 p-1 rounded-lg border border-slate-800">
+                        <div className="flex items-center gap-1 bg-white dark:bg-slate-900 p-1 rounded-lg border border-slate-200 dark:border-slate-800">
                           <button
                             type="button"
                             onClick={() => handleMoveColumn(idx, "up")}
                             disabled={idx === 0}
-                            className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 disabled:opacity-30 disabled:hover:bg-transparent transition"
+                            className="p-1 rounded text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 disabled:hover:bg-transparent transition"
                             title="Move Up"
                           >
                             <ArrowUp size={12} />
@@ -706,7 +706,7 @@ export function EditSemesterModal({
                             type="button"
                             onClick={() => handleMoveColumn(idx, "down")}
                             disabled={idx === columnConfigs.length - 1}
-                            className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 disabled:opacity-30 disabled:hover:bg-transparent transition"
+                            className="p-1 rounded text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 disabled:hover:bg-transparent transition"
                             title="Move Down"
                           >
                             <ArrowDown size={12} />
@@ -722,11 +722,11 @@ export function EditSemesterModal({
         </div>
 
         {/* Modal Footer Controls */}
-        <div className="px-6 py-4 border-t border-slate-800 bg-slate-950/80 flex items-center justify-between">
+        <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/80 flex items-center justify-between">
           <Button
             variant="outline"
             onClick={handleRestoreDefaults}
-            className="border-slate-800 text-slate-300 hover:bg-slate-900 text-xs gap-1.5"
+            className="border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900 text-xs gap-1.5"
             title="Reset column visibility and order to default settings"
           >
             <RotateCcw className="w-3.5 h-3.5" /> Restore Defaults
@@ -736,7 +736,7 @@ export function EditSemesterModal({
             <Button
               variant="outline"
               onClick={onClose}
-              className="border-slate-800 text-slate-300 hover:bg-slate-900 text-xs"
+              className="border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900 text-xs"
             >
               Cancel
             </Button>
@@ -754,17 +754,17 @@ export function EditSemesterModal({
       {/* Confirmation Dialog Overlay (Prevents Accidental Edits) */}
       {showConfirmation && (
         <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-          <div className="w-full max-w-md p-6 rounded-2xl bg-slate-900 border border-slate-800 text-slate-100 shadow-2xl space-y-4">
-            <div className="flex items-center gap-3 text-amber-400">
+          <div className="w-full max-w-md p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 shadow-2xl space-y-4">
+            <div className="flex items-center gap-3 text-amber-500 dark:text-amber-400">
               <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20">
-                <AlertTriangle className="w-6 h-6 text-amber-400" />
+                <AlertTriangle className="w-6 h-6 text-amber-500 dark:text-amber-400" />
               </div>
               <h3 className="text-base font-bold text-slate-900 dark:text-white">
                 Confirm Snapshot Update
               </h3>
             </div>
 
-            <p className="text-xs text-slate-300 leading-relaxed">
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
               Are you sure you want to save these edits to{" "}
               <strong className="text-slate-900 dark:text-white">
                 {semesterName}
@@ -779,7 +779,7 @@ export function EditSemesterModal({
                 variant="outline"
                 onClick={() => setShowConfirmation(false)}
                 disabled={isSaving}
-                className="border-slate-800 text-slate-300 hover:bg-slate-900 text-xs"
+                className="border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900 text-xs"
               >
                 Back to Editing
               </Button>
