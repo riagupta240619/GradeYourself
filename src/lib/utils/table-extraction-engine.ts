@@ -117,7 +117,9 @@ export function parseGradeCell(cellText: string): CellParserResult<string> {
     };
   }
 
-  const match = clean.match(/\b(O|A\+|A|B\+|B|C\+|C|D|P|F|I|E1|E2|E3|S|U|AB|0)\b/);
+  // Negative lookbehind excludes roman-numeral course suffixes like "-I" / "-II" / "-III"
+  // in subject names (e.g. "FRONT END ENGINEERING-I") from being read as a grade letter.
+  const match = clean.match(/(?<!-)\b(O|A\+|A|B\+|B|C\+|C|D|P|F|I|E1|E2|E3|S|U|AB|0)\b/);
   if (match) {
     const matchedGrade = CLOSED_GRADE_MAP[match[1]] || match[1];
     return {
@@ -145,10 +147,16 @@ export function parseSubjectNameCell(cellText: string): CellParserResult<string>
   // Purify title: strip marks, study periods, summary headers, random punctuation
   const cleanTitle = text
     .replace(/\b(?:500|300|100|200|400|600|700|800|900|1000|1200|452)\b/g, "")
-    .replace(/\b[1-9]\s*SEM\b/gi, "")
+    // "SEM" is frequently OCR-misread as "5EM" (S/5 confusion); strip both spellings,
+    // along with any leading study-period digits (e.g. "1 SEM", "0 1 5EM").
+    .replace(/\b[0-9]{1,2}\s*[S5]EM\b/gi, "")
+    .replace(/\b[S5]EM\b/gi, "")
     .replace(/\b(?:sgpa|cgpa|credits|grade|marks|status|result)\b/gi, "")
     .replace(/\[\s*\]|\(\s*\)/g, "")
     .replace(/[-|:;,]+/g, " ")
+    // Strip any leftover bare numeric tokens (study-period/mark noise) — legitimate
+    // subject names in this domain never consist of standalone digits.
+    .replace(/\b[0-9]{1,3}\b/g, "")
     .replace(/\s+/g, " ")
     .trim();
 

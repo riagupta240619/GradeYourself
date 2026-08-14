@@ -191,31 +191,47 @@ export function parseTranscriptHierarchical(rawText: string): ExtractedAcademicD
       if (cIdx < tokens.length) { rawGradeText = tokens[cIdx]; cIdx++; }
       if (cIdx < tokens.length) { rawStudyPeriodText = tokens[cIdx]; cIdx++; }
 
+      // Line with the leading row/serial number ("#" column) stripped, so it can never
+      // be mistaken for a Credits value or scanned into any other column below.
+      const lineSansSerial = line.replace(/^\s*[0-9]{1,2}\s+/, "");
+
       // Fallback for non-spaced line OCR
       if (!rawCodeText || !rawNameText) {
-        const inlineCode = line.match(/\b([0-9]{2}[A-Z]{2,5}[0-9]{3,5}[A-Z]?|[0-9]{2}[A-Z0-9]{3,8})\b/i);
-        const inlineGrade = line.match(/\b(O|A\+|A|B\+|B|C\+|C|D|P|F|I|E1|E2|E3|S|U|AB|0)\b/i);
-        const inlineCredit = line.match(/\b([0-8]\.[05]|[0-8])\b/);
+        const inlineCode = lineSansSerial.match(/\b([0-9]{2}[A-Z]{2,5}[0-9]{3,5}[A-Z]?|[0-9]{2}[A-Z0-9]{3,8})\b/i);
+        // Search for grade/credit only in the text after the code, and never match a
+        // grade letter that's actually a "-I"/"-II"/"-III" roman-numeral course suffix.
+        const afterCode = inlineCode
+          ? lineSansSerial.slice((inlineCode.index ?? 0) + inlineCode[0].length)
+          : lineSansSerial;
+        const inlineGrade = afterCode.match(/(?<!-)\b(O|A\+|A|B\+|B|C\+|C|D|P|F|I|E1|E2|E3|S|U|AB|0)\b/i);
+        const inlineCredit = afterCode.match(/\b([0-8]\.[05]|[0-8])\b/);
 
         if (inlineCode) rawCodeText = inlineCode[1];
         if (inlineGrade) rawGradeText = inlineGrade[1];
         if (inlineCredit) rawCreditsText = inlineCredit[1];
 
-        rawNameText = line
-          .replace(/^[0-9]{1,2}\s+/, "")
+        rawNameText = lineSansSerial
           .replace(rawCodeText, "")
           .replace(/\b(?:4\.00|5\.00|3\.00|2\.00|1\.00|0\.00|[0-8]\.[05]|[0-8])\b/g, "")
-          .replace(/\b(O|A\+|A|B\+|B|C\+|C|D|P|F|I|E1|E2|E3|S|U|AB|0)\b/gi, "")
-          .replace(/\b[1-9]\s*SEM\b/gi, "")
+          .replace(/(?<!-)\b(O|A\+|A|B\+|B|C\+|C|D|P|F|I|E1|E2|E3|S|U|AB|0)\b/gi, "")
+          .replace(/\b[1-9]\s*[S5]EM\b/gi, "")
           .trim();
       }
 
       if (rawCodeText || rawNameText) {
+        // When a column token wasn't isolated by tokenization, search only the
+        // remainder of the line (serial number, code and name stripped out) instead of
+        // the full raw line. Scanning the untouched line let the row's leading "#"
+        // index get misread as Credits, and a "-I"/"-II" name suffix get misread as Grade.
+        let remainder = lineSansSerial;
+        if (rawCodeText) remainder = remainder.replace(rawCodeText, "");
+        if (rawNameText) remainder = remainder.replace(rawNameText, "");
+
         // Execute Cell Parsers
         const codeRes = parseSubjectCodeCell(rawCodeText);
         const nameRes = parseSubjectNameCell(rawNameText || line);
-        const creditsRes = parseCreditsCell(rawCreditsText || line);
-        const gradeRes = parseGradeCell(rawGradeText || line);
+        const creditsRes = parseCreditsCell(rawCreditsText || remainder);
+        const gradeRes = parseGradeCell(rawGradeText || remainder);
 
         if (gradeRes.rawText === "0") {
           correctionsLog.push({

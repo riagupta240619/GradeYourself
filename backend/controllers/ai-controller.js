@@ -102,8 +102,9 @@ const parseTranscriptWithAi = async (req, res, next) => {
       parts.push({ text: `RAW TRANSCRIPT TEXT TO PARSE:\n\n${rawText}` });
     }
 
-    // Try Gemini Multimodal models
-    const modelsToTry = ["gemini-2.5-flash", "gemini-1.5-flash", "gemini-2.0-flash"];
+    // Try Gemini Multimodal models (using rolling "-latest" aliases so this doesn't
+    // go stale again as Google retires dated model snapshots).
+    const modelsToTry = ["gemini-flash-latest", "gemini-flash-lite-latest", "gemini-pro-latest"];
     let response = null;
     let lastErrorMsg = "";
 
