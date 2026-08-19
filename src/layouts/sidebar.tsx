@@ -11,6 +11,7 @@ import {
   Bot,
   Globe,
   Settings,
+  Folder,
   ChevronDown,
   Sparkles,
   GraduationCap,
@@ -33,6 +34,7 @@ const navItems = [
   },
   { to: "/app/subjects", label: "Subjects", icon: BookOpen },
   { to: "/app/assessment-builder", label: "Assessment Builder", icon: Puzzle },
+  { to: "/app/storage", label: "Storage", icon: Folder },
 ];
 
 export function Sidebar() {

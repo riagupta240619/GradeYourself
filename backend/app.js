@@ -12,6 +12,8 @@ const semesterRoutes = require("./routes/semester-routes");
 const analyticsRoutes = require("./routes/analytics-routes");
 const templateRoutes = require("./routes/template-routes");
 const aiRoutes = require("./routes/ai-routes");
+const githubRoutes = require("./routes/github-routes");
+const studyMaterialRoutes = require("./routes/study-material-routes");
 const { notFound, errorHandler } = require("./middleware/error-middleware");
 const { authLimiter, apiLimiter } = require("./middleware/rate-limiter");
 const { verifyCsrf } = require("./middleware/csrf-middleware");
@@ -89,6 +91,8 @@ app.use("/api/semesters", semesterRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/templates", templateRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/github", githubRoutes);
+app.use("/api/study-material", studyMaterialRoutes);
 
 // ── 7. Error Handling Middlewares ─────────────────────────────────────────────
 app.use(notFound);

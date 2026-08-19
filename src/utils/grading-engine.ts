@@ -1,4 +1,4 @@
-import type { Subject, Semester, PredictionRange, RiskFlag, GradeScale, SchemeComponent } from "@/types";
+import type { Subject, Semester, PredictionRange, RiskFlag, GradeScale, SchemeComponent, AggregationRule } from "@/types";
 
 /** Normalize any grading scheme to the hierarchical components format. */
 export function normalizeScheme(scheme: any): { components: SchemeComponent[] } {
@@ -40,10 +40,13 @@ export function normalizeScheme(scheme: any): { components: SchemeComponent[] } 
     { id: "f1", name: "Final Exam", weightPct: 50, maxMarks: 100 },
   ];
 
+  const totalWeight = types.reduce((sum, t) => sum + t.weightPct, 0);
+  const weightNormalizer = totalWeight > 0 ? 100 / totalWeight : 1;
+
   const components = types.map((t: any) => ({
     id: `comp-${t.id}`,
     name: t.name,
-    weightPct: t.weightPct,
+    weightPct: Math.round(t.weightPct * weightNormalizer),
     rule: "average" as const,
     assessments: [{ id: t.id, name: t.name, maxMarks: t.maxMarks }],
   }));
@@ -153,7 +156,8 @@ export function subjectCurrentPct(subject: Subject): number {
 }
 
 /** Confidence-ranged prediction for where a subject will land. */
-export function predictSubject(subject: Subject): PredictionRange {
+export function predictSubject(subject: Subject, options: { baselineConfidence?: number; confidenceFactor?: number } = {}): PredictionRange {
+  const { baselineConfidence = 40, confidenceFactor = 0.6 } = options;
   if (!subject) return { low: 0, high: 100, confidencePct: 0 };
   const norm = normalizeScheme(subject.scheme);
   const marks = subject.marks || {};
@@ -175,10 +179,10 @@ export function predictSubject(subject: Subject): PredictionRange {
     }
   }
 
-  const low = earnedWeight + remainingWeight * 0.6;
+  const low = earnedWeight + remainingWeight * confidenceFactor;
   const high = earnedWeight + remainingWeight * 1.0;
   const gradedShare = 100 - remainingWeight;
-  const confidencePct = Math.round(40 + gradedShare * 0.6);
+  const confidencePct = Math.round(baselineConfidence + gradedShare * confidenceFactor);
 
   return { low: Math.round(low * 10) / 10, high: Math.round(high * 10) / 10, confidencePct };
 }
@@ -231,7 +235,7 @@ export function calculateCgpa(semesters: Semester[], scale: GradeScale): number 
   for (const sem of completedSemesters) {
     const subjects = sem.subjects || [];
     const subjectCredits = subjects.reduce((s, subj) => s + subj.credits, 0);
-    const credits = subjectCredits > 0 ? subjectCredits : (sem.credits ?? 20);
+    const credits = subjectCredits > 0 ? subjectCredits : 0;
 
     const sgpa = sem.finalizedSgpa !== null && sem.finalizedSgpa !== undefined
       ? sem.finalizedSgpa
@@ -246,15 +250,15 @@ export function calculateCgpa(semesters: Semester[], scale: GradeScale): number 
 }
 
 /** Surfaces subjects that are trending down or need a stretch score to stay on target. */
-export function findAtRiskSubjects(subjects: Subject[]): RiskFlag[] {
+export function findAtRiskSubjects(subjects: Subject[], threshold: number = 70): RiskFlag[] {
   const flags: RiskFlag[] = [];
   for (const subject of subjects) {
     const prediction = predictSubject(subject);
-    if (prediction.high < 70) {
+    if (prediction.high < threshold) {
       flags.push({
         subjectId: subject.id,
         subjectName: subject.name,
-        reason: `Predicted ${prediction.low}–${prediction.high}% — below target range`,
+        reason: `Predicted ${prediction.low}–${prediction.high}% — below ${threshold}% target range`,
       });
     }
   }
@@ -356,8 +360,9 @@ export function calculateHierarchicalRequiredMarks(subject: Subject, targetPct: 
         remainingWeight += comp.weightPct * remainingShare;
       }
       // Track completed assessments with low performance (< 60%) that cause shortfall
+      const shortfallThreshold = 60;
       for (const item of evalRes.entered) {
-        if (item.pct < 60) {
+        if (item.pct < shortfallThreshold) {
           shortfallAssessments.push({ name: item.name, mark: item.num, maxMarks: item.maxMarks });
         }
       }

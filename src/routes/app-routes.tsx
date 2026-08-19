@@ -17,6 +17,7 @@ import { NotificationsPage } from "@/pages/notifications/notifications-page";
 import { SettingsPage } from "@/pages/settings/settings-page";
 import { ProfilePage } from "@/pages/profile/profile-page";
 import { AdminPanelPage } from "@/pages/admin/admin-panel-page";
+import { StoragePage } from "@/pages/app/storage/StoragePage";
 
 export function AppRoutes() {
   return (
@@ -47,6 +48,7 @@ export function AppRoutes() {
           <Route path="settings" element={<SettingsPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="admin" element={<AdminPanelPage />} />
+          <Route path="storage" element={<StoragePage />} />
         </Route>
       </Route>
     </Routes>
