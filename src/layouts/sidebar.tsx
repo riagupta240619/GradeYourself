@@ -16,6 +16,9 @@ import {
   Sparkles,
   GraduationCap,
   ChevronRight,
+  Code2,
+  FileText,
+  Github,
 } from "lucide-react";
 import { cn } from "@/utils/cn";
 import {
@@ -35,6 +38,10 @@ const navItems = [
   { to: "/app/subjects", label: "Subjects", icon: BookOpen },
   { to: "/app/assessment-builder", label: "Assessment Builder", icon: Puzzle },
   { to: "/app/storage", label: "Storage", icon: Folder },
+  { to: "/app/coding", label: "Coding Hub", icon: Code2 },
+  { to: "/app/resources", label: "Resources", icon: BookOpen },
+  { to: "/app/resume", label: "Resume Hub", icon: FileText },
+  { to: "/app/github", label: "GitHub", icon: Github },
 ];
 
 export function Sidebar() {
