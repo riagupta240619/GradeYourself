@@ -18,17 +18,24 @@ function Shell({title,description,children}:{title:string;description:string;chi
 function State({loading,error,empty}:{loading:boolean;error:string|null;empty:string}){if(loading)return <div className="surface-card rounded-2xl p-10 text-center text-[var(--text-secondary)]"><Loader2 className="mx-auto mb-3 animate-spin"/>Loading…</div>;if(error)return <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">{error}</div>;return <div className="surface-card rounded-2xl p-10 text-center text-sm text-[var(--text-secondary)]">{empty}</div>;}
 
 export function CodingHubPage(){
+  type SheetItem={id:string;title:string;url:string;platform:string;difficulty?:string;topic?:string;description?:string};
+  type Collection={id:string;provider:"codolio"|"tle";title:string;category:string;description:string;sourceUrl:string;items:SheetItem[]};
+  type Catalog={collections:Collection[];sources:{codolio:string;tle:string};updatedAt:string};
+  type Progress={collectionId:string;itemId:string;done:boolean};
+
   const [profiles,setProfiles]=useState<Profile[]>([]);
   const [sheets,setSheets]=useState<Sheet[]>([]);
-  const [catalog,setCatalog]=useState<PublicSheet[]>([]);
+  const [catalog,setCatalog]=useState<Catalog|null>(null);
+  const [progress,setProgress]=useState<Progress[]>([]);
   const [loading,setLoading]=useState(true);
   const [saving,setSaving]=useState(false);
+  const [syncing,setSyncing]=useState(false);
   const [savingSheet,setSavingSheet]=useState<string|null>(null);
   const [error,setError]=useState<string|null>(null);
   const [platform,setPlatform]=useState("leetcode");
   const [username,setUsername]=useState("");
   const [provider,setProvider]=useState<"all"|"codolio"|"tle">("all");
-  const [activeSheet,setActiveSheet]=useState<PublicSheet|null>(null);
+  const [activeCollection,setActiveCollection]=useState<Collection|null>(null);
 
   const load=async()=>{
     try{
@@ -36,117 +43,86 @@ export function CodingHubPage(){
       const [p,s,c]=await Promise.all([
         api.get<{profiles:Profile[]}>("/accounts/coding/profiles"),
         api.get<{sheets:Sheet[]}>("/learning-sheets"),
-        api.get<{sheets:PublicSheet[]}>("/learning-sheets/catalog")
+        api.get<Catalog>("/learning-sheets/catalog")
       ]);
-      setProfiles(p.data.profiles||[]);
-      setSheets(s.data.sheets||[]);
-      setCatalog(c.data.sheets||[]);
-    }catch{
-      setError("Unable to load Coding Hub. Please check your connection and try again.");
-    }finally{setLoading(false);}
+      setProfiles(p.data.profiles||[]);setSheets(s.data.sheets||[]);setCatalog(c.data);
+      try{const pg=await api.get<{progress:Progress[]}>("/learning-sheets/progress");setProgress(pg.data.progress||[]);}catch{/* catalog remains available without auth */}
+    }catch{setError("Unable to load Coding Hub. Please check your connection and try again.");}
+    finally{setLoading(false);}
   };
-
   useEffect(()=>{void load();},[]);
 
   const add=async()=>{
-    const cleanUsername=username.trim();
-    if(!cleanUsername){setError("Enter a username before adding a coding profile.");return;}
+    const cleanUsername=username.trim();if(!cleanUsername){setError("Enter a username before adding a coding profile.");return;}
     try{
       setSaving(true);setError(null);
       const response=await api.post<{profile:Profile}>("/accounts/coding/profiles",{platform,username:cleanUsername});
-      setProfiles(prev=>{
-        const next=response.data.profile;
-        const index=prev.findIndex(p=>p.platform===next.platform);
-        return index===-1?[...prev,next]:prev.map((p,i)=>i===index?next:p);
-      });
+      setProfiles(prev=>{const next=response.data.profile;const i=prev.findIndex(p=>p.platform===next.platform);return i===-1?[...prev,next]:prev.map((p,index)=>index===i?next:p);});
       setUsername("");
-    }catch(err){
-      const axiosError=err as AxiosError<{message?:string}>;
-      if(axiosError.response?.status===401)setError("Your session has expired. Please sign in again.");
-      else if(axiosError.code==="ECONNABORTED")setError("The server took too long to respond. Please try again.");
-      else setError(axiosError.response?.data?.message||"Unable to save coding profile. Please try again.");
-    }finally{setSaving(false);}
+    }catch(err){const e=err as AxiosError<{message?:string}>;setError(e.response?.status===401?"Your session has expired. Please sign in again.":e.response?.data?.message||"Unable to save coding profile. Please try again.");}
+    finally{setSaving(false);}
   };
 
-  const saveSheet=async(sheet:PublicSheet)=>{
+  const saveSheet=async(collection:Collection)=>{
+    if(!collection.sourceUrl)return;
     try{
-      setSavingSheet(sheet.id);setError(null);
-      const response=await api.post<{sheet:Sheet}>("/learning-sheets",{
-        title:sheet.title,url:sheet.url,source:sheet.provider,description:sheet.description,isBookmarked:true
-      });
-      setSheets(prev=>prev.some(item=>item._id===response.data.sheet._id)?prev.map(item=>item._id===response.data.sheet._id?response.data.sheet:item):[response.data.sheet,...prev]);
-    }catch(err){
-      const axiosError=err as AxiosError<{message?:string}>;
-      setError(axiosError.response?.status===401?"Your session has expired. Please sign in again.":axiosError.response?.data?.message||"Unable to save this sheet.");
-    }finally{setSavingSheet(null);}
+      setSavingSheet(collection.id);setError(null);
+      const response=await api.post<{sheet:Sheet}>("/learning-sheets",{title:collection.title,url:collection.sourceUrl,source:collection.provider,description:collection.description,isBookmarked:true});
+      setSheets(prev=>prev.some(x=>x._id===response.data.sheet._id)?prev.map(x=>x._id===response.data.sheet._id?response.data.sheet:x):[response.data.sheet,...prev]);
+    }catch(err){const e=err as AxiosError<{message?:string}>;setError(e.response?.data?.message||"Unable to save this sheet.");}
+    finally{setSavingSheet(null);}
   };
 
-  const removeSheet=async(id:string)=>{
+  const toggleProgress=async(item:SheetItem)=>{
+    if(!activeCollection)return;
+    const key=activeCollection.id+"::"+item.id;
+    const current=progress.find(x=>x.collectionId+"::"+x.itemId===key)?.done||false;
     try{
-      await api.delete("/learning-sheets/"+id);
-      setSheets(prev=>prev.filter(item=>item._id!==id));
-    }catch{setError("Unable to remove saved sheet.");}
+      const response=await api.put<{progress:Progress}>("/learning-sheets/progress/"+encodeURIComponent(activeCollection.id)+"/"+encodeURIComponent(item.id),{done:!current});
+      setProgress(prev=>{const i=prev.findIndex(x=>x.collectionId===activeCollection.id&&x.itemId===item.id);return i===-1?[...prev,response.data.progress]:prev.map((x,index)=>index===i?response.data.progress:x);});
+    }catch{setError("Sign in to save question progress in GradeWise.");}
   };
 
-  const visibleCatalog=provider==="all"?catalog:catalog.filter(sheet=>sheet.provider===provider);
+  const sync=async()=>{
+    try{setSyncing(true);setError(null);const r=await api.post<Catalog>("/learning-sheets/catalog/sync");setCatalog(r.data);if(activeCollection){setActiveCollection(r.data.collections.find(x=>x.id===activeCollection.id)||null);}}
+    catch{setError("Unable to refresh provider data.");}finally{setSyncing(false);}
+  };
 
-  if(activeSheet){
-    return <Shell title="Coding Hub" description="Study and organize learning sheets without leaving your GradeWise workspace.">
+  const removeSheet=async(id:string)=>{try{await api.delete("/learning-sheets/"+id);setSheets(prev=>prev.filter(x=>x._id!==id));}catch{setError("Unable to remove saved sheet.");}};
+
+  if(activeCollection){
+    const doneCount=activeCollection.items.filter(item=>progress.some(x=>x.collectionId===activeCollection.id&&x.itemId===item.id&&x.done)).length;
+    return <Shell title="Coding Hub" description="A native learning workspace — no provider pages are embedded.">
       <section className="surface-card overflow-hidden rounded-2xl">
-        <div className="flex flex-col gap-3 border-b border-[var(--border)] p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <button onClick={()=>setActiveSheet(null)} className="text-sm font-medium text-purple-600 hover:underline">← Back to Learning Sheets</button>
-            <h2 className="mt-1 font-semibold">{activeSheet.title}</h2>
-            <p className="mt-1 text-xs text-[var(--text-secondary)]">{activeSheet.provider==="tle"?"TLE Eliminators":"Codolio"} · {activeSheet.category}</p>
+        <div className="border-b border-[var(--border)] p-5">
+          <button onClick={()=>setActiveCollection(null)} className="text-sm font-medium text-purple-600 hover:underline">← Back to Learning Sheets</button>
+          <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div><div className="flex flex-wrap gap-2 text-xs"><span className="rounded-full bg-purple-500/10 px-2.5 py-1 text-purple-600">{activeCollection.provider==="tle"?"TLE Eliminators":"Codolio"}</span><span className="rounded-full bg-[var(--bg-surface-elevated)] px-2.5 py-1 text-[var(--text-secondary)]">{activeCollection.category}</span></div><h2 className="mt-3 text-2xl font-semibold">{activeCollection.title}</h2><p className="mt-2 max-w-2xl text-sm text-[var(--text-secondary)]">{activeCollection.description}</p></div>
+            <Button variant="outline" onClick={()=>void saveSheet(activeCollection)} disabled={savingSheet===activeCollection.id}>{savingSheet===activeCollection.id?<Loader2 size={15} className="animate-spin"/>:<Save size={15}/>}Save</Button>
           </div>
-          <Button variant="outline" onClick={()=>void saveSheet(activeSheet)} disabled={savingSheet===activeSheet.id}>
-            {savingSheet===activeSheet.id?<Loader2 size={15} className="animate-spin"/>:<Save size={15}/>}Save sheet
-          </Button>
         </div>
-        {activeSheet.ratings&&<div className="flex flex-wrap gap-2 border-b border-[var(--border)] p-4">
-          {activeSheet.ratings.map(rating=><span key={rating} className="rounded-full bg-[var(--bg-surface-elevated)] px-3 py-1 text-xs text-[var(--text-secondary)]">{rating}</span>)}
-        </div>}
-        <div className="bg-[var(--bg-surface)] p-2 sm:p-4">
-          <iframe src={activeSheet.url} title={activeSheet.title} className="h-[72vh] w-full rounded-xl border border-[var(--border)] bg-white" referrerPolicy="strict-origin-when-cross-origin"/>
-        </div>
-        <div className="border-t border-[var(--border)] p-4 text-xs text-[var(--text-secondary)]">
-          If the provider blocks embedding, use the official page in a new tab. GradeWise does not bypass provider access controls.
-          <a href={activeSheet.url} target="_blank" rel="noreferrer" className="ml-2 font-medium text-purple-600">Open official page <ExternalLink size={13} className="inline"/></a>
+        <div className="p-5">
+          {activeCollection.items.length===0?<div className="rounded-2xl border border-dashed border-[var(--border)] p-8 text-center"><Layers className="mx-auto text-purple-600"/><h3 className="mt-3 font-semibold">Source sync is ready</h3><p className="mx-auto mt-2 max-w-xl text-sm text-[var(--text-secondary)]">This collection is rendered natively in GradeWise. Configure the provider's permitted JSON catalog endpoint on the backend to populate its questions here; GradeWise does not iframe or scrape protected provider pages.</p><Button className="mt-4" onClick={()=>void sync()} disabled={syncing}>{syncing?<Loader2 size={15} className="animate-spin"/>:<Layers size={15}/>}Refresh source data</Button></div>:<>
+            <div className="mb-4 flex items-center justify-between text-sm"><span className="text-[var(--text-secondary)]">{doneCount} of {activeCollection.items.length} completed</span><span className="font-medium text-purple-600">{Math.round(doneCount/activeCollection.items.length*100)}%</span></div>
+            <div className="space-y-2">{activeCollection.items.map((item,index)=>{const done=progress.some(x=>x.collectionId===activeCollection.id&&x.itemId===item.id&&x.done);return <article key={item.id} className="flex flex-col gap-3 rounded-xl border border-[var(--border)] p-4 sm:flex-row sm:items-center"><button aria-label={"Mark "+item.title+" as "+(done?"not completed":"completed")} onClick={()=>void toggleProgress(item)} className={"flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-xs font-bold "+(done?"border-emerald-500 bg-emerald-500 text-white":"border-[var(--border)] text-[var(--text-secondary)]")}>{done?"✓":index+1}</button><div className="min-w-0 flex-1"><p className={done?"font-medium line-through opacity-60":"font-medium"}>{item.title}</p><div className="mt-1 flex flex-wrap gap-2 text-xs text-[var(--text-tertiary)]">{item.platform&&<span>{item.platform}</span>}{item.difficulty&&<span>• {item.difficulty}</span>}{item.topic&&<span>• {item.topic}</span>}</div>{item.description&&<p className="mt-1 text-xs text-[var(--text-secondary)]">{item.description}</p>}</div><a href={item.url} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-2 rounded-xl border border-[var(--border)] px-3 py-2 text-sm font-medium hover:bg-[var(--bg-surface-elevated)]">Open problem <ExternalLink size={14}/></a></article>;})}</div>
+          </>}
         </div>
       </section>
     </Shell>;
   }
 
-  return <Shell title="Coding Hub" description="Keep your coding identity, progress links, and learning sheets in one place.">
-    <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr]">
-      <section className="surface-card rounded-2xl p-5">
-        <div className="mb-4 flex items-center gap-2"><Code2 size={18}/><h2 className="font-semibold">Coding Profiles</h2></div>
-        <div className="flex gap-2">
-          <select value={platform} onChange={e=>setPlatform(e.target.value)} className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 text-sm">
-            <option value="leetcode">LeetCode</option><option value="geeksforgeeks">GeeksforGeeks</option><option value="codeforces">Codeforces</option><option value="hackerrank">HackerRank</option>
-          </select>
-          <input value={username} onChange={e=>setUsername(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"){e.preventDefault();void add();}}} placeholder="Username" disabled={saving} className="min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 text-sm disabled:cursor-not-allowed disabled:opacity-60"/>
-          <Button onClick={()=>void add()} disabled={saving}>{saving?<Loader2 size={15} className="animate-spin"/>:<Plus size={15}/>} {saving?"Saving…":"Add"}</Button>
-        </div>
-        {error&&<div className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">{error}</div>}
-        {loading?<div className="mt-4"><State loading={true} error={null} empty=""/></div>:profiles.length===0?<div className="mt-4"><State loading={false} error={null} empty="No coding profiles connected yet."/></div>:<div className="mt-4 space-y-2">{profiles.map(p=><div key={p._id} className="flex items-center justify-between rounded-xl border border-[var(--border)] p-3"><div><p className="font-medium capitalize">{p.platform}</p><p className="text-xs text-[var(--text-secondary)]">{p.username}</p></div><a href={p.profileUrl} target="_blank" rel="noreferrer" className="text-purple-600"><ExternalLink size={16}/></a></div>)}</div>}
-      </section>
+  const collections=(catalog?.collections||[]).filter(x=>provider==="all"||x.provider===provider);
+  return <Shell title="Coding Hub" description="Connect coding profiles, study normalized sheets, and track progress in one workspace.">
+    {error&&<div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">{error}</div>}
+    <div className="grid gap-6 lg:grid-cols-[0.9fr_1.4fr]">
+      <section className="surface-card rounded-2xl p-5"><div className="mb-4 flex items-center gap-2"><Code2 size={18}/><h2 className="font-semibold">Coding Profiles</h2></div><div className="flex gap-2"><select value={platform} onChange={e=>setPlatform(e.target.value)} className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 text-sm"><option value="leetcode">LeetCode</option><option value="geeksforgeeks">GeeksforGeeks</option><option value="codeforces">Codeforces</option><option value="hackerrank">HackerRank</option></select><input value={username} onChange={e=>setUsername(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"){e.preventDefault();void add();}}} placeholder="Username" disabled={saving} className="min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 text-sm"/><Button onClick={()=>void add()} disabled={saving}>{saving?<Loader2 size={15} className="animate-spin"/>:<Plus size={15}/>}Add</Button></div><div className="mt-4 space-y-2">{loading?<p className="text-sm text-[var(--text-secondary)]">Loading profiles…</p>:profiles.length===0?<p className="rounded-xl border border-dashed border-[var(--border)] p-4 text-sm text-[var(--text-secondary)]">No coding profiles connected yet.</p>:profiles.map(p=><div key={p._id} className="flex items-center justify-between rounded-xl border border-[var(--border)] p-3"><div><p className="font-medium capitalize">{p.platform}</p><p className="text-xs text-[var(--text-secondary)]">{p.username}</p></div><a href={p.profileUrl} target="_blank" rel="noreferrer" className="text-purple-600"><ExternalLink size={16}/></a></div>)}</div></section>
 
-      <section className="surface-card rounded-2xl p-5">
-        <div className="flex items-center gap-2"><Layers size={18}/><h2 className="font-semibold">Learning Sheets</h2></div>
-        <p className="mt-2 text-sm text-[var(--text-secondary)]">Browse Codolio collections and TLE Eliminators CP practice sheets from one place. Save the sheets you want to revisit.</p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {(["all","codolio","tle"] as const).map(value=><button key={value} onClick={()=>setProvider(value)} className={"rounded-full px-3 py-2 text-sm transition "+(provider===value?"bg-purple-600 text-white":"border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-elevated)]")}>{value==="all"?"All Sheets":value==="tle"?"TLE CP":"Codolio"}</button>)}
-        </div>
-        {loading?<div className="mt-4 text-sm text-[var(--text-secondary)]">Loading sheet catalog…</div>:<div className="mt-4 space-y-3">{visibleCatalog.map(sheet=><article key={sheet.id} className="rounded-xl border border-[var(--border)] p-3"><div className="flex items-start justify-between gap-3"><div><p className="font-medium">{sheet.title}</p><p className="mt-1 text-xs text-[var(--text-secondary)]">{sheet.description}</p><div className="mt-2 flex gap-2 text-xs text-[var(--text-tertiary)]"><span className="rounded-full bg-[var(--bg-surface-elevated)] px-2 py-1">{sheet.provider==="tle"?"TLE Eliminators":"Codolio"}</span><span className="rounded-full bg-[var(--bg-surface-elevated)] px-2 py-1">{sheet.category}</span></div></div></div><div className="mt-3 flex flex-wrap gap-2"><Button variant="outline" onClick={()=>setActiveSheet(sheet)}><BookOpen size={15}/>Study</Button><Button onClick={()=>void saveSheet(sheet)} disabled={savingSheet===sheet.id}>{savingSheet===sheet.id?<Loader2 size={15} className="animate-spin"/>:<Save size={15}/>}Save</Button></div></article>)}</div>}
+      <section className="surface-card rounded-2xl p-5"><div className="flex flex-wrap items-center justify-between gap-3"><div><div className="flex items-center gap-2"><Layers size={18}/><h2 className="font-semibold">Learning Sheets</h2></div><p className="mt-1 text-sm text-[var(--text-secondary)]">Questions are rendered as GradeWise data cards, not embedded provider websites.</p></div><Button variant="outline" onClick={()=>void sync()} disabled={syncing}>{syncing?<Loader2 size={15} className="animate-spin"/>:<Layers size={15}/>}Refresh</Button></div>
+        <div className="mt-4 flex flex-wrap gap-2">{(["all","codolio","tle"] as const).map(value=><button key={value} onClick={()=>setProvider(value)} className={"rounded-full px-3 py-2 text-sm "+(provider===value?"bg-purple-600 text-white":"border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-secondary)]")}>{value==="all"?"All":value==="tle"?"TLE":"Codolio"}</button>)}</div>
+        <div className="mt-4 grid gap-3 md:grid-cols-2">{loading?<p className="text-sm text-[var(--text-secondary)]">Loading catalog…</p>:collections.map(c=><button key={c.id} onClick={()=>setActiveCollection(c)} className="group rounded-2xl border border-[var(--border)] p-4 text-left transition hover:-translate-y-0.5 hover:border-purple-500/50 hover:shadow-lg"><div className="flex items-center justify-between"><span className="rounded-full bg-purple-500/10 px-2.5 py-1 text-xs font-medium text-purple-600">{c.provider==="tle"?"TLE":"Codolio"}</span><ExternalLink size={15} className="text-[var(--text-tertiary)] group-hover:text-purple-600"/></div><h3 className="mt-4 font-semibold">{c.title}</h3><p className="mt-2 line-clamp-2 text-sm text-[var(--text-secondary)]">{c.description}</p><div className="mt-4 text-xs text-[var(--text-tertiary)]">{c.items.length?c.items.length+" questions":"Native collection"}</div></button>)}</div>
       </section>
     </div>
-
-    <section className="surface-card rounded-2xl p-5">
-      <div className="flex items-center justify-between gap-3"><div><h2 className="font-semibold">My Saved Sheets</h2><p className="mt-1 text-sm text-[var(--text-secondary)]">Your personal shortcuts are stored in GradeWise.</p></div></div>
-      {loading?<div className="py-5 text-sm text-[var(--text-secondary)]">Loading saved sheets…</div>:sheets.length===0?<div className="py-5 text-sm text-[var(--text-secondary)]">No sheets saved yet.</div>:<div className="mt-4 grid gap-3 md:grid-cols-2">{sheets.map(sheet=><div key={sheet._id} className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] p-3"><button onClick={()=>setActiveSheet({id:sheet._id,provider:sheet.source==="tle"?"tle":"codolio",title:sheet.title,category:"Saved",description:sheet.description||"",url:sheet.url})} className="min-w-0 text-left hover:text-purple-600"><p className="truncate font-medium">{sheet.title}</p><p className="text-xs text-[var(--text-secondary)]">{sheet.source}</p></button><button onClick={()=>void removeSheet(sheet._id)} className="rounded-lg p-2 text-[var(--text-secondary)] hover:bg-[var(--bg-surface-elevated)]" aria-label={"Remove "+sheet.title}><Trash2 size={16}/></button></div>)}</div>}
-    </section>
-
+    <section className="surface-card rounded-2xl p-5"><h2 className="font-semibold">My Saved Sheets</h2><p className="mt-1 text-sm text-[var(--text-secondary)]">Personal shortcuts stored in GradeWise.</p><div className="mt-4 grid gap-2 md:grid-cols-2">{sheets.length===0?<p className="text-sm text-[var(--text-secondary)]">No sheets saved yet.</p>:sheets.map(sheet=><div key={sheet._id} className="flex items-center justify-between rounded-xl border border-[var(--border)] p-3"><div><p className="font-medium">{sheet.title}</p><p className="text-xs text-[var(--text-secondary)]">{sheet.source}</p></div><button onClick={()=>void removeSheet(sheet._id)} className="rounded-lg p-2 text-[var(--text-secondary)] hover:bg-[var(--bg-surface-elevated)]" aria-label={"Remove "+sheet.title}><Trash2 size={16}/></button></div>)}</div></section>
     <section className="surface-card rounded-2xl p-5"><h2 className="font-semibold">Connected Accounts</h2><p className="mt-1 text-sm text-[var(--text-secondary)]">Manage profile links and connection status from Settings.</p><Link to="/app/settings" className="mt-3 inline-block text-sm font-medium text-purple-600">Open Settings →</Link></section>
   </Shell>;
 }
