@@ -238,4 +238,8 @@ export function ResumeHubPage(){
   return <StackedResumeHubPage />;
 }
 
-export function GitHubHubPage(){return <Shell title="GitHub" description="Repository browsing and user-controlled imports/exports use official GitHub OAuth and APIs when configured."><section className="surface-card rounded-2xl p-6"><GitBranch size={28} className="text-purple-600"/><h2 className="mt-3 text-xl font-semibold">Connect GitHub</h2><p className="mt-2 text-sm text-[var(--text-secondary)]">OAuth configuration is environment-dependent. GradeWise should never ask for your GitHub password, and repository writes must require explicit confirmation.</p><p className="mt-4 text-xs text-[var(--text-tertiary)]">The existing repository-linking module remains separate from this hub.</p></section></Shell>;}
+import { GitHubPage } from "@/pages/github/github-page";
+
+export function GitHubHubPage(){
+  return <GitHubPage />;
+}

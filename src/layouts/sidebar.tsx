@@ -19,6 +19,9 @@ import {
   Code2,
   FileText,
   GitBranch,
+  CalendarCheck,
+  Award,
+  Brain,
 } from "lucide-react";
 import { cn } from "@/utils/cn";
 import {
@@ -29,6 +32,12 @@ import {
 const cgpaItems = [
   { to: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/app/analytics", label: "Analytics", icon: BarChart3 },
+  {
+    to: "/app/attendance",
+    label: "Smart Attendance",
+    icon: CalendarCheck,
+    badge: "Live",
+  },
   {
     to: "/app/academic-planner",
     label: "Academic Planner",
@@ -41,6 +50,8 @@ const cgpaItems = [
 
 const navItems = [
   { to: "/app/storage", label: "Storage", icon: Folder },
+  { to: "/app/interview", label: "Interview Prep", icon: Award, badge: "New" },
+  { to: "/app/quiz", label: "AI Quiz", icon: Brain, badge: "AI" },
   { to: "/app/coding", label: "Coding Hub", icon: Code2 },
   { to: "/app/resources", label: "Resources", icon: BookOpen },
   { to: "/app/resume", label: "Resume Hub", icon: FileText },

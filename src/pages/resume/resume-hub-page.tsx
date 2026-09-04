@@ -94,7 +94,7 @@ export function ResumeHubPage() {
       const res = await api.post<{ resume: ResumeItem }>("/resumes", payload);
       setResumes(prev => [res.data.resume, ...prev]);
       setSelectedResumeId(res.data.resume._id);
-      showToast(`Created targeted resume for ${params.domain.toUpperCase()}`);
+      showToast(`Created targeted resume for ${(params.domain || "general").toUpperCase()}`);
     } catch (err: any) {
       showToast(err.response?.data?.message || "Failed to create resume.");
     }
@@ -184,7 +184,7 @@ export function ResumeHubPage() {
     }
   };
 
-  const domainsCount = new Set(resumes.map(r => r.domain)).size;
+  const domainsCount = new Set(resumes.map(r => r.domain || "general")).size;
   const overleafLinkedCount = resumes.filter(r => Boolean(r.overleafUrl)).length;
 
   return (
@@ -194,7 +194,7 @@ export function ResumeHubPage() {
         <div>
           <h1 className="text-3xl font-extrabold text-[var(--text-primary)]">Resume Hub</h1>
           <p className="mt-1 text-sm text-[var(--text-secondary)]">
-            Organize domain-specific resumes, integrate with Overleaf LaTeX, and benchmark against Jobscan & Enhancv ATS scoring engines.
+            Organize domain-specific resumes, connect designs from Canva, Overleaf LaTeX, FlowCV, or Google Docs, and benchmark against Jobscan & Enhancv ATS scoring engines.
           </p>
         </div>
 
@@ -206,8 +206,8 @@ export function ResumeHubPage() {
           <span className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-1.5 font-semibold text-blue-600 dark:text-blue-400 shadow-sm">
             🎯 {domainsCount} Active Tracks
           </span>
-          <span className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-1.5 font-semibold text-emerald-600 dark:text-emerald-400 shadow-sm">
-            🍃 {overleafLinkedCount} Overleaf Linked
+          <span className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-1.5 font-semibold text-purple-600 dark:text-purple-400 shadow-sm">
+            🔗 {overleafLinkedCount} Builder Linked (Canva/Overleaf)
           </span>
         </div>
       </div>

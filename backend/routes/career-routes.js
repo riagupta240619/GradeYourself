@@ -1,51 +1,23 @@
+"use strict";
+
 const express = require("express");
 const router = express.Router();
 const { verifyToken } = require("../middleware/auth-middleware");
+const interviewController = require("../controllers/interview-controller");
 
-// Career routes
-router.get("/resume", verifyToken, async (req, res, next) => {
-  try {
-    // TODO: Implement resume management
-    res.json({ resumes: [], message: "Resume lab - coming soon" });
-  } catch (error) {
-    next(error);
-  }
-});
+// Interview Preparation Hub routes
+router.use(verifyToken);
 
-router.post("/resume", verifyToken, async (req, res, next) => {
-  try {
-    // TODO: Implement resume creation
-    res.status(501).json({ message: "Resume creation not implemented yet" });
-  } catch (error) {
-    next(error);
-  }
-});
+router.get("/interview-prep", interviewController.listQuestions);
+router.post("/interview-prep", interviewController.createQuestion);
+router.post("/interview-prep/sync", interviewController.syncCuratedQuestions);
+router.patch("/interview-prep/:id", interviewController.updateQuestion);
+router.delete("/interview-prep/:id", interviewController.deleteQuestion);
+router.get("/interview-prep/progress", interviewController.getProgress);
+router.get("/interview-prep/discover", interviewController.discoverCompanyQuestions);
 
-router.get("/resume/ats-comparison", verifyToken, async (req, res, next) => {
-  try {
-    // TODO: Implement ATS comparison
-    res.json({ comparisons: [], message: "ATS comparison - coming soon" });
-  } catch (error) {
-    next(error);
-  }
-});
-
-router.post("/resume/ats-comparison", verifyToken, async (req, res, next) => {
-  try {
-    // TODO: Implement ATS comparison request
-    res.status(501).json({ message: "ATS comparison request not implemented yet" });
-  } catch (error) {
-    next(error);
-  }
-});
-
-router.get("/interview-prep", verifyToken, async (req, res, next) => {
-  try {
-    // TODO: Implement interview preparation
-    res.json({ questions: [], message: "Interview preparation - coming soon" });
-  } catch (error) {
-    next(error);
-  }
-});
+// Retain legacy resume route stubs
+router.get("/resume", async (req, res) => res.json({ resumes: [] }));
+router.get("/resume/ats-comparison", async (req, res) => res.json({ comparisons: [] }));
 
 module.exports = router;

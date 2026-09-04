@@ -89,7 +89,7 @@ export function AtsScannerSection({
       if (parsed.suggestedRole) {
         setTargetRole(parsed.suggestedRole);
       }
-      setPdfUploadMsg(`Loaded "${file.name}" (detected: ${parsed.domain.toUpperCase()}) — ready for scan!`);
+      setPdfUploadMsg(`Loaded "${file.name}" (detected: ${(parsed.domain || "general").toUpperCase()}) — ready for scan!`);
     } catch {
       alert("Unable to parse PDF file. Please ensure it is a readable PDF.");
     } finally {
@@ -193,7 +193,7 @@ export function AtsScannerSection({
                   >
                     {resumes.map(r => (
                       <option key={r._id} value={r._id}>
-                        {r.name} ({r.domain.toUpperCase()}) {r.targetRole ? `— ${r.targetRole}` : ""}
+                        {r.name} ({(r.domain || "general").toUpperCase()}) {r.targetRole ? `— ${r.targetRole}` : ""}
                       </option>
                     ))}
                   </select>

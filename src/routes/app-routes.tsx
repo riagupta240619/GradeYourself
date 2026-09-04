@@ -19,6 +19,9 @@ import { ProfilePage } from "@/pages/profile/profile-page";
 import { AdminPanelPage } from "@/pages/admin/admin-panel-page";
 import { StoragePage } from "@/pages/app/storage/StoragePage";
 import { CodingHubPage, ResourcesHubPage, ResumeHubPage, GitHubHubPage } from "@/pages/hubs/platform-hubs";
+import { AttendancePage } from "@/pages/attendance/attendance-page";
+import { InterviewHubPage } from "@/pages/interview/interview-hub-page";
+import { QuizPage } from "@/pages/quiz/quiz-page";
 
 export function AppRoutes() {
   return (
@@ -50,6 +53,9 @@ export function AppRoutes() {
           <Route path="profile" element={<ProfilePage />} />
           <Route path="admin" element={<AdminPanelPage />} />
           <Route path="storage" element={<StoragePage />} />
+          <Route path="attendance" element={<AttendancePage />} />
+          <Route path="interview" element={<InterviewHubPage />} />
+          <Route path="quiz" element={<QuizPage />} />
           <Route path="coding" element={<CodingHubPage />} />
           <Route path="resources" element={<ResourcesHubPage />} />
           <Route path="resume" element={<ResumeHubPage />} />

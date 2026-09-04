@@ -1,73 +1,240 @@
 "use strict";
 const Resume = require("../models/resume-model");
 
-// Curated Overleaf LaTeX templates suitable for engineering & CS disciplines
-const OVERLEAF_TEMPLATES = [
+// Top Industry Resume Platforms & Builders Directory
+const TOP_RESUME_PLATFORMS = [
+  {
+    id: "canva",
+    name: "Canva",
+    tagline: "Visual & Creative Drag-and-Drop Resume Builder",
+    description: "Ideal for creative developers, UI/UX engineers, tech product managers, and modern graphic portfolios.",
+    websiteUrl: "https://www.canva.com/resumes/templates/",
+    icon: "Palette",
+    badgeColor: "purple",
+    popularWith: "Creative Tech, UI/UX, Full-Stack, Product Designers",
+    features: ["Drag-and-drop visual design", "Hundreds of curated modern presets", "Export to PDF & high-res PNG", "Infographic skills & timelines"]
+  },
+  {
+    id: "overleaf",
+    name: "Overleaf (LaTeX)",
+    tagline: "Academic & Tech Industry Standard",
+    description: "The gold standard for Computer Science, engineering, research publications, and top-tier tech/FAANG ATS compliance.",
+    websiteUrl: "https://www.overleaf.com/latex/templates/category/cv-or-resume",
+    icon: "FileCode",
+    badgeColor: "emerald",
+    popularWith: "SDE, AI/ML Researchers, Systems Engineers, FAANG",
+    features: ["Exact typographic control", "Jake's Resume & Deedy CV", "Math & algorithmic equations", "FAANG ATS gold standard"]
+  },
+  {
+    id: "flowcv",
+    name: "FlowCV",
+    tagline: "Smart ATS Formatter with Live Preview",
+    description: "Effortless auto-formatting with modern design tokens, multi-column adaptability, and instant PDF download.",
+    websiteUrl: "https://flowcv.com/",
+    icon: "Zap",
+    badgeColor: "cyan",
+    popularWith: "Modern SDE, Cloud Engineers, Career Starters",
+    features: ["Smart auto-formatting", "ATS-checked layouts", "Custom accent colors & icons", "Instant high-resolution PDF"]
+  },
+  {
+    id: "reactive_resume",
+    name: "Reactive Resume",
+    tagline: "100% Free & Open-Source Privacy-First Builder",
+    description: "A free, privacy-friendly, open-source resume builder with JSON Resume schema support and zero ads.",
+    websiteUrl: "https://rxresu.me/",
+    icon: "Globe",
+    badgeColor: "indigo",
+    popularWith: "Open-Source Developers, Web Engineers, Privacy Advocates",
+    features: ["100% free & open-source", "Zero user tracking", "JSON resume schema compatible", "Multiple languages & themes"]
+  },
+  {
+    id: "google_docs",
+    name: "Google Docs Templates",
+    tagline: "Universal & 100% Free Cloud Word Processor",
+    description: "Universally accepted by ATS scanners. Simple to collaborate on, edit on any device, and export to PDF/DOCX.",
+    websiteUrl: "https://docs.google.com/document/u/0/?ftv=1",
+    icon: "FileText",
+    badgeColor: "blue",
+    popularWith: "All Students, Enterprise Tech, Fast Drafting",
+    features: ["100% free cloud access", "Universal ATS readability", "Easy real-time collaboration", "Export DOCX & PDF"]
+  },
+  {
+    id: "novoresume",
+    name: "Novoresume",
+    tagline: "Professional ATS-Optimized Formats",
+    description: "Built-in content optimizer with live suggestions to pass corporate applicant tracking systems.",
+    websiteUrl: "https://novoresume.com/resume-templates",
+    icon: "Award",
+    badgeColor: "amber",
+    popularWith: "Executive Tech, Corporate Engineering, Consultants",
+    features: ["ATS content analyzer", "Industry-tailored sections", "Clean modern layouts", "Pre-written bullet suggestions"]
+  }
+];
+
+// Curated templates across all top platforms (Canva, Overleaf, FlowCV, Reactive Resume, Google Docs)
+const BUILDER_TEMPLATES = [
+  // ── Canva Templates ──
+  {
+    id: "canva-minimalist-sde",
+    title: "Canva: Minimalist Tech & Full-Stack SDE",
+    platform: "canva",
+    platformName: "Canva",
+    domain: "fullstack",
+    category: "Full Stack & SDE (Canva)",
+    description: "A sleek, modern single-page resume template on Canva featuring clean typography, structured project showcases, and tech stack chips.",
+    overleafUrl: "https://www.canva.com/templates/?query=minimalist-software-engineer-resume",
+    builderUrl: "https://www.canva.com/templates/?query=minimalist-software-engineer-resume",
+    tags: ["Canva", "Visual Clean", "Full-Stack", "Modern Layout"],
+    popularFor: "Full Stack Developer, React/Node Engineer, Web Architect",
+    previewSnippet: "[Canva Visual Template - Open in Canva to customize layout, colors, typography, and skills chips visually]"
+  },
+  {
+    id: "canva-uiux-frontend",
+    title: "Canva: Creative UI/UX & Frontend Developer",
+    platform: "canva",
+    platformName: "Canva",
+    domain: "sde",
+    category: "Frontend & Creative Tech (Canva)",
+    description: "Designed on Canva for frontend engineers and UI/UX developers who want to showcase design sensibilities, Figma links, and live demos.",
+    overleafUrl: "https://www.canva.com/templates/?query=frontend-developer-resume",
+    builderUrl: "https://www.canva.com/templates/?query=frontend-developer-resume",
+    tags: ["Canva", "UI/UX", "Portfolio Focus", "Design Systems"],
+    popularFor: "Frontend Developer, UI/UX Engineer, Product Designer",
+    previewSnippet: "[Canva Creative Template - Open in Canva for interactive drag-and-drop editing with custom asset libraries]"
+  },
+  {
+    id: "canva-cybersecurity-soc",
+    title: "Canva: Cybersecurity & InfoSec Analyst",
+    platform: "canva",
+    platformName: "Canva",
+    domain: "cybersecurity",
+    category: "Cybersecurity & InfoSec (Canva)",
+    description: "Clean corporate security analyst layout on Canva highlighting certifications (CompTIA Security+, CEH, CISSP) and incident response tools.",
+    overleafUrl: "https://www.canva.com/templates/?query=cybersecurity-resume",
+    builderUrl: "https://www.canva.com/templates/?query=cybersecurity-resume",
+    tags: ["Canva", "Infographic Certs", "Security Ops", "Corporate"],
+    popularFor: "SOC Analyst, Security Engineer, Pentester",
+    previewSnippet: "[Canva Security Analyst Template - Highlight certs, tools (Splunk, Wireshark), and compliance badges visually]"
+  },
+  {
+    id: "canva-ai-data-science",
+    title: "Canva: AI & Data Science Specialist",
+    platform: "canva",
+    platformName: "Canva",
+    domain: "ai_ml",
+    category: "AI, ML & Data Science (Canva)",
+    description: "Visual data science template with clean KPI metrics boxes, Kaggle achievements, and machine learning pipeline highlights.",
+    overleafUrl: "https://www.canva.com/templates/?query=data-science-resume",
+    builderUrl: "https://www.canva.com/templates/?query=data-science-resume",
+    tags: ["Canva", "KPI Callouts", "Data Science", "Python/PyTorch"],
+    popularFor: "Data Scientist, ML Engineer, Analytics Lead",
+    previewSnippet: "[Canva Data Science Template - Structured metrics callouts, Python toolkits, and GitHub/Kaggle badges]"
+  },
+
+  // ── Overleaf (LaTeX) Templates ──
   {
     id: "jakes-resume",
-    title: "Jake's Resume (Industry Gold Standard)",
+    title: "Overleaf: Jake's Resume (FAANG Gold Standard)",
+    platform: "overleaf",
+    platformName: "Overleaf",
     domain: "sde",
-    category: "Software Engineering / SDE",
+    category: "Software Engineering (Overleaf LaTeX)",
     description: "The most popular single-page ATS-friendly LaTeX template used for FAANG and top tech applications.",
     overleafUrl: "https://www.overleaf.com/latex/templates/jakes-resume/syzfjbzwjncs",
-    tags: ["Single Page", "ATS High Parse", "Clean", "FAANG"],
+    builderUrl: "https://www.overleaf.com/latex/templates/jakes-resume/syzfjbzwjncs",
+    tags: ["LaTeX", "Single Page", "ATS High Parse", "FAANG"],
     popularFor: "Full Stack, Backend, Frontend, General SDE",
     previewSnippet: "\\documentclass[letterpaper,11pt]{article}\n\\usepackage{latexsym}\n\\usepackage[empty]{fullpage}\n% Standard Jake's Resume header & structure\n\\begin{document}\n..."
   },
   {
     id: "cyber-security-analyst",
-    title: "Cybersecurity & SOC Threat Analyst CV",
+    title: "Overleaf: Cybersecurity & SOC Threat Analyst CV",
+    platform: "overleaf",
+    platformName: "Overleaf",
     domain: "cybersecurity",
-    category: "Cybersecurity & InfoSec",
+    category: "Cybersecurity & InfoSec (Overleaf LaTeX)",
     description: "Tailored for Penetration Testers, SOC Tier 1/2, SIEM Engineers, and Security Compliance roles with specialized certification badges.",
     overleafUrl: "https://www.overleaf.com/latex/templates/simple-hipstercv/vngvymrmqmqs",
-    tags: ["Security Ops", "Certifications Focus", "SIEM/NIST", "Cyber"],
+    builderUrl: "https://www.overleaf.com/latex/templates/simple-hipstercv/vngvymrmqmqs",
+    tags: ["LaTeX", "Security Ops", "Certifications Focus", "SIEM/NIST"],
     popularFor: "SOC Analyst, Pentester, Cloud Security, Threat Hunter",
     previewSnippet: "\\documentclass[10pt,a4paper]{article}\n% Cybersecurity Domain Resume\n% Emphasizes SIEM, Wireshark, Splunk, NIST 800-53, CVEs\n..."
   },
   {
-    id: "fullstack-modern-cv",
-    title: "Modern Full-Stack & Cloud Engineer Resume",
-    domain: "fullstack",
-    category: "Full Stack & Web Engineering",
-    description: "Highlighting MERN, Next.js, microservices, system design architectures, and cloud deployments with high visual contrast.",
-    overleafUrl: "https://www.overleaf.com/latex/templates/faangpath-simple-template/nvsjgbqzmkxm",
-    tags: ["MERN/Next.js", "System Design", "Cloud Native", "Impact Metrics"],
-    popularFor: "Full Stack Developer, React/Node Engineer, Web Architect",
-    previewSnippet: "\\documentclass[letterpaper,10.8pt]{article}\n% Modern Full Stack Developer Template\n% Structured for Live URLs, GitHub, and Tech Stack chips\n..."
-  },
-  {
     id: "deedy-resume-two-column",
-    title: "Deedy Resume (Two-Column Technical CV)",
+    title: "Overleaf: Deedy Resume (Two-Column Technical CV)",
+    platform: "overleaf",
+    platformName: "Overleaf",
     domain: "ai_ml",
-    category: "AI, ML & Data Science",
+    category: "AI, ML & Data Science (Overleaf LaTeX)",
     description: "Designed by former Facebook & Cornell engineer Debarghya Das. Dual-column format ideal for ML publications and deep project stacks.",
     overleafUrl: "https://www.overleaf.com/latex/templates/deedy-cv/bjryvfsjdyxz",
-    tags: ["Two Column", "Research/ML", "Publications", "Data Science"],
+    builderUrl: "https://www.overleaf.com/latex/templates/deedy-cv/bjryvfsjdyxz",
+    tags: ["LaTeX", "Two Column", "Research/ML", "Publications"],
     popularFor: "Machine Learning Engineer, Data Scientist, NLP/CV Researcher",
     previewSnippet: "\\documentclass[]{deedy-resume-openfont}\n% Deedy Resume for ML & Research\n..."
   },
   {
     id: "devops-sre-minimal",
-    title: "Cloud Infrastructure & DevOps SRE Template",
+    title: "Overleaf: Cloud Infrastructure & DevOps SRE",
+    platform: "overleaf",
+    platformName: "Overleaf",
     domain: "devops_cloud",
-    category: "Cloud, DevOps & SRE",
+    category: "Cloud & DevOps (Overleaf LaTeX)",
     description: "Focuses on CI/CD pipelines, Kubernetes, Terraform, AWS/GCP, latency reductions, and 99.99% uptime metrics.",
     overleafUrl: "https://www.overleaf.com/latex/templates/software-engineer-resume/rqzvwxmybxxk",
-    tags: ["DevOps", "Kubernetes", "CI/CD", "AWS/Terraform"],
+    builderUrl: "https://www.overleaf.com/latex/templates/software-engineer-resume/rqzvwxmybxxk",
+    tags: ["LaTeX", "DevOps", "Kubernetes", "AWS/Terraform"],
     popularFor: "DevOps Engineer, SRE, Platform Engineer, Cloud Architect",
     previewSnippet: "\\documentclass[11pt,a4paper]{article}\n% SRE & Cloud Architect Template\n..."
   },
+
+  // ── FlowCV Templates ──
   {
-    id: "awesome-cv-executive",
-    title: "Awesome CV (Clean Modern Typography)",
-    domain: "mobile",
-    category: "Mobile & Cross-Platform",
-    description: "Striking modern layout with fontawesome icons, ideal for mobile app showcases (iOS Swift, Android Kotlin, Flutter).",
-    overleafUrl: "https://www.overleaf.com/latex/templates/awesome-cv/vfvztjxrqwwr",
-    tags: ["FontAwesome", "PlayStore/AppStore links", "Clean", "Visual"],
-    popularFor: "iOS Developer, Android Engineer, Flutter / React Native",
-    previewSnippet: "\\documentclass[11pt, a4paper]{awesome-cv}\n% Awesome CV Mobile Portfolio\n..."
+    id: "flowcv-clean-tech",
+    title: "FlowCV: Modern Clean ATS Tech Resume",
+    platform: "flowcv",
+    platformName: "FlowCV",
+    domain: "fullstack",
+    category: "Full Stack & Web (FlowCV)",
+    description: "Smart ATS auto-formatter with live design preview, custom bullet styling, and clean sans-serif typography.",
+    overleafUrl: "https://flowcv.com/",
+    builderUrl: "https://flowcv.com/",
+    tags: ["FlowCV", "Auto-Formatting", "ATS Clean", "Instant PDF"],
+    popularFor: "Full Stack Developer, SDE, Cloud Engineers",
+    previewSnippet: "[FlowCV Smart Formatter - Open FlowCV to format sections, customize spacing, and download free ATS-clean PDF]"
+  },
+
+  // ── Reactive Resume (Open Source) ──
+  {
+    id: "reactive-resume-standard",
+    title: "Reactive Resume: Open-Source JSON Standard",
+    platform: "reactive_resume",
+    platformName: "Reactive Resume",
+    domain: "sde",
+    category: "Open-Source & Privacy (Reactive Resume)",
+    description: "100% free open-source privacy-first resume builder. Fully compliant with the standard JSON Resume schema with zero ads.",
+    overleafUrl: "https://rxresu.me/",
+    builderUrl: "https://rxresu.me/",
+    tags: ["Reactive Resume", "Open Source", "JSON Resume", "Zero Ads"],
+    popularFor: "Software Engineers, Open-Source Contributors, Privacy Focus",
+    previewSnippet: "[Reactive Resume - Open rxresu.me for free private resume generation with JSON Resume schema compatibility]"
+  },
+
+  // ── Google Docs Templates ──
+  {
+    id: "google-docs-swiss",
+    title: "Google Docs: Swiss ATS Universal Template",
+    platform: "google_docs",
+    platformName: "Google Docs",
+    domain: "sde",
+    category: "General Tech & ATS (Google Docs)",
+    description: "Universally accessible, clean single-column Google Docs template with 100% guaranteed ATS readability and easy cloud sharing.",
+    overleafUrl: "https://docs.google.com/document/u/0/?ftv=1",
+    builderUrl: "https://docs.google.com/document/u/0/?ftv=1",
+    tags: ["Google Docs", "Free Cloud", "100% ATS Safe", "Easy Collab"],
+    popularFor: "All Engineering & Tech Roles, Fast Cloud Editing",
+    previewSnippet: "[Google Docs Swiss Format - Free cloud word processor with instant ATS readability and PDF export]"
   }
 ];
 
@@ -427,11 +594,18 @@ async function deleteResume(req, res, next) {
 async function getOverleafTemplates(req, res, next) {
   try {
     const domain = req.query.domain;
-    let templates = OVERLEAF_TEMPLATES;
+    const platform = req.query.platform;
+    let templates = BUILDER_TEMPLATES;
     if (domain && domain !== "all") {
       templates = templates.filter(t => t.domain === domain);
     }
-    res.json({ templates });
+    if (platform && platform !== "all") {
+      templates = templates.filter(t => t.platform === platform);
+    }
+    res.json({
+      templates,
+      platforms: TOP_RESUME_PLATFORMS,
+    });
   } catch (e) {
     next(e);
   }

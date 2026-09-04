@@ -25,6 +25,8 @@ const connectedAccountRoutes = require("./routes/connected-account-routes");
 const learningSheetRoutes = require("./routes/learning-sheet-routes");
 const storageRoutes = require("./routes/storage-routes");
 const resumeRoutes = require("./routes/resume-routes");
+const attendanceRoutes = require("./routes/attendance-routes");
+const favoriteRoutes = require("./routes/favorite-routes");
 const { notFound, errorHandler } = require("./middleware/error-middleware");
 const { authLimiter, apiLimiter } = require("./middleware/rate-limiter");
 const { verifyCsrf } = require("./middleware/csrf-middleware");
@@ -117,6 +119,8 @@ app.use("/api/accounts", connectedAccountRoutes);
 app.use("/api/learning-sheets", learningSheetRoutes);
 app.use("/api/storage", storageRoutes);
 app.use("/api/resumes", resumeRoutes); // Resume lab & career
+app.use("/api/attendance", attendanceRoutes);
+app.use("/api/favorites", favoriteRoutes);
 
 // ── 7. Error Handling Middlewares ─────────────────────────────────────────────
 app.use(notFound);

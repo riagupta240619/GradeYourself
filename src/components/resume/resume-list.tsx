@@ -114,6 +114,27 @@ export function ResumeList({
     }
   };
 
+  const getBuilderInfo = (url?: string) => {
+    if (!url) return null;
+    const lower = url.toLowerCase();
+    if (lower.includes("canva.com")) {
+      return { name: "Canva Design", icon: "🎨", color: "text-purple-600 dark:text-purple-400 hover:text-purple-700" };
+    }
+    if (lower.includes("overleaf.com")) {
+      return { name: "Overleaf Project", icon: "🍃", color: "text-emerald-600 dark:text-emerald-400 hover:text-emerald-700" };
+    }
+    if (lower.includes("flowcv.com")) {
+      return { name: "FlowCV Resume", icon: "⚡", color: "text-cyan-600 dark:text-cyan-400 hover:text-cyan-700" };
+    }
+    if (lower.includes("rxresu.me") || lower.includes("reactive")) {
+      return { name: "Reactive Resume", icon: "🌐", color: "text-indigo-600 dark:text-indigo-400 hover:text-indigo-700" };
+    }
+    if (lower.includes("docs.google.com")) {
+      return { name: "Google Docs", icon: "📄", color: "text-blue-600 dark:text-blue-400 hover:text-blue-700" };
+    }
+    return { name: "Online Builder", icon: "🔗", color: "text-purple-600 dark:text-purple-400 hover:text-purple-700" };
+  };
+
   const pdfInputRef = useRef<HTMLInputElement>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
@@ -287,7 +308,7 @@ export function ResumeList({
                     </p>
                   )}
 
-                  {/* Overleaf Link Section */}
+                  {/* External Builder Link Section (Canva, Overleaf, FlowCV, Docs, etc.) */}
                   <div className="mt-3 rounded-xl bg-[var(--bg-surface-elevated)] p-2.5 border border-[var(--border)]">
                     {editingOverleafId === r._id ? (
                       <div className="space-y-2">
@@ -295,7 +316,7 @@ export function ResumeList({
                           type="url"
                           value={tempOverleafUrl}
                           onChange={e => setTempOverleafUrl(e.target.value)}
-                          placeholder="https://www.overleaf.com/project/..."
+                          placeholder="Paste Canva, Overleaf, FlowCV, or Google Docs URL…"
                           className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] px-2.5 py-1 text-xs focus:outline-none"
                         />
                         <div className="flex justify-end gap-1.5">
@@ -307,7 +328,7 @@ export function ResumeList({
                           </button>
                           <button
                             onClick={() => handleSaveOverleafLink(r._id)}
-                            className="rounded-md bg-emerald-600 px-2.5 py-0.5 text-[11px] text-white font-semibold"
+                            className="rounded-md bg-purple-600 px-2.5 py-0.5 text-[11px] text-white font-semibold"
                           >
                             Save Link
                           </button>
@@ -315,14 +336,21 @@ export function ResumeList({
                       </div>
                     ) : r.overleafUrl ? (
                       <div className="flex items-center justify-between gap-2">
-                        <a
-                          href={r.overleafUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="truncate text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
-                        >
-                          <FileCode size={13} /> Overleaf Project <ExternalLink size={11} />
-                        </a>
+                        {(() => {
+                          const info = getBuilderInfo(r.overleafUrl);
+                          return (
+                            <a
+                              href={r.overleafUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className={`truncate text-xs font-semibold ${info?.color || "text-purple-600"} hover:underline flex items-center gap-1.5`}
+                            >
+                              <span>{info?.icon || "🔗"}</span>
+                              <span>{info?.name || "Online Builder"}</span>
+                              <ExternalLink size={11} />
+                            </a>
+                          );
+                        })()}
                         <button
                           onClick={() => {
                             setEditingOverleafId(r._id);
@@ -339,9 +367,9 @@ export function ResumeList({
                           setEditingOverleafId(r._id);
                           setTempOverleafUrl("");
                         }}
-                        className="text-xs text-[var(--text-secondary)] hover:text-emerald-600 transition flex items-center gap-1"
+                        className="text-xs text-[var(--text-secondary)] hover:text-purple-600 transition flex items-center gap-1.5"
                       >
-                        <LinkIcon size={12} /> Link Overleaf Project URL
+                        <LinkIcon size={12} /> Link Canva, Overleaf, or Docs URL
                       </button>
                     )}
                   </div>
@@ -480,14 +508,19 @@ export function ResumeList({
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-[var(--text-primary)]">Overleaf Project URL (Optional)</label>
+                <label className="text-xs font-semibold text-[var(--text-primary)]">
+                  External Builder Link (Canva, Overleaf, FlowCV, Docs)
+                </label>
                 <input
                   type="url"
                   value={newOverleafUrl}
                   onChange={e => setNewOverleafUrl(e.target.value)}
-                  placeholder="https://www.overleaf.com/project/6492... or share link"
-                  className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                  placeholder="https://www.canva.com/design/... or https://www.overleaf.com/project/..."
+                  className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 text-sm focus:border-purple-500 focus:outline-none"
                 />
+                <p className="mt-1 text-[11px] text-[var(--text-tertiary)]">
+                  Paste an editable or shareable link from Canva, Overleaf, FlowCV, Reactive Resume, or Google Docs.
+                </p>
               </div>
 
               <div>

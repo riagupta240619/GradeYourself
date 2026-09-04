@@ -70,6 +70,20 @@ export interface ResumeItem {
   createdAt: string;
 }
 
+export type ResumeBuilderType = "all" | "canva" | "overleaf" | "flowcv" | "reactive_resume" | "google_docs" | "novoresume" | "other";
+
+export interface ResumeBuilderPlatform {
+  id: string;
+  name: string;
+  tagline: string;
+  description: string;
+  websiteUrl: string;
+  icon: string;
+  badgeColor: string;
+  popularWith: string;
+  features: string[];
+}
+
 export interface OverleafTemplate {
   id: string;
   title: string;
@@ -77,6 +91,9 @@ export interface OverleafTemplate {
   category: string;
   description: string;
   overleafUrl: string;
+  builderUrl?: string;
+  platform?: ResumeBuilderType;
+  platformName?: string;
   tags: string[];
   popularFor: string;
   previewSnippet: string;
