@@ -113,9 +113,12 @@ export const SemesterService = {
       }>;
     }>;
   }): Promise<{ message: string; savedSemesters: SemesterWithTotalCredits[] }> {
+    // Transcript imports can contain dozens of subjects and may take longer than
+    // the default 10-second API timeout, especially when Render is waking up.
     const response = await api.post<{ message: string; savedSemesters: SemesterWithTotalCredits[] }>(
       "/semesters/bulk-transcript",
-      payload
+      payload,
+      { timeout: 60000 }
     );
     return response.data;
   },
