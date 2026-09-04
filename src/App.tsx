@@ -18,15 +18,7 @@ function AppContent() {
       });
   }, []);
 
-  return (
-    <ThemeProvider>
-      <AuthProvider>
-        <BrowserRouter>
-          <ThemedRouter />
-        </BrowserRouter>
-      </AuthProvider>
-    </ThemeProvider>
-  );
+  return <BrowserRouter><ThemedRouter /></BrowserRouter>;
 }
 
 function ThemedRouter() { const { theme } = useTheme(); return <><Toaster theme={theme} position="top-right" richColors /><AppRoutes /></>; }
