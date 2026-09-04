@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 type Account={_id:string;platform:string;username:string;profileUrl:string;connectionType:string;status:string};
 type Profile={_id:string;platform:string;username:string;profileUrl:string;stats?:Record<string,unknown>};
 type Sheet={_id:string;title:string;url:string;source:string};
-type Bookmark={_id:string;title:string;url:string;category:string;source:string};
+type Bookmark={_id:string;title:string;url:string;category:string;source:string;description?:string};
 type Resume={_id:string;name:string;template:string;updatedAt:string};
 
 function Shell({title,description,children}:{title:string;description:string;children:ReactNode}){return <div className="mx-auto max-w-6xl space-y-6"><div><h1 className="text-3xl font-bold text-[var(--text-primary)]">{title}</h1><p className="mt-1 text-sm text-[var(--text-secondary)]">{description}</p></div>{children}</div>}
