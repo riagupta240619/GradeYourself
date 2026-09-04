@@ -4,6 +4,8 @@ import { Link } from "react-router-dom";
 import { BookOpen, Code2, FileText, GitBranch, Layers, Loader2, Plus, Save, ExternalLink, Trash2 } from "lucide-react";
 import { api } from "@/services/api";
 import { Button } from "@/components/ui/button";
+import { SubjectSearchBar, SUBJECT_METADATA, type SubjectNode } from "@/components/resources/subject-search-bar";
+import { ResourcesPage } from "@/pages/resources/resources-page";
 
 type Account={_id:string;platform:string;username:string;profileUrl:string;connectionType:string;status:string};
 type Profile={_id:string;platform:string;username:string;profileUrl:string;stats?:Record<string,unknown>};
@@ -11,7 +13,6 @@ type Sheet={_id:string;title:string;url:string;source:string;description?:string
 type PublicSheet={id:string;provider:"codolio"|"tle";title:string;category:string;description:string;url:string;externalOnly?:boolean;ratings?:number[]};
 type Bookmark={_id:string;title:string;url:string;category:string;source:string;description?:string;provider?:string;subjectId?:string;embed?:boolean};
 type ResourceEntry={id:string;title:string;provider:string;url:string;description:string;embed?:boolean};
-type SubjectNode={id:string;title:string;description:string;resources:ResourceEntry[]};
 type Resume={_id:string;name:string;template:string;updatedAt:string};
 
 function Shell({title,description,children}:{title:string;description:string;children:ReactNode}){return <div className="mx-auto max-w-6xl space-y-6"><div><h1 className="text-3xl font-bold text-[var(--text-primary)]">{title}</h1><p className="mt-1 text-sm text-[var(--text-secondary)]">{description}</p></div>{children}</div>}
@@ -229,134 +230,7 @@ export function CodingHubPage(){
 }
 
 export function ResourcesHubPage(){
-  const [subjects,setSubjects]=useState<SubjectNode[]>([]);
-  const [saved,setSaved]=useState<Bookmark[]>([]);
-  const [loadingCatalog,setLoadingCatalog]=useState(true);
-  const [loadingSaved,setLoadingSaved]=useState(true);
-  const [error,setError]=useState<string|null>(null);
-  const [savedError,setSavedError]=useState<string|null>(null);
-  const [selectedSubject,setSelectedSubject]=useState<SubjectNode|null>(null);
-  const [activeResource,setActiveResource]=useState<ResourceEntry|null>(null);
-
-  const loadCatalog=async()=>{
-    try{
-      setLoadingCatalog(true);setError(null);
-      const response=await api.get<{subjects:SubjectNode[]}>("/resource-hub/catalog");
-      setSubjects(response.data.subjects||[]);
-    }catch{
-      setError("Unable to load the resource catalog. Please try again.");
-    }finally{setLoadingCatalog(false);}
-  };
-
-  const loadSaved=async()=>{
-    try{
-      setLoadingSaved(true);setSavedError(null);
-      const response=await api.get<{bookmarks:Bookmark[]}>("/resource-hub/saved");
-      setSaved(response.data.bookmarks||[]);
-    }catch(err){
-      const axiosError=err as AxiosError<{message?:string}>;
-      setSavedError(axiosError.response?.status===401?"Your session has expired. Please sign in again.":"Unable to load saved resources.");
-    }finally{setLoadingSaved(false);}
-  };
-
-  useEffect(()=>{void loadCatalog();void loadSaved();},[]);
-
-  const save=async(r:ResourceEntry|Bookmark)=>{
-    try{
-      setSavedError(null);
-      const response=await api.post<{bookmark:Bookmark}>("/resource-hub/saved",{
-        title:r.title,url:r.url,category:("category" in r&&r.category)||selectedSubject?.title||"General",source:("provider" in r&&r.provider)||(("source" in r&&r.source)||"external")
-      });
-      setSaved(prev=>prev.some(item=>item._id===response.data.bookmark._id)?prev.map(item=>item._id===response.data.bookmark._id?response.data.bookmark:item):[response.data.bookmark,...prev]);
-    }catch(err){
-      const axiosError=err as AxiosError<{message?:string}>;
-      setSavedError(axiosError.response?.data?.message||"Unable to save resource.");
-    }
-  };
-
-  const removeSaved=async(id:string)=>{
-    try{await api.delete("/resource-hub/saved/"+id);setSaved(prev=>prev.filter(item=>item._id!==id));}
-    catch{setSavedError("Unable to remove saved resource.");}
-  };
-
-  if(activeResource){
-    return <Shell title="Resources" description="Study material and useful learning resources in one place.">
-      <section className="surface-card overflow-hidden rounded-2xl">
-        <div className="flex flex-col gap-3 border-b border-[var(--border)] p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <button onClick={()=>setActiveResource(null)} className="text-sm font-medium text-purple-600 hover:underline">← Back to {selectedSubject?.title||"resources"}</button>
-            <h2 className="mt-1 font-semibold">{activeResource.title}</h2>
-            <p className="mt-1 text-xs text-[var(--text-secondary)]">{activeResource.provider}</p>
-          </div>
-          <Button onClick={()=>void save(activeResource)}><Save size={15}/>Save</Button>
-        </div>
-        {activeResource.embed!==false?<div className="bg-[var(--bg-surface)] p-2 sm:p-4">
-          <iframe src={activeResource.url} title={activeResource.title} className="h-[72vh] w-full rounded-xl border border-[var(--border)] bg-white" referrerPolicy="strict-origin-when-cross-origin"/>
-        </div>:<div className="p-6">
-          <div className="mx-auto max-w-2xl rounded-2xl border border-[var(--border)] bg-[var(--bg-surface-elevated)] p-6 text-center">
-            <BookOpen className="mx-auto text-purple-600"/>
-            <h3 className="mt-3 font-semibold">Official resource</h3>
-            <p className="mt-2 text-sm text-[var(--text-secondary)]">{activeResource.description}</p>
-            <p className="mt-3 text-xs text-[var(--text-tertiary)]">This provider does not offer a reliable embeddable reader, so GradeWise does not bypass its access controls or copy the content.</p>
-            <a href={activeResource.url} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-2 rounded-xl bg-purple-600 px-4 py-2 text-sm font-medium text-white">Open official resource <ExternalLink size={15}/></a>
-          </div>
-        </div>}
-      </section>
-    </Shell>;
-  }
-
-  return <Shell title="Resources" description="Browse subjects first, then choose a resource provider in a single combined tree.">
-    {loadingCatalog||error?<State loading={loadingCatalog} error={error} empty=""/>:selectedSubject?<>
-      <section className="surface-card rounded-2xl p-5">
-        <button onClick={()=>setSelectedSubject(null)} className="text-sm font-medium text-purple-600 hover:underline">← Back to all subjects</button>
-        <h2 className="mt-2 text-xl font-semibold">{selectedSubject.title}</h2>
-        <p className="mt-1 text-sm text-[var(--text-secondary)]">{selectedSubject.description}</p>
-      </section>
-      <section className="surface-card rounded-2xl p-5">
-        <div className="mb-4 flex items-center gap-2"><Layers size={18}/><h3 className="font-semibold">Resource tree</h3></div>
-        <div className="space-y-3">
-          {selectedSubject.resources.map((resource,index)=><div key={resource.id} className="rounded-xl border border-[var(--border)] p-4">
-            <div className="flex items-start gap-3">
-              <div className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-purple-100 text-xs font-semibold text-purple-700 dark:bg-purple-500/15 dark:text-purple-300">{index+1}</div>
-              <div className="min-w-0 flex-1">
-                <p className="font-medium">{resource.title}</p>
-                <p className="mt-1 text-xs text-[var(--text-tertiary)]">{resource.provider}</p>
-                <p className="mt-2 text-sm text-[var(--text-secondary)]">{resource.description}</p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Button variant="outline" onClick={()=>setActiveResource(resource)}><BookOpen size={15}/>{resource.embed===false?"Resource details":"Study here"}</Button>
-                  <Button onClick={()=>void save(resource)}><Save size={15}/>Save</Button>
-                </div>
-              </div>
-            </div>
-          </div>)}
-        </div>
-      </section>
-    </>:<section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      {subjects.map(subject=><button key={subject.id} onClick={()=>setSelectedSubject(subject)} className="surface-card rounded-2xl p-5 text-left transition hover:-translate-y-0.5 hover:shadow-lg">
-        <BookOpen className="text-purple-600"/>
-        <h2 className="mt-3 font-semibold">{subject.title}</h2>
-        <p className="mt-2 text-sm text-[var(--text-secondary)]">{subject.description}</p>
-        <div className="mt-4 flex items-center justify-between text-sm text-purple-600"><span>{subject.resources.length} sources</span><span>Open →</span></div>
-      </button>)}
-      {subjects.length===0&&<State loading={false} error={null} empty="No subjects are available yet."/>}
-    </section>}
-
-    <section className="surface-card rounded-2xl p-5">
-      <div className="flex items-center justify-between gap-3">
-        <div><h2 className="font-semibold">Saved Resources</h2><p className="mt-1 text-sm text-[var(--text-secondary)]">Your personal resource shortcuts.</p></div>
-        {savedError&&<span className="text-xs text-red-600 dark:text-red-300">{savedError}</span>}
-      </div>
-      {loadingSaved?<div className="py-5 text-sm text-[var(--text-secondary)]">Loading saved resources…</div>:saved.length===0?<div className="py-5 text-sm text-[var(--text-secondary)]">No saved resources yet.</div>:<div className="mt-3 grid gap-2 md:grid-cols-2">
-        {saved.map(r=><div key={r._id} className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] p-3">
-          <button onClick={()=>setActiveResource({id:r._id,title:r.title,provider:r.source,url:r.url,description:r.description||"",embed:r.embed})} className="min-w-0 text-left hover:text-purple-600"><p className="truncate font-medium">{r.title}</p><span className="text-xs text-[var(--text-tertiary)]">{r.category}</span></button>
-          <div className="flex shrink-0 gap-1">
-            <button aria-label={"View "+r.title} onClick={()=>setActiveResource({id:r._id,title:r.title,provider:r.source,url:r.url,description:r.description||"",embed:r.embed})} className="rounded-lg p-2 text-purple-600 hover:bg-[var(--bg-surface-elevated)]"><BookOpen size={16}/></button>
-            <button aria-label={"Remove "+r.title} onClick={()=>void removeSaved(r._id)} className="rounded-lg p-2 text-[var(--text-secondary)] hover:bg-[var(--bg-surface-elevated)]"><Trash2 size={16}/></button>
-          </div>
-        </div>)}
-      </div>}
-    </section>
-  </Shell>;
+  return <ResourcesPage />;
 }
 
 export function ResumeHubPage(){const [items,setItems]=useState<Resume[]>([]);const [name,setName]=useState("");const [job,setJob]=useState("");const [result,setResult]=useState<Record<string,unknown>|null>(null);const load=async()=>{const r=await api.get<{resumes:Resume[]}>("/resumes");setItems(r.data.resumes);};useEffect(()=>{load().catch(()=>{});},[]);const create=async()=>{const r=await api.post<{resume:Resume}>("/resumes",{name:name||"Untitled Resume",template:"classic",data:{personal:{},education:[],skills:[],projects:[],experience:[],certifications:[],links:[]}});setItems(v=>[r.data.resume,...v]);setName("");};const analyze=async()=>{if(!job.trim())return;const r=await api.post<{analysis:Record<string,unknown>}>("/resumes/ats",{resumeId:items[0]?._id,jobDescription:job});setResult(r.data.analysis);};return <Shell title="Resume Hub" description="Build independent resume versions, export structured data, and run an internal compatibility estimate."><div className="grid gap-6 lg:grid-cols-2"><section className="surface-card rounded-2xl p-5"><h2 className="font-semibold">Resume Versions</h2><div className="mt-3 flex gap-2"><input value={name} onChange={e=>setName(e.target.value)} placeholder="Resume name" className="flex-1 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 text-sm"/><Button onClick={create}><Plus size={15}/>Create</Button></div><div className="mt-4 space-y-2">{items.map(r=><div key={r._id} className="rounded-xl border border-[var(--border)] p-3"><p className="font-medium">{r.name}</p><p className="text-xs text-[var(--text-secondary)]">{r.template} template</p></div>)}</div></section><section className="surface-card rounded-2xl p-5"><h2 className="font-semibold">ATS Analysis</h2><textarea value={job} onChange={e=>setJob(e.target.value)} placeholder="Paste a job description" className="mt-3 min-h-40 w-full rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] p-3 text-sm"/><Button className="mt-3" onClick={analyze}><Save size={15}/>Analyze</Button>{result&&<pre className="mt-4 overflow-auto rounded-xl bg-[var(--bg-surface-elevated)] p-3 text-xs text-[var(--text-secondary)]">{JSON.stringify(result,null,2)}</pre>}</section></div></Shell>;}

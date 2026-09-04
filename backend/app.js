@@ -13,7 +13,8 @@ const analyticsRoutes = require("./routes/analytics-routes");
 const templateRoutes = require("./routes/template-routes");
 const aiRoutes = require("./routes/ai-routes");
 const githubRoutes = require("./routes/github-routes");
-const resourceRoutes = require("./routes/study-material-routes");
+const studyMaterialRoutes = require("./routes/study-material-routes");
+const resourceRoutes = require("./routes/resource-routes");
 const calculatorRoutes = require("./routes/calculator-routes");
 const learningRoutes = require("./routes/learning-routes");
 const practiceRoutes = require("./routes/practice-routes");
@@ -22,7 +23,6 @@ const achievementRoutes = require("./routes/achievement-routes");
 const careerRoutes = require("./routes/career-routes");
 const connectedAccountRoutes = require("./routes/connected-account-routes");
 const learningSheetRoutes = require("./routes/learning-sheet-routes");
-const resourceHubRoutes = require("./routes/resource-hub-routes");
 const storageRoutes = require("./routes/storage-routes");
 const resumeRoutes = require("./routes/resume-routes");
 const { notFound, errorHandler } = require("./middleware/error-middleware");
@@ -105,6 +105,9 @@ app.use("/api/templates", templateRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/github", githubRoutes);
 app.use("/api/resources", resourceRoutes);
+app.use("/api/resource-hub", resourceRoutes);
+app.use("/api/study-materials", studyMaterialRoutes);
+app.use("/api/study-material", studyMaterialRoutes);
 app.use("/api/learning", learningRoutes); // Learning paths
 app.use("/api/practice", practiceRoutes); // Practice tracking
 app.use("/api/quizzes", quizRoutes); // Quiz & assessments
@@ -112,7 +115,6 @@ app.use("/api/achievements", achievementRoutes); // Achievements & badges
 app.use("/api/career", careerRoutes);
 app.use("/api/accounts", connectedAccountRoutes);
 app.use("/api/learning-sheets", learningSheetRoutes);
-app.use("/api/resource-hub", resourceHubRoutes);
 app.use("/api/storage", storageRoutes);
 app.use("/api/resumes", resumeRoutes); // Resume lab & career
 
