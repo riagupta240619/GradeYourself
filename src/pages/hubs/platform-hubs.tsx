@@ -188,7 +188,7 @@ export function ResourcesHubPage(){
     try{
       setSavedError(null);
       const response=await api.post<{bookmark:Bookmark}>("/resource-hub/saved",{
-        title:r.title,url:r.url,category:("category" in r&&r.category)||selectedSubject?.title||"General",source:("provider" in r&&r.provider)||r.source||"external"
+        title:r.title,url:r.url,category:("category" in r&&r.category)||selectedSubject?.title||"General",source:("provider" in r&&r.provider)||(("source" in r&&r.source)||"external")
       });
       setSaved(prev=>prev.some(item=>item._id===response.data.bookmark._id)?prev.map(item=>item._id===response.data.bookmark._id?response.data.bookmark:item):[response.data.bookmark,...prev]);
     }catch(err){
