@@ -3,6 +3,7 @@ const SubjectModel = require("../models/subject-model");
 const User = require("../models/user-model");
 const { calculateSgpa, gradeToDetails } = require("../utils/grading-engine");
 const { resolveScale } = require("../utils/resolve-scale");
+const { persistTranscriptAtomically } = require("../utils/transcript-persistence");
 
 
 
@@ -431,165 +432,37 @@ const deleteSemester = async (req, res, next) => {
  */
 const bulkSaveTranscript = async (req, res, next) => {
   try {
-    const { semesters, university, program } = req.body;
-
-    if (!Array.isArray(semesters) || semesters.length === 0) {
+    const payload = req.body || {};
+    if (!Array.isArray(payload.semesters) || payload.semesters.length === 0) {
       res.status(400);
       throw new Error("Invalid request: semesters array is required");
     }
-
-    const userId = req.user._id;
-    const user = await User.findById(userId);
+    const user = await User.findById(req.user._id);
     const scale = resolveScale(user);
-
-    const savedSemesters = [];
-
-    for (const semInput of semesters) {
-      const name =
-        semInput.semesterName || `Semester ${semInput.semester || 1}`;
-      const sgpa =
-        semInput.sgpa !== null && semInput.sgpa !== undefined
-          ? Number(semInput.sgpa)
-          : null;
-      const cgpa =
-        semInput.cgpa !== null && semInput.cgpa !== undefined
-          ? Number(semInput.cgpa)
-          : null;
-      const credits = Number(semInput.credits) || 20;
-
-      // Find existing semester or create new
-      let semesterObj = await Semester.findOne({
-        user: userId,
-        name: name.trim(),
-      });
-      if (semesterObj) {
-        semesterObj.finalizedSgpa = sgpa;
-        semesterObj.cgpa = cgpa;
-        semesterObj.credits = credits;
-        semesterObj.isCurrent = false;
-        await semesterObj.save();
-      } else {
-        semesterObj = await Semester.create({
-          user: userId,
-          name: name.trim(),
-          isCurrent: false,
-          finalizedSgpa: sgpa,
-          cgpa: cgpa,
-          credits: credits,
+    const ids = await persistTranscriptAtomically(req.user._id, payload, (semInput, semesterId) => {
+      return (Array.isArray(semInput.subjects) ? semInput.subjects : [])
+        .filter((sub) => sub && sub.name && String(sub.name).trim())
+        .map((sub) => {
+          const gradeVal = sub.grade || sub.targetGrade || null;
+          const details = gradeVal ? gradeToDetails(gradeVal, scale) : { letter: "P", points: 4.0, pct: 50 };
+          const finalPercentage = sub.finalPercentage !== undefined && sub.finalPercentage !== null && sub.finalPercentage !== "" ? Number(sub.finalPercentage) : details.pct;
+          return {
+            user: req.user._id, semester: semesterId, name: String(sub.name).trim(),
+            code: String(sub.code || "").trim(), credits: Number(sub.credits) || 3,
+            colorTag: "#6366f1", targetGrade: gradeVal || "A", grade: gradeVal || details.letter,
+            gradePoint: sub.gradePoint !== undefined && sub.gradePoint !== null && sub.gradePoint !== "" ? Number(sub.gradePoint) : details.points,
+            status: ["completed","in_progress","reappear","backlog","incomplete","withheld_result"].includes(sub.status) ? sub.status : (gradeVal ? "completed" : "in_progress"),
+            marksObtained: sub.marksObtained !== undefined && sub.marksObtained !== null && sub.marksObtained !== "" ? Number(sub.marksObtained) : null,
+            maxMarks: sub.maxMarks !== undefined && sub.maxMarks !== null && sub.maxMarks !== "" ? Number(sub.maxMarks) : null,
+            finalPercentage, assessments: Array.isArray(sub.assessments) ? sub.assessments : [], marks: sub.marks || {}
+          };
         });
-      }
-
-      // Add/Update subjects for this semester
-      if (Array.isArray(semInput.subjects)) {
-        // Clear previous subjects for clean update if overwriting
-        await SubjectModel.deleteMany({
-          semester: semesterObj._id,
-          user: userId,
-        });
-
-        // Build all subject documents first and insert them in one database call.
-        // Sequential create() calls were slow enough to trigger the frontend's timeout
-        // for multi-semester transcripts.
-        const subjectDocs = [];
-        for (const subInput of semInput.subjects) {
-          if (!subInput.name || !String(subInput.name).trim()) continue;
-
-          const gradeVal = subInput.grade || subInput.targetGrade || null;
-          const details = gradeVal
-            ? gradeToDetails(gradeVal, scale)
-            : { letter: "P", points: 4.0, pct: 50 };
-
-          const gradePointVal =
-            subInput.gradePoint !== undefined &&
-            subInput.gradePoint !== null &&
-            subInput.gradePoint !== ""
-              ? Number(subInput.gradePoint)
-              : details.points;
-
-          const finalPctVal =
-            subInput.finalPercentage !== undefined &&
-            subInput.finalPercentage !== null &&
-            subInput.finalPercentage !== ""
-              ? Number(subInput.finalPercentage)
-              : subInput.pct !== undefined &&
-                  subInput.pct !== null &&
-                  subInput.pct !== ""
-                ? Number(subInput.pct)
-                : details.pct;
-
-          const bulkStatusVal =
-            subInput.status &&
-            ["completed", "in_progress", "reappear", "backlog", "incomplete", "withheld_result"].includes(subInput.status)
-              ? subInput.status
-              : gradeVal || finalPctVal !== null || subInput.marksObtained !== null
-                ? "completed"
-                : "in_progress";
-
-          subjectDocs.push({
-            user: userId,
-            semester: semesterObj._id,
-            name: String(subInput.name).trim(),
-            code: String(subInput.code || "").trim(),
-            credits: Number(subInput.credits) || 3,
-            colorTag: "#6366f1",
-            targetGrade: gradeVal || "A",
-            grade: gradeVal || details.letter,
-            gradePoint: gradePointVal,
-            status: bulkStatusVal,
-            marksObtained:
-              subInput.marksObtained !== undefined &&
-              subInput.marksObtained !== null &&
-              subInput.marksObtained !== ""
-                ? Number(subInput.marksObtained)
-                : null,
-            maxMarks:
-              subInput.maxMarks !== undefined &&
-              subInput.maxMarks !== null &&
-              subInput.maxMarks !== ""
-                ? Number(subInput.maxMarks)
-                : null,
-            finalPercentage: finalPctVal,
-            assessments: Array.isArray(subInput.assessments)
-              ? subInput.assessments
-              : [],
-            marks: subInput.marks || {},
-          });
-        }
-
-        if (subjectDocs.length > 0) {
-          await SubjectModel.insertMany(subjectDocs, { ordered: true });
-        }
-      }
-
-      const formatted = await formatSemester(semesterObj, scale);
-      savedSemesters.push(formatted);
-    }
-
-    // CGPA belongs to the user profile rather than an individual semester.
-    // Preserve the last valid CGPA value the user confirmed in the editable preview.
-    const latestCgpa = [...semesters]
-      .sort((a, b) => Number(b.semester || 0) - Number(a.semester || 0))
-      .map((semester) => Number(semester.cgpa))
-      .find((value) => Number.isFinite(value) && value >= 0 && value <= 10);
-
-    if (latestCgpa !== undefined) user.currentCgpa = latestCgpa;
-    if (typeof university === "string" && university.trim())
-      user.college = university.trim().slice(0, 150);
-    if (typeof program === "string" && program.trim())
-      user.course = program.trim().slice(0, 150);
-    if (
-      latestCgpa !== undefined ||
-      (typeof university === "string" && university.trim()) ||
-      (typeof program === "string" && program.trim())
-    ) {
-      await user.save();
-    }
-    res.status(200).json({
-      message: `Successfully saved ${savedSemesters.length} semester records to database.`,
-      savedSemesters,
-      university,
-      program,
     });
+    const saved = await Semester.find({ _id: { $in: ids }, user: req.user._id });
+    const order = new Map(ids.map((id,index) => [String(id),index]));
+    saved.sort((a,b) => (order.get(String(a._id)) || 0) - (order.get(String(b._id)) || 0));
+    const savedSemesters = await Promise.all(saved.map((sem) => formatSemester(sem, scale)));
+    res.status(200).json({ message: "Transcript saved successfully.", savedSemesters, university: payload.university, program: payload.program });
   } catch (error) {
     next(error);
   }
