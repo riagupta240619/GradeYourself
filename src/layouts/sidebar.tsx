@@ -26,7 +26,7 @@ import {
   type SemesterWithTotalCredits,
 } from "@/services/semester-service";
 
-const navItems = [
+const cgpaItems = [
   { to: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/app/analytics", label: "Analytics", icon: BarChart3 },
   {
@@ -37,6 +37,9 @@ const navItems = [
   },
   { to: "/app/subjects", label: "Subjects", icon: BookOpen },
   { to: "/app/assessment-builder", label: "Assessment Builder", icon: Puzzle },
+];
+
+const navItems = [
   { to: "/app/storage", label: "Storage", icon: Folder },
   { to: "/app/coding", label: "Coding Hub", icon: Code2 },
   { to: "/app/resources", label: "Resources", icon: BookOpen },
@@ -46,10 +49,19 @@ const navItems = [
 
 export function Sidebar() {
   const [semesterOpen, setSemesterOpen] = useState(false);
+  const [cgpaOpen, setCgpaOpen] = useState(() =>
+    cgpaItems.some((item) => item.to === window.location.pathname),
+  );
   const [backendSemesters, setBackendSemesters] = useState<
     SemesterWithTotalCredits[]
   >([]);
   const location = useLocation();
+
+  useEffect(() => {
+    if (cgpaItems.some((item) => item.to === location.pathname)) {
+      setCgpaOpen(true);
+    }
+  }, [location.pathname]);
 
   useEffect(() => {
     SemesterService.getSemesters()
@@ -154,6 +166,87 @@ export function Sidebar() {
           </div>
 
           <nav className="flex flex-col gap-1">
+            <button
+              type="button"
+              onClick={() => setCgpaOpen((open) => !open)}
+              className={cn(
+                "flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-all duration-150",
+                cgpaItems.some((item) => item.to === location.pathname)
+                  ? "bg-purple-50 text-purple-700 dark:bg-purple-500/10 dark:text-purple-300"
+                  : "text-[var(--text-secondary)] hover:bg-purple-50 hover:text-purple-700 dark:hover:bg-[var(--bg-surface-strong)] dark:hover:text-[var(--text-primary)]",
+              )}
+              aria-expanded={cgpaOpen}
+            >
+              <div className="flex items-center gap-3">
+                <GraduationCap size={18} className="text-[var(--accent-purple)]" />
+                <span>CGPA</span>
+              </div>
+              <ChevronDown
+                size={16}
+                className={cn(
+                  "transition-transform duration-200",
+                  cgpaOpen && "rotate-180",
+                )}
+              />
+            </button>
+
+            <AnimatePresence initial={false}>
+              {cgpaOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.18 }}
+                  className="overflow-hidden"
+                >
+                  <div className="ml-5 flex flex-col gap-1 border-l border-[var(--border)] pl-2">
+                    {cgpaItems.map((item) => {
+                      const isActive = location.pathname === item.to;
+                      return (
+                        <NavLink
+                          key={item.to}
+                          to={item.to}
+                          className={({ isActive }) =>
+                            cn(
+                              "relative flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold transition-all duration-150 group",
+                              isActive
+                                ? "bg-purple-600 text-white shadow-sm"
+                                : "text-[var(--text-secondary)] hover:bg-[var(--bg-surface-elevated)] hover:text-purple-700 dark:hover:text-[var(--text-primary)]",
+                            )
+                          }
+                        >
+                          <div className="flex min-w-0 items-center gap-2.5">
+                            <item.icon
+                              size={16}
+                              className={cn(
+                                "shrink-0",
+                                isActive
+                                  ? "text-white"
+                                  : "text-[var(--text-tertiary)] group-hover:text-[var(--accent-purple)]",
+                              )}
+                            />
+                            <span className="truncate">{item.label}</span>
+                          </div>
+                          {item.badge && (
+                            <span
+                              className={cn(
+                                "shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold",
+                                isActive
+                                  ? "bg-white/20 text-white"
+                                  : "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300",
+                              )}
+                            >
+                              {item.badge}
+                            </span>
+                          )}
+                        </NavLink>
+                      );
+                    })}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {navItems.map((item) => {
               const isActive = location.pathname === item.to;
               return (
