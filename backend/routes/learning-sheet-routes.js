@@ -1,0 +1,11 @@
+"use strict";
+const express=require("express");
+const router=express.Router();
+const {verifyToken}=require("../middleware/auth-middleware");
+const c=require("../controllers/learning-sheet-controller");
+router.use(verifyToken);
+router.get("/",c.listSheets);
+router.post("/",c.createSheet);
+router.patch("/:id",c.updateSheet);
+router.delete("/:id",c.deleteSheet);
+module.exports=router;
