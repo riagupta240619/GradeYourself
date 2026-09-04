@@ -40,7 +40,7 @@ export function normalizeScheme(scheme: any): { components: SchemeComponent[] } 
     { id: "f1", name: "Final Exam", weightPct: 50, maxMarks: 100 },
   ];
 
-  const totalWeight = types.reduce((sum, t) => sum + t.weightPct, 0);
+  const totalWeight = types.reduce((sum: number, t: any) => sum + t.weightPct, 0);
   const weightNormalizer = totalWeight > 0 ? 100 / totalWeight : 1;
 
   const components = types.map((t: any) => ({
