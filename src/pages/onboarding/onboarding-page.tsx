@@ -14,10 +14,13 @@ import {
   Loader2,
   Sparkles,
   HelpCircle,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/hooks/use-auth";
+import { useTheme } from "@/hooks/use-theme";
 import { UploadResultsModal } from "@/components/upload/upload-results-modal";
 
 const steps = [
@@ -80,6 +83,7 @@ const PRESET_SESSIONS = [
 export function OnboardingPage() {
   const { user, updateSetup, loading, error: authError } = useAuth();
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
 
   // Wizard Navigation State
   const [step, setStep] = useState(0);
@@ -255,9 +259,20 @@ export function OnboardingPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen w-full items-center justify-center bg-[#09090b] text-slate-900 dark:text-white p-4 sm:p-6 overflow-hidden">
+    <div className="relative flex min-h-screen w-full items-center justify-center bg-slate-50 text-slate-900 dark:bg-[#09090b] dark:text-white p-4 sm:p-6 overflow-hidden">
       {/* Radial Glow */}
-      <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-[500px] w-[700px] rounded-full bg-purple-600/15 blur-[120px] opacity-70" />
+      <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-[500px] w-[700px] rounded-full bg-purple-200/60 dark:bg-purple-600/15 blur-[120px] opacity-70" />
+
+      <div className="absolute top-4 right-4 z-20">
+        <button
+          onClick={toggleTheme}
+          className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white/80 text-slate-600 shadow-sm backdrop-blur-md transition-all hover:bg-slate-100 dark:border-white/10 dark:bg-zinc-900/80 dark:text-zinc-300 dark:hover:bg-zinc-800"
+          aria-label="Toggle theme"
+          title="Toggle theme mode"
+        >
+          {theme === "dark" ? <Sun size={16} className="text-amber-400" /> : <Moon size={16} className="text-purple-600" />}
+        </button>
+      </div>
 
       <div className="w-full max-w-xl">
         {/* Header Logo */}
@@ -276,10 +291,10 @@ export function OnboardingPage() {
             <div key={s.id} className="flex flex-col items-center">
               <div
                 className={`h-1.5 w-full rounded-full transition-all duration-300 ${
-                  i <= step ? "bg-gradient-to-r from-purple-500 to-blue-500 shadow-[0_0_12px_rgba(124,58,237,0.4)]" : "bg-zinc-800"
+                  i <= step ? "bg-gradient-to-r from-purple-500 to-blue-500 shadow-[0_0_12px_rgba(124,58,237,0.4)]" : "bg-slate-200 dark:bg-zinc-800"
                 }`}
               />
-              <span className={`mt-2 text-[11px] font-semibold ${i <= step ? "text-purple-300" : "text-zinc-500"}`}>
+              <span className={`mt-2 text-[11px] font-semibold ${i <= step ? "text-purple-300" : "text-slate-400 dark:text-zinc-500"}`}>
                 {s.title}
               </span>
             </div>
@@ -307,7 +322,7 @@ export function OnboardingPage() {
               {step === 0 && mode === "choose" && (
                 <>
                   <h1 className="text-xl font-bold tracking-tight mb-1">Academic Profile Setup</h1>
-                  <p className="text-xs text-zinc-400 mb-6">Enter your university and degree details to personalize your academic dashboard.</p>
+                  <p className="text-xs text-slate-500 dark:text-zinc-400 mb-6">Enter your university and degree details to personalize your academic dashboard.</p>
 
                   <div className="flex flex-col gap-4">
                     {/* College Input / Select */}
