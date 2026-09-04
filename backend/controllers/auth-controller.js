@@ -30,6 +30,7 @@ function formatUserResponse(user) {
     _id: user._id,
     name: user.name,
     email: user.email,
+    accountType: user.accountType || "basic",
     college: user.college || "",
     course: user.course || "",
     branch: user.branch || "",
@@ -51,7 +52,7 @@ function formatUserResponse(user) {
  */
 const registerUser = async (req, res, next) => {
   try {
-    const { name, email, password, college, course, semesterSystem } = req.body;
+    const { name, email, password } = req.body;
 
     if (!name || typeof name !== "string" || name.trim() === "") {
       res.status(400);
@@ -85,14 +86,12 @@ const registerUser = async (req, res, next) => {
     }
 
     // Create user (password is automatically hashed via pre-save hook)
+    // Academic fields are optional - user can set them up later via Academic Profile module
     const user = await User.create({
       name: sanitizeString(name, 100),
       email: cleanEmail,
       password,
-      college: sanitizeString(college),
-      course: sanitizeString(course),
-      semesterSystem: sanitizeString(semesterSystem),
-      currentSemester: sanitizeString(semesterSystem),
+      accountType: "basic", // Default to basic, user can upgrade
     });
 
     if (user) {
@@ -173,6 +172,7 @@ const getUserProfile = async (req, res) => {
 /**
  * @route   PUT /api/auth/setup
  * @desc    Update user academic setup profile & set profileCompleted = true
+ *          Also upgrades accountType to academic_enhanced
  * @access  Private (Protected by verifyToken)
  */
 const updateSetupProfile = async (req, res, next) => {
@@ -204,6 +204,10 @@ const updateSetupProfile = async (req, res, next) => {
     }
 
     user.profileCompleted = true;
+    // Upgrade account type when academic profile is set up
+    if (user.accountType === "basic") {
+      user.accountType = "academic_enhanced";
+    }
 
     const updatedUser = await user.save();
 

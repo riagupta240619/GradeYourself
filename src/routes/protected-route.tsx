@@ -22,13 +22,24 @@ export function ProtectedRoute() {
     return <Navigate to="/login" replace />;
   }
 
-  // If user has not completed setup profile, force redirect to /onboarding (unless already on /onboarding)
-  if (!user.profileCompleted && location.pathname !== "/onboarding") {
+  // If user has accountType 'basic' and hasn't completed academic setup,
+  // they can still access the app - onboarding is now optional
+  // Only redirect to onboarding if they explicitly try to access academic features
+  // without having an academic profile
+  const isAcademicRoute = location.pathname.startsWith("/app/academic") || 
+                          location.pathname.startsWith("/app/subjects") ||
+                          location.pathname.startsWith("/app/analytics") ||
+                          location.pathname.startsWith("/app/academic-planner");
+  
+  const hasAcademicProfile = user.accountType === "academic_enhanced" || user.accountType === "full" || user.profileCompleted;
+
+  // If trying to access academic features without academic profile, redirect to onboarding
+  if (isAcademicRoute && !hasAcademicProfile && location.pathname !== "/onboarding") {
     return <Navigate to="/onboarding" replace />;
   }
 
   // If user has completed setup profile and tries to visit /onboarding, skip setup and redirect to /app/dashboard
-  if (user.profileCompleted && location.pathname === "/onboarding") {
+  if (hasAcademicProfile && location.pathname === "/onboarding") {
     return <Navigate to="/app/dashboard" replace />;
   }
 

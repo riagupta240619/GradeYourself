@@ -19,6 +19,14 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Password is required"],
     },
+    // Core account fields (minimal, required for authentication)
+    accountType: {
+      type: String,
+      enum: ["basic", "academic_enhanced", "full"],
+      default: "basic",
+      index: true,
+    },
+    // Academic profile fields (optional, populated when user chooses academic module)
     college: {
       type: String,
       default: "",

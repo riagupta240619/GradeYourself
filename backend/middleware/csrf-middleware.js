@@ -65,6 +65,11 @@ const verifyCsrf = (req, res, next) => {
     return next();
   }
 
+  // Skip CSRF for public calculator routes (no auth, no session)
+  if (req.originalUrl && req.originalUrl.startsWith("/api/calculator/")) {
+    return next();
+  }
+
   const cookieToken = req.cookies ? req.cookies[CSRF_COOKIE_NAME] : null;
   const headerToken =
     req.headers["x-csrf-token"] ||

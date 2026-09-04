@@ -1,4 +1,3 @@
-import axios from "axios";
 import { api } from "./api";
 
 export interface GitHubRepo {
@@ -17,14 +16,18 @@ export interface GitHubRepo {
 }
 
 export interface LinkedRepo {
-  repoId: number;
+  _id?: string;
+  id?: string;
+  repoId?: number;
   repoName: string;
-  fullName: string;
+  repoFullName: string;
+  fullName?: string;
   htmlUrl: string;
-  subjectId: string;
-  semesterId: string;
+  subjectId?: string;
+  semesterId?: string;
   linkedAt: string;
   isPublic: boolean;
+  repoDescription?: string;
   stars: number;
 }
 
@@ -40,22 +43,27 @@ export interface GitHubConnectPayload {
 }
 
 export interface GitHubRepoLinking {
-  subjectId: string;
-  semesterId: string;
+  subjectId?: string;
+  semesterId?: string;
   repoFullName: string;
   repoName: string;
-  isPublic: boolean;
+  htmlUrl?: string;
+  isPublic?: boolean;
+  repoDescription?: string;
+  stars?: number;
 }
 
 export class GitHubService {
-  private static readonly API_BASE = "/api/github";
+  private static readonly API_BASE = "/github";
 
   /**
    * Initiates GitHub OAuth flow.
-   * Generates the authorization URL the user should redirect to.
+   * Fetches the authorization URL from the backend that the user should redirect to.
    */
-  static getAuthUrl(redirectUri: string): string {
-    return `${this.API_BASE}/authorize?redirect_uri=${encodeURIComponent(redirectUri)}`;
+  static async getAuthUrl(redirectUri?: string): Promise<string> {
+    const params = redirectUri ? `?redirect_uri=${encodeURIComponent(redirectUri)}` : "";
+    const response = await api.get<{ authUrl: string }>(`${this.API_BASE}/authorize${params}`);
+    return response.data.authUrl;
   }
 
   /**
@@ -71,7 +79,7 @@ export class GitHubService {
 
   /**
    * Fetches the authenticated user's repositories.
-   * Filters for relevant course/repo types based on name/description keywords.
+   * Filters for relevant course/repo types based on search keywords.
    */
   static async fetchUserRepos(
     token: string,
@@ -80,12 +88,13 @@ export class GitHubService {
     const { search = "", onlyPrivate = false, onlyPublic = false } = options;
 
     const params = new URLSearchParams();
-    if (search) params.append("q", search);
+    if (search) params.append("search", search);
     if (onlyPrivate) params.append("type", "private");
     if (onlyPublic) params.append("type", "public");
 
+    const query = params.toString() ? `?${params.toString()}` : "";
     const response = await api.get<GitHubRepo[]>(
-      `${this.API_BASE}/repos?${params.toString()}`,
+      `${this.API_BASE}/repos${query}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -127,8 +136,9 @@ export class GitHubService {
     if (subjectId) params.append("subjectId", subjectId);
     if (semesterId) params.append("semesterId", semesterId);
 
+    const query = params.toString() ? `?${params.toString()}` : "";
     const response = await api.get<LinkedRepo[]>(
-      `${this.API_BASE}/linked?${params.toString()}`,
+      `${this.API_BASE}/linked${query}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -143,7 +153,7 @@ export class GitHubService {
    */
   static async unlinkRepo(
     token: string,
-    linkId: number
+    linkId: string
   ): Promise<{ success: boolean; message: string }> {
     const response = await api.delete<{ success: boolean; message: string }>(
       `${this.API_BASE}/link/${linkId}`,
@@ -169,8 +179,9 @@ export class GitHubService {
     if (subjectId) params.append("subjectId", subjectId);
     if (semesterId) params.append("semesterId", semesterId);
 
+    const query = params.toString() ? `&${params.toString()}` : "";
     const response = await api.get<{ linked: boolean }>(
-      `${this.API_BASE}/linked/check?repo=${encodeURIComponent(repoFullName)}&${params.toString()}`,
+      `${this.API_BASE}/linked/check?repo=${encodeURIComponent(repoFullName)}${query}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -203,7 +214,7 @@ export class GitHubService {
    */
   static async updateLinkVisibility(
     token: string,
-    linkId: number,
+    linkId: string,
     isPublic: boolean
   ): Promise<LinkedRepo> {
     const response = await api.patch<LinkedRepo>(
@@ -225,16 +236,16 @@ export class GitHubService {
 export function extractRepoKeywords(subjectName: string): string[] {
   const lower = subjectName.toLowerCase();
   const baseKeywords: Record<string, string[]> = {
-    data structures: ["ds", "data-structures", "algorithm", "tree", "graph"],
-    operating systems: ["os", "process", "memory", "scheduling", "deadlock"],
-    computer networks: ["cn", "network", "tcp/ip", "routing", "protocol"],
-    database systems: ["db", "database", "sql", "normalization", "query"],
-    cyber security: ["sec", "security", "encryption", "network-security", "crypto"],
-    algorithms: ["algo", "algorithm", "dp", "graph", "sort"],
-    machine learning: ["ml", "ai", "neural", "model", "training"],
-    web development: ["web", "frontend", "backend", "fullstack", "javascript"],
-    software engineering: ["se", "se", "design-pattern", "git", "ci-cd"],
-    artificial intelligence: ["ai", "ml", "neural", "deep-learning"],
+    "data structures": ["ds", "data-structures", "algorithm", "tree", "graph"],
+    "operating systems": ["os", "process", "memory", "scheduling", "deadlock"],
+    "computer networks": ["cn", "network", "tcp/ip", "routing", "protocol"],
+    "database systems": ["db", "database", "sql", "normalization", "query"],
+    "cyber security": ["sec", "security", "encryption", "network-security", "crypto"],
+    "algorithms": ["algo", "algorithm", "dp", "graph", "sort"],
+    "machine learning": ["ml", "ai", "neural", "model", "training"],
+    "web development": ["web", "frontend", "backend", "fullstack", "javascript"],
+    "software engineering": ["se", "design-pattern", "git", "ci-cd"],
+    "artificial intelligence": ["ai", "ml", "neural", "deep-learning"],
   };
 
   const matched: string[] = [];

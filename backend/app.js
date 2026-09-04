@@ -13,7 +13,13 @@ const analyticsRoutes = require("./routes/analytics-routes");
 const templateRoutes = require("./routes/template-routes");
 const aiRoutes = require("./routes/ai-routes");
 const githubRoutes = require("./routes/github-routes");
-const studyMaterialRoutes = require("./routes/study-material-routes");
+const resourceRoutes = require("./routes/study-material-routes");
+const calculatorRoutes = require("./routes/calculator-routes");
+const learningRoutes = require("./routes/learning-routes");
+const practiceRoutes = require("./routes/practice-routes");
+const quizRoutes = require("./routes/quiz-routes");
+const achievementRoutes = require("./routes/achievement-routes");
+const careerRoutes = require("./routes/career-routes");
 const { notFound, errorHandler } = require("./middleware/error-middleware");
 const { authLimiter, apiLimiter } = require("./middleware/rate-limiter");
 const { verifyCsrf } = require("./middleware/csrf-middleware");
@@ -85,6 +91,7 @@ app.use("/api", verifyCsrf);
 // ── 6. API Routes ─────────────────────────────────────────────────────────────
 app.use("/api", healthRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/calculator", calculatorRoutes); // Public calculator routes
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/subjects", subjectRoutes);
 app.use("/api/semesters", semesterRoutes);
@@ -92,7 +99,12 @@ app.use("/api/analytics", analyticsRoutes);
 app.use("/api/templates", templateRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/github", githubRoutes);
-app.use("/api/study-material", studyMaterialRoutes);
+app.use("/api/resources", resourceRoutes);
+app.use("/api/learning", learningRoutes); // Learning paths
+app.use("/api/practice", practiceRoutes); // Practice tracking
+app.use("/api/quizzes", quizRoutes); // Quiz & assessments
+app.use("/api/achievements", achievementRoutes); // Achievements & badges
+app.use("/api/career", careerRoutes); // Resume lab & career
 
 // ── 7. Error Handling Middlewares ─────────────────────────────────────────────
 app.use(notFound);

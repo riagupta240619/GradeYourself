@@ -4,6 +4,7 @@ export interface AuthUser {
   _id: string;
   name: string;
   email: string;
+  accountType: "basic" | "academic_enhanced" | "full";
   college?: string;
   course?: string;
   semesterSystem?: string;
@@ -22,9 +23,6 @@ export interface RegisterPayload {
   name: string;
   email: string;
   password: string;
-  college?: string;
-  course?: string;
-  semesterSystem?: string;
 }
 
 export interface LoginPayload {

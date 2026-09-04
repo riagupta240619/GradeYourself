@@ -3,11 +3,14 @@
 const mongoose = require("mongoose");
 
 /**
- * StudyMaterial — stores user-uploaded study materials (PDFs, PPTs, images, notes).
- * Each material is associated with a subject and optionally a semester.
- * Supports public/private visibility for sharing.
+ * CentralResource — unified resource model for all content types.
+ * Evolves from StudyMaterial to support: PDFs, PPTs, Markdown, Notes, External Links,
+ * GitHub Files/Repos, YouTube Videos/Playlists, Practice Problems, Quizzes, Flashcards.
+ * 
+ * Resource ID becomes the universal identifier across all modules.
+ * Different modules reference the same resource without duplicating data.
  */
-const studyMaterialSchema = new mongoose.Schema(
+const centralResourceSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
@@ -15,7 +18,7 @@ const studyMaterialSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
-    // Associations
+    // Associations (optional - for academic-linked resources)
     subjectId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Subject",
@@ -26,25 +29,62 @@ const studyMaterialSchema = new mongoose.Schema(
       ref: "Semester",
       index: true,
     },
-    // Material metadata
+    // Core metadata
     title: {
       type: String,
       required: [true, "Title is required"],
       trim: true,
       maxlength: [200, "Title cannot exceed 200 characters"],
     },
+    description: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    // Resource type discrimination
+    type: {
+      type: String,
+      enum: [
+        "pdf",
+        "ppt",
+        "markdown",
+        "note",
+        "external_link",
+        "github_file",
+        "github_repo",
+        "youtube_video",
+        "youtube_playlist",
+        "practice_problem",
+        "quiz",
+        "flashcard_set",
+      ],
+      default: "pdf",
+      index: true,
+    },
+    // Source of the resource
+    source: {
+      type: String,
+      enum: ["user_upload", "github", "youtube", "external_url", "platform_generated", "platform_content"],
+      default: "user_upload",
+      index: true,
+    },
+    // Visibility & access control
+    visibility: {
+      type: String,
+      enum: ["public", "unlisted", "private"],
+      default: "private",
+      index: true,
+    },
+    // Storage / external references
     fileName: {
       type: String,
-      required: [true, "File name is required"],
       trim: true,
+      default: "",
     },
-    // Storage path - represents the folder/prefix in the storage service
-    // e.g., "semester-4/data-structures/lecture-1.pdf"
     path: {
       type: String,
-      required: [true, "Storage path is required"],
+      default: "",
     },
-    // File characteristics
     fileType: {
       type: String,
       enum: ["pdf", "ppt", "image", "text", "other"],
@@ -54,13 +94,40 @@ const studyMaterialSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    // Visibility & sharing
-    isPublic: {
-      type: Boolean,
-      default: false,
+    externalUrl: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    // GitHub specific
+    githubFullName: {
+      type: String,
+      trim: true,
+      default: "",
+      index: true,
+    },
+    githubPath: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    // YouTube specific
+    youtubeId: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    youtubePlaylistId: {
+      type: String,
+      trim: true,
+      default: "",
     },
     // Engagement metrics
     downloadCount: {
+      type: Number,
+      default: 0,
+    },
+    viewCount: {
       type: Number,
       default: 0,
     },
@@ -69,10 +136,25 @@ const studyMaterialSchema = new mongoose.Schema(
       type: String,
       trim: true,
     }],
-    description: {
-      type: String,
-      trim: true,
-      default: "",
+    // Metadata for learning/practice/quiz modules
+    metadata: {
+      subject: { type: String, default: "" },
+      topic: { type: String, default: "" },
+      semester: { type: String, default: "" },
+      difficulty: { type: String, enum: ["easy", "medium", "hard"], default: "medium" },
+      estimatedMinutes: { type: Number, default: 0 },
+      pageCount: { type: Number, default: 0 },
+      generatedFrom: { type: String, default: "" }, // e.g., "quiz_from_resource"
+      // For quiz resources
+      questionCount: { type: Number, default: 0 },
+      questionTypes: [{ type: String }], // MCQ, True/False, Short Answer
+      // For practice problems
+      platform: { type: String, default: "" }, // LeetCode, Codeforces, etc.
+      problemId: { type: String, default: "" },
+      // For learning path modules
+      moduleId: { type: String, default: "" },
+      learningPathId: { type: String, default: "" },
+      order: { type: Number, default: 0 },
     },
     // Audit
     uploader: {
@@ -85,8 +167,12 @@ const studyMaterialSchema = new mongoose.Schema(
   }
 );
 
-// Index for fast subject/semester lookups
-studyMaterialSchema.index({ user: 1, subjectId: 1, semesterId: 1 });
-studyMaterialSchema.index({ user: 1, isPublic: 1, createdAt: -1 });
+// Indexes for common query patterns
+centralResourceSchema.index({ user: 1, subjectId: 1, semesterId: 1 });
+centralResourceSchema.index({ user: 1, visibility: 1, createdAt: -1 });
+centralResourceSchema.index({ user: 1, type: 1, source: 1 });
+centralResourceSchema.index({ visibility: 1, type: 1, source: 1 }); // Public browsing
+centralResourceSchema.index({ githubFullName: 1, githubPath: 1 });
+centralResourceSchema.index({ "metadata.subject": 1, "metadata.topic": 1 });
 
-module.exports = mongoose.model("StudyMaterial", studyMaterialSchema);
+module.exports = mongoose.model("CentralResource", centralResourceSchema);
