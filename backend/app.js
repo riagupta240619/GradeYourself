@@ -20,6 +20,11 @@ const practiceRoutes = require("./routes/practice-routes");
 const quizRoutes = require("./routes/quiz-routes");
 const achievementRoutes = require("./routes/achievement-routes");
 const careerRoutes = require("./routes/career-routes");
+const connectedAccountRoutes = require("./routes/connected-account-routes");
+const learningSheetRoutes = require("./routes/learning-sheet-routes");
+const resourceHubRoutes = require("./routes/resource-hub-routes");
+const storageRoutes = require("./routes/storage-routes");
+const resumeRoutes = require("./routes/resume-routes");
 const { notFound, errorHandler } = require("./middleware/error-middleware");
 const { authLimiter, apiLimiter } = require("./middleware/rate-limiter");
 const { verifyCsrf } = require("./middleware/csrf-middleware");
@@ -104,7 +109,12 @@ app.use("/api/learning", learningRoutes); // Learning paths
 app.use("/api/practice", practiceRoutes); // Practice tracking
 app.use("/api/quizzes", quizRoutes); // Quiz & assessments
 app.use("/api/achievements", achievementRoutes); // Achievements & badges
-app.use("/api/career", careerRoutes); // Resume lab & career
+app.use("/api/career", careerRoutes);
+app.use("/api/accounts", connectedAccountRoutes);
+app.use("/api/learning-sheets", learningSheetRoutes);
+app.use("/api/resource-hub", resourceHubRoutes);
+app.use("/api/storage", storageRoutes);
+app.use("/api/resumes", resumeRoutes); // Resume lab & career
 
 // ── 7. Error Handling Middlewares ─────────────────────────────────────────────
 app.use(notFound);
