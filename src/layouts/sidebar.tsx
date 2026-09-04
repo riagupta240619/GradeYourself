@@ -281,18 +281,6 @@ export function Sidebar() {
                     </span>
                   </div>
 
-                  {item.badge && (
-                    <span
-                      className={cn(
-                        "shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full transition-colors",
-                        isActive
-                          ? "bg-purple-700 text-white dark:bg-purple-500/30 dark:text-purple-200"
-                          : "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300",
-                      )}
-                    >
-                      {item.badge}
-                    </span>
-                  )}
                 </NavLink>
               );
             })}
