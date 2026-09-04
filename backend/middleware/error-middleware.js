@@ -33,7 +33,7 @@ function errorHandler(err, req, res, _next) {
   // Handle Mongoose Duplicate Key Error (e.g. unique email index violation E11000)
   if (err.code === 11000) {
     statusCode = 400;
-    message = "An account with this email already exists.";
+    message = "A record with these unique values already exists.";
   }
 
   // In production, mask unexpected 500 internal server error details
