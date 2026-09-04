@@ -527,7 +527,7 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess, manualMode = fa
           {pipelineStep === "review" && validatedDoc && (
             <div className="space-y-6">
               {/* Document Overview Metadata Card */}
-              <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 flex flex-wrap items-center justify-between gap-4">
+              <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4 dark:bg-slate-950/80 dark:border-slate-800">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <input
@@ -540,13 +540,13 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess, manualMode = fa
                     <span className="text-xs text-slate-500">(Click to edit name)</span>
                   </div>
 
-                  <div className="flex items-center gap-4 text-xs text-slate-400">
+                  <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
                     <input
                       type="text"
                       value={validatedDoc.program}
                       onChange={(e) => updateMetadata("program", e.target.value)}
                       placeholder="Program / Course"
-                      className="bg-transparent border-b border-slate-800 focus:outline-none focus:border-indigo-500 px-1"
+                      className="bg-transparent border-b border-slate-300 text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 px-1 dark:border-slate-800 dark:text-slate-300"
                     />
                     <span>•</span>
                     <span>{validatedDoc.semesters.length} Semesters Detected</span>
@@ -555,7 +555,7 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess, manualMode = fa
 
                 <div className="flex items-center gap-2">
                   <div className="text-right mr-2">
-                    <div className="text-xs text-slate-400">AI Confidence</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400">AI Confidence</div>
                     <div className="text-sm font-bold text-emerald-400 flex items-center gap-1 justify-end">
                       <ShieldCheck className="w-4 h-4" /> {validatedDoc.overallConfidence}%
                     </div>
@@ -568,7 +568,7 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess, manualMode = fa
                     className={`text-xs ${
                       showDocPreview
                         ? "border-amber-500/50 bg-amber-500/10 text-amber-300"
-                        : "border-slate-700 text-slate-300 hover:bg-slate-800"
+                        : "border-slate-300 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
                     }`}
                   >
                     <Layers className="w-3.5 h-3.5 mr-1.5" />
@@ -579,7 +579,7 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess, manualMode = fa
                     variant="outline"
                     size="sm"
                     onClick={() => setShowRawDrawer(!showRawDrawer)}
-                    className="border-slate-700 text-slate-300 hover:bg-slate-800 text-xs"
+                    className="border-slate-300 text-slate-700 hover:bg-slate-100 text-xs dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
                   >
                     <Eye className="w-3.5 h-3.5 mr-1.5" />
                     {showRawDrawer ? "Hide Raw Text" : "View OCR Text"}
@@ -589,12 +589,12 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess, manualMode = fa
 
               {/* Validation Issues Alert Banner */}
               {validatedDoc.allIssues.length > 0 && (
-                <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-200 text-xs space-y-1.5">
-                  <div className="font-semibold flex items-center gap-2 text-amber-300">
+                <div className="p-4 rounded-xl bg-amber-50 border border-amber-300/60 text-amber-800 text-xs space-y-1.5 dark:bg-amber-500/10 dark:border-amber-500/20 dark:text-amber-200">
+                  <div className="font-semibold flex items-center gap-2 text-amber-700 dark:text-amber-300">
                     <AlertTriangle className="w-4 h-4" />
                     Validation Layer Summary ({validatedDoc.allIssues.length} items flagged for user review):
                   </div>
-                  <ul className="list-disc list-inside space-y-0.5 text-slate-300">
+                  <ul className="list-disc list-inside space-y-0.5 text-slate-600 dark:text-slate-300">
                     {validatedDoc.allIssues.slice(0, 4).map((issue) => (
                       <li key={issue.id}>{issue.message}</li>
                     ))}
@@ -869,10 +869,10 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess, manualMode = fa
                 {validatedDoc.semesters.map((sem, sIdx) => (
                   <div
                     key={`sem-card-${sIdx}`}
-                    className="p-5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-4 shadow-xl"
+                    className="p-5 rounded-2xl bg-white border border-slate-200 space-y-4 shadow-sm dark:bg-slate-950/60 dark:border-slate-800 dark:shadow-xl"
                   >
                     {/* Semester Card Header */}
-                    <div className="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-slate-800/80">
+                    <div className="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-slate-200 dark:border-slate-800/80">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center text-sm">
                           S{sem.semester}
@@ -888,7 +888,7 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess, manualMode = fa
                       {/* SGPA & CGPA Inputs */}
                       <div className="flex items-center gap-6">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-medium text-slate-400">SGPA:</span>
+                          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">SGPA:</span>
                           <input
                             type="number"
                             step="0.01"
@@ -897,12 +897,12 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess, manualMode = fa
                             value={sem.sgpa ?? ""}
                             onChange={(e) => updateSemesterField(sIdx, "sgpa", e.target.value)}
                             placeholder="0.00"
-                            className="w-20 px-2 py-1 rounded-lg bg-slate-900 border border-slate-700 text-slate-900 dark:text-white font-mono text-sm text-center focus:border-indigo-500 focus:outline-none"
+                            className="w-20 px-2 py-1 rounded-lg bg-white border border-slate-300 text-slate-900 font-mono text-sm text-center focus:border-indigo-500 focus:outline-none dark:bg-slate-900 dark:border-slate-700 dark:text-white"
                           />
                         </div>
 
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-medium text-slate-400">CGPA:</span>
+                          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">CGPA:</span>
                           <input
                             type="number"
                             step="0.01"
@@ -911,11 +911,11 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess, manualMode = fa
                             value={sem.cgpa ?? ""}
                             onChange={(e) => updateSemesterField(sIdx, "cgpa", e.target.value)}
                             placeholder="0.00"
-                            className="w-20 px-2 py-1 rounded-lg bg-slate-900 border border-slate-700 text-slate-900 dark:text-white font-mono text-sm text-center focus:border-indigo-500 focus:outline-none"
+                            className="w-20 px-2 py-1 rounded-lg bg-white border border-slate-300 text-slate-900 font-mono text-sm text-center focus:border-indigo-500 focus:outline-none dark:bg-slate-900 dark:border-slate-700 dark:text-white"
                           />
                         </div>
 
-                        <div className="text-xs text-slate-400">
+                        <div className="text-xs text-slate-500 dark:text-slate-400">
                           Credits: <span className="font-semibold text-indigo-400">{sem.calculatedCredits}</span>
                         </div>
 
@@ -931,8 +931,8 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess, manualMode = fa
 
                     {/* Subject Table */}
                     <div className="overflow-x-auto">
-                      <table className="w-full text-left text-xs text-slate-300">
-                        <thead className="bg-slate-900/80 text-slate-400 uppercase tracking-wider font-mono border-b border-slate-800">
+                      <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300">
+                        <thead className="bg-slate-100 text-slate-600 uppercase tracking-wider font-mono border-b border-slate-200 dark:bg-slate-900/80 dark:text-slate-400 dark:border-slate-800">
                           <tr>
                             <th className="py-2.5 px-3">Subject Code</th>
                             <th className="py-2.5 px-3">Subject Name</th>
@@ -942,13 +942,13 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess, manualMode = fa
                             <th className="py-2.5 px-3 w-12"></th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-800/60">
+                        <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
                           {sem.subjects.map((sub, subIdx) => {
                             const subIssue = sem.issues.find((i) => i.subjectIndex === subIdx);
                             return (
                               <tr
                                 key={`sub-${sIdx}-${subIdx}`}
-                                className={`hover:bg-slate-900/40 transition ${
+                                className={`hover:bg-slate-50 transition dark:hover:bg-slate-900/40 ${
                                   subIssue ? "bg-amber-500/5" : ""
                                 }`}
                               >
@@ -958,7 +958,7 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess, manualMode = fa
                                     type="text"
                                     value={sub.code}
                                     onChange={(e) => updateSubject(sIdx, subIdx, "code", e.target.value)}
-                                    className="w-full bg-transparent font-mono text-indigo-300 focus:outline-none focus:border-b focus:border-indigo-500 uppercase"
+                                    className="w-full bg-transparent font-mono text-indigo-700 focus:outline-none focus:border-b focus:border-indigo-500 uppercase dark:text-indigo-300"
                                     placeholder="CODE"
                                   />
                                 </td>
@@ -987,7 +987,7 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess, manualMode = fa
                                     className={`w-14 px-1.5 py-0.5 text-center font-mono rounded text-xs focus:outline-none ${
                                       sub.credits === null || sub.credits === undefined
                                         ? "bg-amber-500/10 border border-amber-500/50 text-amber-300 font-bold"
-                                        : "bg-slate-900 border border-slate-700 text-white"
+                                        : "bg-white border border-slate-300 text-slate-900 dark:bg-slate-900 dark:border-slate-700 dark:text-white"
                                     }`}
                                   />
                                 </td>
@@ -998,7 +998,7 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess, manualMode = fa
                                     type="text"
                                     value={sub.grade}
                                     onChange={(e) => updateSubject(sIdx, subIdx, "grade", e.target.value)}
-                                    className="w-16 px-1.5 py-0.5 text-center bg-slate-900 border border-slate-700 rounded text-emerald-400 font-bold font-mono uppercase focus:outline-none"
+                                    className="w-16 px-1.5 py-0.5 text-center bg-white border border-slate-300 rounded text-emerald-600 font-bold font-mono uppercase focus:outline-none dark:bg-slate-900 dark:border-slate-700 dark:text-emerald-400"
                                   />
                                 </td>
 
@@ -1047,7 +1047,7 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess, manualMode = fa
                       variant="outline"
                       size="sm"
                       onClick={() => addSubject(sIdx)}
-                      className="border-slate-800 text-indigo-400 hover:bg-indigo-500/10 text-xs w-full justify-center"
+                      className="border-slate-300 text-indigo-600 hover:bg-indigo-50 text-xs w-full justify-center dark:border-slate-800 dark:text-indigo-400 dark:hover:bg-indigo-500/10"
                     >
                       <Plus className="w-3.5 h-3.5 mr-1" /> Add Subject to {sem.semesterName}
                     </Button>
@@ -1059,7 +1059,7 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess, manualMode = fa
               <Button
                 variant="outline"
                 onClick={addSemesterCard}
-                className="w-full border-dashed border-slate-800 text-slate-300 hover:bg-slate-900 hover:border-slate-700 py-3"
+                className="w-full border-dashed border-slate-300 text-slate-600 hover:bg-slate-50 hover:border-slate-400 py-3 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:border-slate-700"
               >
                 <Plus className="w-4 h-4 mr-2" /> Add Additional Semester Block
               </Button>
@@ -1090,7 +1090,7 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess, manualMode = fa
                 resetState();
                 onClose();
               }}
-              className="border-slate-800 text-slate-300 hover:bg-slate-900 text-xs"
+              className="border-slate-300 text-slate-700 hover:bg-slate-100 text-xs dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
             >
               Cancel
             </Button>
