@@ -101,7 +101,9 @@ api.interceptors.response.use(
   (error) => {
     const message =
       error.response?.data?.message || error.message || "An unexpected error occurred";
-    if (error.response?.status !== 401) {
+    if (error.response?.status === 401) {
+      window.dispatchEvent(new CustomEvent("gradewise-auth-expired"));
+    } else {
       console.error("[API Error]:", message);
     }
     return Promise.reject(error);
