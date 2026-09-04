@@ -429,12 +429,36 @@ module.exports = {
   getResourceStats,
 };
 
+/**
+ * GET /api/materials
+ * Retrieves materials for the authenticated user.
+ * Can be filtered by subjectId, semesterId, type, source, tags.
+ */
+async function getMaterials(req, res, next) {
+  try {
+    const { subjectId, semesterId, type, source, tags } = req.query;
+
+    const query = { user: req.user._id };
+
     if (subjectId && typeof subjectId === "string") {
       query.subjectId = subjectId;
     }
 
     if (semesterId && typeof semesterId === "string") {
       query.semesterId = semesterId;
+    }
+
+    if (type && typeof type === "string") {
+      query.type = type;
+    }
+
+    if (source && typeof source === "string") {
+      query.source = source;
+    }
+
+    if (tags && typeof tags === "string") {
+      const tagArray = tags.split(",").map(t => t.trim());
+      query.tags = { $in: tagArray };
     }
 
     const materials = await StudyMaterial.find(query)
