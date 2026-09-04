@@ -55,15 +55,37 @@ async function listCodingProfiles(req,res,next){
 }
 async function saveCodingProfile(req,res,next){
  try{
-  const platform=String(req.body.platform||"").toLowerCase();
+  const requestedPlatform=String(req.body.platform||"").toLowerCase().trim();
   const supported=["leetcode","geeksforgeeks","codeforces","hackerrank","other"];
-  if(!supported.includes(platform)){res.status(400);throw new Error("Unsupported coding platform");}
+  if(!supported.includes(requestedPlatform)){res.status(400);throw new Error("Unsupported coding platform");}
+  const platform=requestedPlatform;
   const username=String(req.body.username||"").trim();
   if(!username){res.status(400);throw new Error("Username is required");}
-  const profileUrl=buildProfileUrl(platform==="other"?"leetcode":platform,username,req.body.profileUrl);
-  const profile=await CodingProfile.findOneAndUpdate({user:req.user._id,platform},{username,profileUrl,platformLabel:String(req.body.platformLabel||"")},{new:true,upsert:true,setDefaultsOnInsert:true,runValidators:true});
-  await ConnectedAccount.findOneAndUpdate({user:req.user._id,platform:platform==="other"?"leetcode":platform},{username,profileUrl,connectionType:"profile_link",status:"connected"},{upsert:true,new:true,setDefaultsOnInsert:true});
-  res.status(201).json({profile});
+  if(username.length>100){res.status(400);throw new Error("Username cannot exceed 100 characters");}
+  const urlPlatform=platform==="other"?"leetcode":platform;
+  const profileUrl=buildProfileUrl(urlPlatform,username,req.body.profileUrl);
+  const accountPlatform=urlPlatform;
+  const existingAccount=await ConnectedAccount.findOne({user:req.user._id,platform:accountPlatform});
+  const account=await ConnectedAccount.findOneAndUpdate(
+    {user:req.user._id,platform:accountPlatform},
+    {$set:{username,profileUrl,connectionType:"profile_link",status:"connected"}},
+    {upsert:true,new:true,setDefaultsOnInsert:true,runValidators:true}
+  );
+  try{
+    const profile=await CodingProfile.findOneAndUpdate(
+      {user:req.user._id,platform},
+      {$set:{username,profileUrl,platformLabel:String(req.body.platformLabel||"").trim()}},
+      {new:true,upsert:true,setDefaultsOnInsert:true,runValidators:true}
+    );
+    res.status(201).json({profile});
+  }catch(profileError){
+    if(existingAccount){
+      await ConnectedAccount.findByIdAndUpdate(existingAccount._id,{username:existingAccount.username,profileUrl:existingAccount.profileUrl,connectionType:existingAccount.connectionType,status:existingAccount.status});
+    }else{
+      await ConnectedAccount.findByIdAndDelete(account._id);
+    }
+    throw profileError;
+  }
  }catch(e){next(e);}
 }
 async function deleteCodingProfile(req,res,next){
