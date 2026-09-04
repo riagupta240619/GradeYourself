@@ -487,8 +487,12 @@ const bulkSaveTranscript = async (req, res, next) => {
           user: userId,
         });
 
+        // Build all subject documents first and insert them in one database call.
+        // Sequential create() calls were slow enough to trigger the frontend's timeout
+        // for multi-semester transcripts.
+        const subjectDocs = [];
         for (const subInput of semInput.subjects) {
-          if (!subInput.name) continue;
+          if (!subInput.name || !String(subInput.name).trim()) continue;
 
           const gradeVal = subInput.grade || subInput.targetGrade || null;
           const details = gradeVal
@@ -515,24 +519,17 @@ const bulkSaveTranscript = async (req, res, next) => {
 
           const bulkStatusVal =
             subInput.status &&
-            [
-              "completed",
-              "in_progress",
-              "reappear",
-              "backlog",
-              "incomplete",
-              "withheld_result",
-            ].includes(subInput.status)
+            ["completed", "in_progress", "reappear", "backlog", "incomplete", "withheld_result"].includes(subInput.status)
               ? subInput.status
               : gradeVal || finalPctVal !== null || subInput.marksObtained !== null
                 ? "completed"
                 : "in_progress";
 
-          await SubjectModel.create({
+          subjectDocs.push({
             user: userId,
             semester: semesterObj._id,
-            name: subInput.name.trim(),
-            code: (subInput.code || "").trim(),
+            name: String(subInput.name).trim(),
+            code: String(subInput.code || "").trim(),
             credits: Number(subInput.credits) || 3,
             colorTag: "#6366f1",
             targetGrade: gradeVal || "A",
@@ -557,6 +554,10 @@ const bulkSaveTranscript = async (req, res, next) => {
               : [],
             marks: subInput.marks || {},
           });
+        }
+
+        if (subjectDocs.length > 0) {
+          await SubjectModel.insertMany(subjectDocs, { ordered: true });
         }
       }
 
