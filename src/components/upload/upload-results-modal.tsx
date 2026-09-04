@@ -320,6 +320,9 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess, manualMode = fa
     if (!validatedDoc || validatedDoc.semesters.length === 0) return;
 
     try {
+      // Clear stale parsing errors before showing the result of this save attempt.
+      setErrorMsg(null);
+      setSuccessMsg(null);
       setPipelineStep("saving");
       setStatusMessage("Persisting structured academic record to database...");
 
