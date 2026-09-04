@@ -9,7 +9,9 @@ type Account={_id:string;platform:string;username:string;profileUrl:string;conne
 type Profile={_id:string;platform:string;username:string;profileUrl:string;stats?:Record<string,unknown>};
 type Sheet={_id:string;title:string;url:string;source:string;description?:string};
 type PublicSheet={id:string;provider:"codolio"|"tle";title:string;category:string;description:string;url:string;externalOnly?:boolean;ratings?:number[]};
-type Bookmark={_id:string;title:string;url:string;category:string;source:string;description?:string};
+type Bookmark={_id:string;title:string;url:string;category:string;source:string;description?:string;provider?:string;subjectId?:string;embed?:boolean};
+type ResourceEntry={id:string;title:string;provider:string;url:string;description:string;embed?:boolean};
+type SubjectNode={id:string;title:string;description:string;resources:ResourceEntry[]};
 type Resume={_id:string;name:string;template:string;updatedAt:string};
 
 function Shell({title,description,children}:{title:string;description:string;children:ReactNode}){return <div className="mx-auto max-w-6xl space-y-6"><div><h1 className="text-3xl font-bold text-[var(--text-primary)]">{title}</h1><p className="mt-1 text-sm text-[var(--text-secondary)]">{description}</p></div>{children}</div>}
@@ -150,48 +152,44 @@ export function CodingHubPage(){
 }
 
 export function ResourcesHubPage(){
-  const [catalog,setCatalog]=useState<Bookmark[]>([]);
+  const [subjects,setSubjects]=useState<SubjectNode[]>([]);
   const [saved,setSaved]=useState<Bookmark[]>([]);
   const [loadingCatalog,setLoadingCatalog]=useState(true);
   const [loadingSaved,setLoadingSaved]=useState(true);
   const [error,setError]=useState<string|null>(null);
   const [savedError,setSavedError]=useState<string|null>(null);
-  const [selectedCategory,setSelectedCategory]=useState("All");
-  const [activeResource,setActiveResource]=useState<Bookmark|null>(null);
+  const [selectedSubject,setSelectedSubject]=useState<SubjectNode|null>(null);
+  const [activeResource,setActiveResource]=useState<ResourceEntry|null>(null);
 
   const loadCatalog=async()=>{
     try{
-      setLoadingCatalog(true);
-      setError(null);
-      const response=await api.get<{resources:Bookmark[]}>("/resource-hub/catalog");
-      setCatalog(response.data.resources||[]);
+      setLoadingCatalog(true);setError(null);
+      const response=await api.get<{subjects:SubjectNode[]}>("/resource-hub/catalog");
+      setSubjects(response.data.subjects||[]);
     }catch{
-      setError("Unable to load resources. Please try again.");
-    }finally{
-      setLoadingCatalog(false);
-    }
+      setError("Unable to load the resource catalog. Please try again.");
+    }finally{setLoadingCatalog(false);}
   };
 
   const loadSaved=async()=>{
     try{
-      setLoadingSaved(true);
-      setSavedError(null);
+      setLoadingSaved(true);setSavedError(null);
       const response=await api.get<{bookmarks:Bookmark[]}>("/resource-hub/saved");
       setSaved(response.data.bookmarks||[]);
     }catch(err){
       const axiosError=err as AxiosError<{message?:string}>;
       setSavedError(axiosError.response?.status===401?"Your session has expired. Please sign in again.":"Unable to load saved resources.");
-    }finally{
-      setLoadingSaved(false);
-    }
+    }finally{setLoadingSaved(false);}
   };
 
   useEffect(()=>{void loadCatalog();void loadSaved();},[]);
 
-  const save=async(r:Bookmark)=>{
+  const save=async(r:ResourceEntry|Bookmark)=>{
     try{
       setSavedError(null);
-      const response=await api.post<{bookmark:Bookmark}>("/resource-hub/saved",{title:r.title,url:r.url,category:r.category,source:r.source});
+      const response=await api.post<{bookmark:Bookmark}>("/resource-hub/saved",{
+        title:r.title,url:r.url,category:("category" in r&&r.category)||selectedSubject?.title||"General",source:("provider" in r&&r.provider)||(("source" in r&&r.source)||"external")
+      });
       setSaved(prev=>prev.some(item=>item._id===response.data.bookmark._id)?prev.map(item=>item._id===response.data.bookmark._id?response.data.bookmark:item):[response.data.bookmark,...prev]);
     }catch(err){
       const axiosError=err as AxiosError<{message?:string}>;
@@ -200,72 +198,82 @@ export function ResourcesHubPage(){
   };
 
   const removeSaved=async(id:string)=>{
-    try{
-      await api.delete("/resource-hub/saved/"+id);
-      setSaved(prev=>prev.filter(item=>item._id!==id));
-    }catch{
-      setSavedError("Unable to remove saved resource.");
-    }
+    try{await api.delete("/resource-hub/saved/"+id);setSaved(prev=>prev.filter(item=>item._id!==id));}
+    catch{setSavedError("Unable to remove saved resource.");}
   };
-
-  const categories=["All",...Array.from(new Set(catalog.map(item=>item.category).filter(Boolean)))];
-  const visibleCatalog=selectedCategory==="All"?catalog:catalog.filter(item=>item.category===selectedCategory);
 
   if(activeResource){
     return <Shell title="Resources" description="Study material and useful learning resources in one place.">
       <section className="surface-card overflow-hidden rounded-2xl">
         <div className="flex flex-col gap-3 border-b border-[var(--border)] p-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <button onClick={()=>setActiveResource(null)} className="text-sm font-medium text-purple-600 hover:underline">← Back to resources</button>
+            <button onClick={()=>setActiveResource(null)} className="text-sm font-medium text-purple-600 hover:underline">← Back to {selectedSubject?.title||"resources"}</button>
             <h2 className="mt-1 font-semibold">{activeResource.title}</h2>
+            <p className="mt-1 text-xs text-[var(--text-secondary)]">{activeResource.provider}</p>
           </div>
-          <span className="rounded-full bg-[var(--bg-surface-elevated)] px-3 py-1 text-xs text-[var(--text-secondary)]">{activeResource.category}</span>
+          <Button onClick={()=>void save(activeResource)}><Save size={15}/>Save</Button>
         </div>
-        <div className="bg-[var(--bg-surface)] p-2 sm:p-4">
-          <iframe
-            src={activeResource.url}
-            title={activeResource.title}
-            className="h-[72vh] w-full rounded-xl border border-[var(--border)] bg-white"
-            referrerPolicy="strict-origin-when-cross-origin"
-          />
-        </div>
+        {activeResource.embed!==false?<div className="bg-[var(--bg-surface)] p-2 sm:p-4">
+          <iframe src={activeResource.url} title={activeResource.title} className="h-[72vh] w-full rounded-xl border border-[var(--border)] bg-white" referrerPolicy="strict-origin-when-cross-origin"/>
+        </div>:<div className="p-6">
+          <div className="mx-auto max-w-2xl rounded-2xl border border-[var(--border)] bg-[var(--bg-surface-elevated)] p-6 text-center">
+            <BookOpen className="mx-auto text-purple-600"/>
+            <h3 className="mt-3 font-semibold">Official resource</h3>
+            <p className="mt-2 text-sm text-[var(--text-secondary)]">{activeResource.description}</p>
+            <p className="mt-3 text-xs text-[var(--text-tertiary)]">This provider does not offer a reliable embeddable reader, so GradeWise does not bypass its access controls or copy the content.</p>
+            <a href={activeResource.url} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-2 rounded-xl bg-purple-600 px-4 py-2 text-sm font-medium text-white">Open official resource <ExternalLink size={15}/></a>
+          </div>
+        </div>}
       </section>
     </Shell>;
   }
 
-  return <Shell title="Resources" description="Study material, coding resources, and saved links.">
-    <section className="surface-card rounded-2xl p-5">
-      <div className="flex flex-wrap gap-2">
-        {categories.map(category=><button key={category} onClick={()=>setSelectedCategory(category)} className={"rounded-full px-3 py-2 text-sm transition "+(selectedCategory===category?"bg-purple-600 text-white":"border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-elevated)]")}>{category}</button>)}
-      </div>
-    </section>
-
-    {loadingCatalog||error?<State loading={loadingCatalog} error={error} empty=""/>:<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      {visibleCatalog.map(r=><article key={r.title} className="surface-card rounded-2xl p-5">
-        <BookOpen className="text-purple-600"/>
-        <h2 className="mt-3 font-semibold">{r.title}</h2>
-        <p className="mt-1 text-sm text-[var(--text-secondary)]">{r.description}</p>
-        <div className="mt-4 flex gap-2">
-          <Button variant="outline" onClick={()=>setActiveResource(r)}>View here</Button>
-          <Button onClick={()=>void save(r)}><Save size={15}/>Save</Button>
+  return <Shell title="Resources" description="Browse subjects first, then choose a resource provider in a single combined tree.">
+    {loadingCatalog||error?<State loading={loadingCatalog} error={error} empty=""/>:selectedSubject?<>
+      <section className="surface-card rounded-2xl p-5">
+        <button onClick={()=>setSelectedSubject(null)} className="text-sm font-medium text-purple-600 hover:underline">← Back to all subjects</button>
+        <h2 className="mt-2 text-xl font-semibold">{selectedSubject.title}</h2>
+        <p className="mt-1 text-sm text-[var(--text-secondary)]">{selectedSubject.description}</p>
+      </section>
+      <section className="surface-card rounded-2xl p-5">
+        <div className="mb-4 flex items-center gap-2"><Layers size={18}/><h3 className="font-semibold">Resource tree</h3></div>
+        <div className="space-y-3">
+          {selectedSubject.resources.map((resource,index)=><div key={resource.id} className="rounded-xl border border-[var(--border)] p-4">
+            <div className="flex items-start gap-3">
+              <div className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-purple-100 text-xs font-semibold text-purple-700 dark:bg-purple-500/15 dark:text-purple-300">{index+1}</div>
+              <div className="min-w-0 flex-1">
+                <p className="font-medium">{resource.title}</p>
+                <p className="mt-1 text-xs text-[var(--text-tertiary)]">{resource.provider}</p>
+                <p className="mt-2 text-sm text-[var(--text-secondary)]">{resource.description}</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button variant="outline" onClick={()=>setActiveResource(resource)}><BookOpen size={15}/>{resource.embed===false?"Resource details":"Study here"}</Button>
+                  <Button onClick={()=>void save(resource)}><Save size={15}/>Save</Button>
+                </div>
+              </div>
+            </div>
+          </div>)}
         </div>
-      </article>)}
-      {visibleCatalog.length===0&&<State loading={false} error={null} empty="No resources found for this category."/>}
-    </div>}
+      </section>
+    </>:<section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {subjects.map(subject=><button key={subject.id} onClick={()=>setSelectedSubject(subject)} className="surface-card rounded-2xl p-5 text-left transition hover:-translate-y-0.5 hover:shadow-lg">
+        <BookOpen className="text-purple-600"/>
+        <h2 className="mt-3 font-semibold">{subject.title}</h2>
+        <p className="mt-2 text-sm text-[var(--text-secondary)]">{subject.description}</p>
+        <div className="mt-4 flex items-center justify-between text-sm text-purple-600"><span>{subject.resources.length} sources</span><span>Open →</span></div>
+      </button>)}
+      {subjects.length===0&&<State loading={false} error={null} empty="No subjects are available yet."/>}
+    </section>}
 
     <section className="surface-card rounded-2xl p-5">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="font-semibold">Saved Resources</h2>
+        <div><h2 className="font-semibold">Saved Resources</h2><p className="mt-1 text-sm text-[var(--text-secondary)]">Your personal resource shortcuts.</p></div>
         {savedError&&<span className="text-xs text-red-600 dark:text-red-300">{savedError}</span>}
       </div>
       {loadingSaved?<div className="py-5 text-sm text-[var(--text-secondary)]">Loading saved resources…</div>:saved.length===0?<div className="py-5 text-sm text-[var(--text-secondary)]">No saved resources yet.</div>:<div className="mt-3 grid gap-2 md:grid-cols-2">
         {saved.map(r=><div key={r._id} className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] p-3">
-          <button onClick={()=>setActiveResource(r)} className="min-w-0 text-left hover:text-purple-600">
-            <p className="truncate font-medium">{r.title}</p>
-            <span className="text-xs text-[var(--text-tertiary)]">{r.category}</span>
-          </button>
+          <button onClick={()=>setActiveResource({id:r._id,title:r.title,provider:r.source,url:r.url,description:r.description||"",embed:r.embed})} className="min-w-0 text-left hover:text-purple-600"><p className="truncate font-medium">{r.title}</p><span className="text-xs text-[var(--text-tertiary)]">{r.category}</span></button>
           <div className="flex shrink-0 gap-1">
-            <button aria-label={"View "+r.title} onClick={()=>setActiveResource(r)} className="rounded-lg p-2 text-purple-600 hover:bg-[var(--bg-surface-elevated)]"><BookOpen size={16}/></button>
+            <button aria-label={"View "+r.title} onClick={()=>setActiveResource({id:r._id,title:r.title,provider:r.source,url:r.url,description:r.description||"",embed:r.embed})} className="rounded-lg p-2 text-purple-600 hover:bg-[var(--bg-surface-elevated)]"><BookOpen size={16}/></button>
             <button aria-label={"Remove "+r.title} onClick={()=>void removeSaved(r._id)} className="rounded-lg p-2 text-[var(--text-secondary)] hover:bg-[var(--bg-surface-elevated)]"><Trash2 size={16}/></button>
           </div>
         </div>)}
