@@ -93,6 +93,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Restore authenticated session on initial application load via GET /api/auth/me (HttpOnly cookie)
   useEffect(() => {
+    const onExpired = () => {
+      useAcademicStore.getState().clearState();
+      clearClientAuthData();
+      setUser(null);
+      setError("Your session has expired. Please sign in again.");
+    };
+    window.addEventListener("gradewise-auth-expired", onExpired);
+    return () => window.removeEventListener("gradewise-auth-expired", onExpired);
+  }, []);
+
+  useEffect(() => {
     async function initAuth() {
       try {
         const profile = await AuthService.getProfile();
