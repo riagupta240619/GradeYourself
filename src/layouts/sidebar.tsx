@@ -18,7 +18,7 @@ import {
   ChevronRight,
   Code2,
   FileText,
-  Github,
+  GitBranch,
 } from "lucide-react";
 import { cn } from "@/utils/cn";
 import {
@@ -41,7 +41,7 @@ const navItems = [
   { to: "/app/coding", label: "Coding Hub", icon: Code2 },
   { to: "/app/resources", label: "Resources", icon: BookOpen },
   { to: "/app/resume", label: "Resume Hub", icon: FileText },
-  { to: "/app/github", label: "GitHub", icon: Github },
+  { to: "/app/github", label: "GitHub", icon: GitBranch },
 ];
 
 export function Sidebar() {
