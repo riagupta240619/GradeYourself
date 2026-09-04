@@ -145,17 +145,25 @@ export function SearchFilters({
           <div className="flex flex-wrap gap-1">
             <span
               className="px-2 py-1 rounded text-[10px] font-medium transition-colors {selectedFileTypes.includes('pdf') ? 'bg-purple-100 text-purple-800' : 'bg-transparent hover:bg-purple-100 hover:text-purple-700 dark:hover:bg-[var(--bg-surface-strong)] dark:text-[var(--text-primary)]'}"
-              onClick={() => onFileTypeToggle((prev) => 
-                prev.includes('pdf') ? prev.filter(t => t !== 'pdf') : [...prev, 'pdf']
-              )}
+              onClick={() =>
+                onFileTypeToggle(
+                  selectedFileTypes.includes("pdf")
+                    ? selectedFileTypes.filter((t) => t !== "pdf")
+                    : [...selectedFileTypes, "pdf"]
+                )
+              }
             >
               PDF
             </span>
             <span
               className="px-2 py-1 rounded text-[10px] font-medium transition-colors {selectedFileTypes.includes('ppt') ? 'bg-purple-100 text-purple-800' : 'bg-transparent hover:bg-purple-100 hover:text-purple-700 dark:hover:bg-[var(--bg-surface-strong)] dark:text-[var(--text-primary)]'}"
-              onClick={() => onFileTypeToggle((prev) => 
-                prev.includes('ppt') ? prev.filter(t => t !== 'ppt') : [...prev, 'ppt']
-              )}
+              onClick={() =>
+                onFileTypeToggle(
+                  selectedFileTypes.includes("ppt")
+                    ? selectedFileTypes.filter((t) => t !== "ppt")
+                    : [...selectedFileTypes, "ppt"]
+                )
+              }
             >
               PPT
             </span>
@@ -266,7 +274,7 @@ export function SearchFilters({
               value={newTag}
               onChange={(e) => setNewTag(e.target.value)}
               className="flex-1 bg-[var(--bg-surface)] rounded-lg px-2 py-1 border border-transparent focus:outline-none focus:ring-2 focus:ring-[var(--accent-purple)] focus:border-transparent dark:bg-[var(--bg-surface)] dark:text-[var(--text-primary)]"
-              maxLength="20"
+              maxLength={20}
             />
             <button
               onClick={handleTagAdd}
