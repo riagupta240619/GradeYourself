@@ -1,0 +1,14 @@
+"use strict";
+const express=require("express");
+const router=express.Router();
+const {verifyToken}=require("../middleware/auth-middleware");
+const c=require("../controllers/connected-account-controller");
+router.use(verifyToken);
+router.get("/",c.listAccounts);
+router.post("/",c.upsertAccount);
+router.delete("/:id",c.removeAccount);
+router.get("/coding/profiles",c.listCodingProfiles);
+router.post("/coding/profiles",c.saveCodingProfile);
+router.delete("/coding/profiles/:id",c.deleteCodingProfile);
+router.post("/coding/profiles/:id/sync",c.syncCodingProfile);
+module.exports=router;
