@@ -18,6 +18,7 @@ import { SettingsPage } from "@/pages/settings/settings-page";
 import { ProfilePage } from "@/pages/profile/profile-page";
 import { AdminPanelPage } from "@/pages/admin/admin-panel-page";
 import { StoragePage } from "@/pages/app/storage/StoragePage";
+import { CodingHubPage, ResourcesHubPage, ResumeHubPage, GitHubHubPage } from "@/pages/hubs/platform-hubs";
 
 export function AppRoutes() {
   return (
@@ -49,6 +50,10 @@ export function AppRoutes() {
           <Route path="profile" element={<ProfilePage />} />
           <Route path="admin" element={<AdminPanelPage />} />
           <Route path="storage" element={<StoragePage />} />
+          <Route path="coding" element={<CodingHubPage />} />
+          <Route path="resources" element={<ResourcesHubPage />} />
+          <Route path="resume" element={<ResumeHubPage />} />
+          <Route path="github" element={<GitHubHubPage />} />
         </Route>
       </Route>
     </Routes>
