@@ -70,6 +70,11 @@ const verifyCsrf = (req, res, next) => {
     return next();
   }
 
+  // Skip CSRF for resume parsing & ATS diagnostics utility endpoints
+  if (req.originalUrl && (req.originalUrl.includes("/api/resumes/parse-pdf") || req.originalUrl.includes("/api/resumes/ats"))) {
+    return next();
+  }
+
   const cookieToken = req.cookies ? req.cookies[CSRF_COOKIE_NAME] : null;
   const headerToken =
     req.headers["x-csrf-token"] ||

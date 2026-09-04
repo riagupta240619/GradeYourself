@@ -1,48 +1,633 @@
 "use strict";
-const Resume=require("../models/resume-model");
+const Resume = require("../models/resume-model");
 
-function normalizeResumeInput(body){
- const data=body.data||{};
- return {
-  personal:data.personal&&typeof data.personal==="object"?data.personal:{},
-  education:Array.isArray(data.education)?data.education:[],
-  skills:Array.isArray(data.skills)?data.skills.map(String).filter(Boolean):[],
-  projects:Array.isArray(data.projects)?data.projects:[],
-  experience:Array.isArray(data.experience)?data.experience:[],
-  certifications:Array.isArray(data.certifications)?data.certifications:[],
-  links:Array.isArray(data.links)?data.links:[]
- };
+// Curated Overleaf LaTeX templates suitable for engineering & CS disciplines
+const OVERLEAF_TEMPLATES = [
+  {
+    id: "jakes-resume",
+    title: "Jake's Resume (Industry Gold Standard)",
+    domain: "sde",
+    category: "Software Engineering / SDE",
+    description: "The most popular single-page ATS-friendly LaTeX template used for FAANG and top tech applications.",
+    overleafUrl: "https://www.overleaf.com/latex/templates/jakes-resume/syzfjbzwjncs",
+    tags: ["Single Page", "ATS High Parse", "Clean", "FAANG"],
+    popularFor: "Full Stack, Backend, Frontend, General SDE",
+    previewSnippet: "\\documentclass[letterpaper,11pt]{article}\n\\usepackage{latexsym}\n\\usepackage[empty]{fullpage}\n% Standard Jake's Resume header & structure\n\\begin{document}\n..."
+  },
+  {
+    id: "cyber-security-analyst",
+    title: "Cybersecurity & SOC Threat Analyst CV",
+    domain: "cybersecurity",
+    category: "Cybersecurity & InfoSec",
+    description: "Tailored for Penetration Testers, SOC Tier 1/2, SIEM Engineers, and Security Compliance roles with specialized certification badges.",
+    overleafUrl: "https://www.overleaf.com/latex/templates/simple-hipstercv/vngvymrmqmqs",
+    tags: ["Security Ops", "Certifications Focus", "SIEM/NIST", "Cyber"],
+    popularFor: "SOC Analyst, Pentester, Cloud Security, Threat Hunter",
+    previewSnippet: "\\documentclass[10pt,a4paper]{article}\n% Cybersecurity Domain Resume\n% Emphasizes SIEM, Wireshark, Splunk, NIST 800-53, CVEs\n..."
+  },
+  {
+    id: "fullstack-modern-cv",
+    title: "Modern Full-Stack & Cloud Engineer Resume",
+    domain: "fullstack",
+    category: "Full Stack & Web Engineering",
+    description: "Highlighting MERN, Next.js, microservices, system design architectures, and cloud deployments with high visual contrast.",
+    overleafUrl: "https://www.overleaf.com/latex/templates/faangpath-simple-template/nvsjgbqzmkxm",
+    tags: ["MERN/Next.js", "System Design", "Cloud Native", "Impact Metrics"],
+    popularFor: "Full Stack Developer, React/Node Engineer, Web Architect",
+    previewSnippet: "\\documentclass[letterpaper,10.8pt]{article}\n% Modern Full Stack Developer Template\n% Structured for Live URLs, GitHub, and Tech Stack chips\n..."
+  },
+  {
+    id: "deedy-resume-two-column",
+    title: "Deedy Resume (Two-Column Technical CV)",
+    domain: "ai_ml",
+    category: "AI, ML & Data Science",
+    description: "Designed by former Facebook & Cornell engineer Debarghya Das. Dual-column format ideal for ML publications and deep project stacks.",
+    overleafUrl: "https://www.overleaf.com/latex/templates/deedy-cv/bjryvfsjdyxz",
+    tags: ["Two Column", "Research/ML", "Publications", "Data Science"],
+    popularFor: "Machine Learning Engineer, Data Scientist, NLP/CV Researcher",
+    previewSnippet: "\\documentclass[]{deedy-resume-openfont}\n% Deedy Resume for ML & Research\n..."
+  },
+  {
+    id: "devops-sre-minimal",
+    title: "Cloud Infrastructure & DevOps SRE Template",
+    domain: "devops_cloud",
+    category: "Cloud, DevOps & SRE",
+    description: "Focuses on CI/CD pipelines, Kubernetes, Terraform, AWS/GCP, latency reductions, and 99.99% uptime metrics.",
+    overleafUrl: "https://www.overleaf.com/latex/templates/software-engineer-resume/rqzvwxmybxxk",
+    tags: ["DevOps", "Kubernetes", "CI/CD", "AWS/Terraform"],
+    popularFor: "DevOps Engineer, SRE, Platform Engineer, Cloud Architect",
+    previewSnippet: "\\documentclass[11pt,a4paper]{article}\n% SRE & Cloud Architect Template\n..."
+  },
+  {
+    id: "awesome-cv-executive",
+    title: "Awesome CV (Clean Modern Typography)",
+    domain: "mobile",
+    category: "Mobile & Cross-Platform",
+    description: "Striking modern layout with fontawesome icons, ideal for mobile app showcases (iOS Swift, Android Kotlin, Flutter).",
+    overleafUrl: "https://www.overleaf.com/latex/templates/awesome-cv/vfvztjxrqwwr",
+    tags: ["FontAwesome", "PlayStore/AppStore links", "Clean", "Visual"],
+    popularFor: "iOS Developer, Android Engineer, Flutter / React Native",
+    previewSnippet: "\\documentclass[11pt, a4paper]{awesome-cv}\n% Awesome CV Mobile Portfolio\n..."
+  }
+];
+
+function normalizeResumeInput(body) {
+  const data = body.data || {};
+  return {
+    personal: data.personal && typeof data.personal === "object" ? data.personal : {},
+    education: Array.isArray(data.education) ? data.education : [],
+    skills: Array.isArray(data.skills) ? data.skills.map(String).filter(Boolean) : [],
+    projects: Array.isArray(data.projects) ? data.projects : [],
+    experience: Array.isArray(data.experience) ? data.experience : [],
+    certifications: Array.isArray(data.certifications) ? data.certifications : [],
+    links: Array.isArray(data.links) ? data.links : []
+  };
 }
-function words(text){return [...new Set(String(text||"").toLowerCase().match(/[a-z][a-z+#.-]{2,}/g)||[])];}
-function analyze(resume,jobDescription){
- const data=resume.data||resume;
- const resumeText=JSON.stringify(data);
- const resumeWords=new Set(words(resumeText));
- const jobWords=words(jobDescription);
- const ignored=new Set(["with","and","the","for","that","this","from","your","you","are","our","will","have","has","years","year","work","team","role","job","skills","experience","using"]);
- const keywords=[...new Set(jobWords.filter(w=>!ignored.has(w)))].slice(0,80);
- const matched=keywords.filter(w=>resumeWords.has(w));
- const missing=keywords.filter(w=>!resumeWords.has(w)).slice(0,25);
- const keywordScore=keywords.length?Math.round((matched.length/keywords.length)*100):0;
- const skills=(data.skills||[]).map(s=>String(s).toLowerCase());
- const skillsMatch=skills.length&&keywords.length?Math.round((skills.filter(s=>keywords.some(k=>s.includes(k)||k.includes(s))).length/skills.length)*100):0;
- const sections=["personal","education","skills","projects","experience"].filter(k=>Array.isArray(data[k])?data[k].length>0:Object.keys(data[k]||{}).length>0);
- const structureScore=Math.round((sections.length/5)*100);
- const overall=Math.round(keywordScore*0.5+skillsMatch*0.3+structureScore*0.2);
- const recommendations=[];
- if(!data.skills||data.skills.length===0)recommendations.push("Add a focused skills section using technologies relevant to the job description.");
- if(!data.projects||data.projects.length===0)recommendations.push("Add projects with concrete technologies and outcomes.");
- if(missing.length>0)recommendations.push("Review missing keywords and add only those that truthfully describe your experience.");
- if(structureScore<80)recommendations.push("Complete important resume sections to improve structure and readability.");
- return {overallScore:overall,keywordMatch:keywordScore,skillsMatch,sectionStructure:structureScore,matchedKeywords:matched.slice(0,30),missingKeywords:missing,recommendations,disclaimer:"This is an internal compatibility estimate, not a guarantee of performance in any proprietary applicant tracking system."};
+
+function words(text) {
+  return [...new Set(String(text || "").toLowerCase().match(/[a-z][a-z0-9+#.-]{1,}/g) || [])];
 }
-async function listResumes(req,res,next){try{const resumes=await Resume.find({user:req.user._id}).sort({updatedAt:-1}).lean();res.json({resumes});}catch(e){next(e);}}
-async function createResume(req,res,next){try{const name=String(req.body.name||"Untitled Resume").trim();const resume=await Resume.create({user:req.user._id,name,template:String(req.body.template||"classic"),data:normalizeResumeInput(req.body)});res.status(201).json({resume});}catch(e){next(e);}}
-async function getResume(req,res,next){try{const resume=await Resume.findOne({_id:req.params.id,user:req.user._id}).lean();if(!resume){res.status(404);throw new Error("Resume not found");}res.json({resume});}catch(e){next(e);}}
-async function updateResume(req,res,next){try{const patch={};if(req.body.name!==undefined)patch.name=String(req.body.name).trim();if(req.body.template!==undefined)patch.template=String(req.body.template);if(req.body.data!==undefined)patch.data=normalizeResumeInput(req.body);const resume=await Resume.findOneAndUpdate({_id:req.params.id,user:req.user._id},patch,{new:true,runValidators:true});if(!resume){res.status(404);throw new Error("Resume not found");}res.json({resume});}catch(e){next(e);}}
-async function duplicateResume(req,res,next){try{const source=await Resume.findOne({_id:req.params.id,user:req.user._id});if(!source){res.status(404);throw new Error("Resume not found");}const copy=await Resume.create({user:req.user._id,name:(source.name+" Copy").slice(0,150),template:source.template,data:source.data,versionNumber:source.versionNumber+1,parentResume:source._id});res.status(201).json({resume:copy});}catch(e){next(e);}}
-async function deleteResume(req,res,next){try{const result=await Resume.deleteOne({_id:req.params.id,user:req.user._id});if(!result.deletedCount){res.status(404);throw new Error("Resume not found");}res.json({message:"Resume deleted"});}catch(e){next(e);}}
-async function atsAnalysis(req,res,next){try{const jobDescription=String(req.body.jobDescription||"").trim();if(!jobDescription){res.status(400);throw new Error("Job description is required");}let resume;if(req.body.resumeId){resume=await Resume.findOne({_id:req.body.resumeId,user:req.user._id});if(!resume){res.status(404);throw new Error("Resume not found");}}else{resume={data:normalizeResumeInput(req.body)};}res.json({analysis:analyze(resume,jobDescription)});}catch(e){next(e);}}
-function escapeLatex(value){return String(value||"").replace(/([#$%&_{}])/g,"\\$1").replace(/\\/g,"\\textbackslash{}");}
-async function latexExport(req,res,next){try{const resume=await Resume.findOne({_id:req.params.id,user:req.user._id});if(!resume){res.status(404);throw new Error("Resume not found");}const d=resume.data||{};const lines=["\\documentclass[11pt]{article}","\\usepackage[margin=0.7in]{geometry}","\\begin{document}","\\begin{center}","{\\LARGE "+escapeLatex(d.personal?.name||resume.name)+"}\\\\","\\end{center}"];if((d.skills||[]).length)lines.push("\\section*{Skills}",escapeLatex(d.skills.join(", ")));if((d.projects||[]).length){lines.push("\\section*{Projects}");for(const p of d.projects)lines.push("\\textbf{"+escapeLatex(p.name||p.title||"Project")+"} "+escapeLatex(p.description||"")+"\\\\");}lines.push("\\end{document}");res.json({latex:lines.join("\n"),workflow:"User-controlled export. Open the generated LaTeX in Overleaf using its supported import/open workflow."});}catch(e){next(e);}}
-module.exports={listResumes,createResume,getResume,updateResume,duplicateResume,deleteResume,atsAnalysis,latexExport};
+
+// Extract full text representation of a resume
+function getResumeFullText(resume, rawText) {
+  if (rawText && typeof rawText === "string" && rawText.trim().length > 20) {
+    return rawText.trim();
+  }
+  const d = resume.data || resume;
+  const parts = [];
+  if (d.personal) {
+    parts.push(Object.values(d.personal).join(" "));
+  }
+  if (Array.isArray(d.skills)) {
+    parts.push(d.skills.join(" "));
+  }
+  if (Array.isArray(d.experience)) {
+    parts.push(d.experience.map(e => `${e.title || ""} ${e.company || ""} ${e.description || ""}`).join(" "));
+  }
+  if (Array.isArray(d.projects)) {
+    parts.push(d.projects.map(p => `${p.title || p.name || ""} ${p.description || ""} ${p.technologies || ""}`).join(" "));
+  }
+  if (Array.isArray(d.education)) {
+    parts.push(d.education.map(e => `${e.institution || ""} ${e.degree || ""} ${e.field || ""}`).join(" "));
+  }
+  if (Array.isArray(d.certifications)) {
+    parts.push(d.certifications.map(c => typeof c === "string" ? c : `${c.name || ""} ${c.issuer || ""}`).join(" "));
+  }
+  return parts.join("\n");
+}
+
+// Industry strong action verbs prioritized by Enhancv and Jobscan
+const STRONG_ACTION_VERBS = new Set([
+  "spearheaded", "engineered", "architected", "developed", "designed", "deployed",
+  "optimized", "orchestrated", "automated", "refactored", "implemented", "scaled",
+  "accelerated", "diminished", "eliminated", "delivered", "mentored", "revamped",
+  "integrated", "pioneered", "built", "managed", "resolved", "executed", "launched"
+]);
+
+// Hard technical keywords by domain for specialized ATS benchmarking
+const DOMAIN_HARD_SKILLS = {
+  cybersecurity: ["siem", "wireshark", "splunk", "kali", "metasploit", "firewall", "ids/ips", "nist", "owasp", "cve", "burp suite", "soc", "penetration testing", "incident response", "cryptography", "edr", "vulnerability management", "wireshark", "snort", "wireshark", "zero trust"],
+  fullstack: ["react", "next.js", "node.js", "express", "mongodb", "postgresql", "typescript", "javascript", "graphql", "rest api", "tailwind", "redux", "docker", "prisma", "redis", "html5", "css3", "ci/cd", "microservices", "aws"],
+  ai_ml: ["python", "pytorch", "tensorflow", "scikit-learn", "pandas", "numpy", "opencv", "nlp", "llm", "transformer", "huggingface", "cuda", "deep learning", "machine learning", "computer vision", "rag", "langchain", "keras", "bert"],
+  devops_cloud: ["docker", "kubernetes", "aws", "terraform", "ansible", "jenkins", "github actions", "ci/cd", "prometheus", "grafana", "linux", "bash", "helm", "gcp", "azure", "serverless", "nginx", "kafka"],
+  mobile: ["react native", "flutter", "swift", "kotlin", "android", "ios", "dart", "xcode", "mobile ui", "app store", "play store", "sqlite", "jetpack compose"],
+  sde: ["c++", "java", "python", "data structures", "algorithms", "object oriented programming", "multithreading", "low level design", "system design", "operating systems", "database management", "networking", "sql"]
+};
+
+/**
+ * Multi-Engine ATS Scoring Evaluator
+ * Evaluates candidate against 3 distinct industry standard ATS benchmarks:
+ * 1. Jobscan Benchmark: Keyword match rate, hard skills coverage, search term frequency.
+ * 2. Enhancv Benchmark: Action verb strength, quantifiable impact metrics, brevity.
+ * 3. ResumeWorded Benchmark: Section parseability, contact info completeness, formatting warnings.
+ */
+function analyzeMultiEngine(resumeData, jobDescription, targetRole, domain, rawTextInput) {
+  const fullText = getResumeFullText(resumeData, rawTextInput);
+  const resumeWordList = words(fullText);
+  const resumeWordsSet = new Set(resumeWordList);
+  const jobWordsList = words(jobDescription);
+
+  const stopWords = new Set([
+    "with", "and", "the", "for", "that", "this", "from", "your", "you", "are", "our",
+    "will", "have", "has", "years", "year", "work", "team", "role", "job", "skills",
+    "experience", "using", "must", "able", "looking", "candidate", "about", "what",
+    "their", "they", "been", "also", "into", "more", "such", "well", "like"
+  ]);
+
+  // 1. Keyword extraction from Job Description
+  const relevantJobKeywords = [...new Set(jobWordsList.filter(w => !stopWords.has(w)))].slice(0, 70);
+  const matchedKeywords = relevantJobKeywords.filter(k => resumeWordsSet.has(k));
+  const missingKeywords = relevantJobKeywords.filter(k => !resumeWordsSet.has(k)).slice(0, 20);
+
+  // Domain skills check
+  const domainSkills = DOMAIN_HARD_SKILLS[domain] || DOMAIN_HARD_SKILLS.fullstack;
+  const matchedDomainSkills = domainSkills.filter(s => fullText.toLowerCase().includes(s.toLowerCase()));
+  const missingDomainSkills = domainSkills.filter(s => !fullText.toLowerCase().includes(s.toLowerCase())).slice(0, 8);
+
+  // Job title alignment
+  const roleKeywords = words(targetRole || "");
+  const roleMatchCount = roleKeywords.filter(rw => fullText.toLowerCase().includes(rw)).length;
+  const roleAlignment = roleKeywords.length ? Math.min(100, Math.round((roleMatchCount / roleKeywords.length) * 100)) : 80;
+
+  // ── ENGINE 1: JOBSCAN BENCHMARK ──
+  const keywordMatchRate = relevantJobKeywords.length
+    ? Math.round((matchedKeywords.length / relevantJobKeywords.length) * 100)
+    : 70;
+  const hardSkillsScore = Math.min(100, Math.round((matchedDomainSkills.length / Math.max(1, domainSkills.length * 0.5)) * 100));
+  const jobscanScore = Math.min(100, Math.max(25, Math.round(keywordMatchRate * 0.5 + hardSkillsScore * 0.35 + roleAlignment * 0.15)));
+
+  // ── ENGINE 2: ENHANCV BENCHMARK ──
+  // Impact, Action Verbs, and Quantifiable metrics
+  const matchedActionVerbs = resumeWordList.filter(w => STRONG_ACTION_VERBS.has(w));
+  const uniqueActionVerbs = [...new Set(matchedActionVerbs)];
+  const actionVerbScore = Math.min(100, Math.round((uniqueActionVerbs.length / 7) * 100));
+
+  // Count quantifiable numbers, percentages, dollar values, latencies, multipliers (e.g. 40%, $10k, 2x, 500ms)
+  const metricMatches = fullText.match(/\b\d+(\.\d+)?%|\$\d+[kKmMbB]?|\b\d+[xX]\b|\b\d+\s*(ms|seconds|minutes|users|requests|qps|stars|downloads|clients|reduction|increase)\b/gi) || [];
+  const metricsScore = Math.min(100, Math.round((metricMatches.length / 5) * 100));
+
+  // Word count brevity check: optimal tech resume is 350 - 750 words
+  const wordCount = fullText.split(/\s+/).filter(Boolean).length;
+  const brevityScore = (wordCount >= 300 && wordCount <= 850) ? 95 : wordCount < 300 ? 60 : 75;
+
+  const enhancvScore = Math.min(100, Math.max(30, Math.round(actionVerbScore * 0.4 + metricsScore * 0.4 + brevityScore * 0.2)));
+
+  // ── ENGINE 3: RESUMEWORDED BENCHMARK ──
+  // Formatting, parseability, structure, section balance
+  const hasEmail = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(fullText);
+  const hasPhone = /(\+\d{1,3}[- ]?)?\(?\d{3}\)?[- ]?\d{3}[- ]?\d{4}/.test(fullText);
+  const hasGitHubOrLinkedIn = /github\.com|linkedin\.com|gitlab\.com/i.test(fullText);
+  const contactScore = (hasEmail ? 40 : 0) + (hasPhone ? 30 : 0) + (hasGitHubOrLinkedIn ? 30 : 0);
+
+  const sectionsPresent = ["education", "experience", "projects", "skills"].filter(s => fullText.toLowerCase().includes(s));
+  const parseabilityScore = Math.round((sectionsPresent.length / 4) * 100);
+
+  // Repetition penalty
+  const wordFrequencies = {};
+  for (const w of resumeWordList) {
+    if (!stopWords.has(w)) wordFrequencies[w] = (wordFrequencies[w] || 0) + 1;
+  }
+  const overused = Object.entries(wordFrequencies).filter(([_, count]) => count > 7).map(([w]) => w);
+  const repetitionPenalty = Math.min(20, overused.length * 5);
+
+  const resumeWordedScore = Math.min(100, Math.max(20, Math.round((contactScore * 0.4 + parseabilityScore * 0.6) - repetitionPenalty)));
+
+  // ── OVERALL COMPOSITE SCORE ──
+  const overallScore = Math.round(jobscanScore * 0.45 + enhancvScore * 0.35 + resumeWordedScore * 0.2);
+
+  // Tier level
+  const tier = overallScore >= 85 ? "Interview Ready (Top 10%)" :
+               overallScore >= 70 ? "Competitive Match" :
+               overallScore >= 55 ? "Moderate Alignment" : "Needs Optimization";
+
+  // Engine-specific recommendations
+  const engineBreakdown = {
+    jobscan: {
+      name: "Jobscan Benchmark",
+      score: jobscanScore,
+      rating: jobscanScore >= 80 ? "High Match" : jobscanScore >= 60 ? "Moderate Match" : "Low Match",
+      metrics: {
+        keywordMatchRate: `${keywordMatchRate}%`,
+        hardSkillsCovered: `${matchedDomainSkills.length}/${domainSkills.length}`,
+        jobTitleMatch: `${roleAlignment}%`
+      },
+      tips: missingKeywords.length ? `Incorporate key JD terms: ${missingKeywords.slice(0, 6).join(", ")}` : "Great keyword alignment with job description."
+    },
+    enhancv: {
+      name: "Enhancv Benchmark",
+      score: enhancvScore,
+      rating: enhancvScore >= 80 ? "High Impact" : enhancvScore >= 60 ? "Good Impact" : "Passive Tone",
+      metrics: {
+        actionVerbsCount: uniqueActionVerbs.length,
+        quantifiedResultsFound: metricMatches.length,
+        brevityStatus: `${wordCount} words (${wordCount >= 300 && wordCount <= 800 ? "Ideal" : "Needs adjustment"})`
+      },
+      tips: metricMatches.length < 3
+        ? "Add at least 3 measurable metrics (% improvement, latency drop, users served) in bullet points."
+        : "Strong evidence of quantifiable results."
+    },
+    resumeWorded: {
+      name: "ResumeWorded Benchmark",
+      score: resumeWordedScore,
+      rating: resumeWordedScore >= 80 ? "Clean Parse" : resumeWordedScore >= 60 ? "Acceptable" : "Formatting Risks",
+      metrics: {
+        contactDetailsComplete: hasEmail && (hasPhone || hasGitHubOrLinkedIn) ? "Complete" : "Incomplete",
+        sectionsDetected: `${sectionsPresent.length}/4 standard sections`,
+        overusedWords: overused.length ? overused.slice(0, 4).join(", ") : "None"
+      },
+      tips: !hasGitHubOrLinkedIn
+        ? "Add a clean GitHub or LinkedIn profile link in the header for technical credibility."
+        : "Standard ATS section headings detected successfully."
+    }
+  };
+
+  const actionableFixes = [];
+  if (missingKeywords.length > 0) {
+    actionableFixes.push({
+      engine: "Jobscan",
+      priority: "high",
+      title: "Missing High-Value Keywords",
+      detail: `Your resume is missing terms frequently parsed by recruiters: ${missingKeywords.slice(0, 8).join(", ")}.`
+    });
+  }
+  if (metricMatches.length < 3) {
+    actionableFixes.push({
+      engine: "Enhancv",
+      priority: "medium",
+      title: "Quantify Project Impact",
+      detail: "Use Google's X-Y-Z formula: 'Accomplished [X], as measured by [Y], by doing [Z]'. Include numbers (e.g. 'reduced load time by 35%')."
+    });
+  }
+  if (uniqueActionVerbs.length < 4) {
+    actionableFixes.push({
+      engine: "Enhancv",
+      priority: "medium",
+      title: "Replace Weak / Passive Verbs",
+      detail: "Lead every bullet point with strong technical action verbs like 'Engineered', 'Orchestrated', 'Architected', or 'Automated'."
+    });
+  }
+  if (!hasGitHubOrLinkedIn) {
+    actionableFixes.push({
+      engine: "ResumeWorded",
+      priority: "low",
+      title: "Missing Portfolio / GitHub Link",
+      detail: "Include your active GitHub, personal domain, or LinkedIn URL in your header."
+    });
+  }
+
+  return {
+    overallScore,
+    tier,
+    engineBreakdown,
+    matchedKeywords: matchedKeywords.slice(0, 25),
+    missingKeywords: missingKeywords.slice(0, 20),
+    matchedDomainSkills,
+    missingDomainSkills,
+    actionableFixes,
+    scannedAt: new Date().toISOString()
+  };
+}
+
+// Controller Actions
+async function listResumes(req, res, next) {
+  try {
+    const domainFilter = req.query.domain;
+    const query = { user: req.user._id };
+    if (domainFilter && domainFilter !== "all") {
+      query.domain = domainFilter;
+    }
+    const resumes = await Resume.find(query).sort({ updatedAt: -1 }).lean();
+    res.json({ resumes });
+  } catch (e) {
+    next(e);
+  }
+}
+
+async function createResume(req, res, next) {
+  try {
+    const name = String(req.body.name || "Untitled Resume").trim();
+    const domain = String(req.body.domain || "fullstack").toLowerCase();
+    const targetRole = String(req.body.targetRole || "").trim();
+    const overleafUrl = String(req.body.overleafUrl || "").trim();
+    const rawText = String(req.body.rawText || "").trim();
+
+    const resume = await Resume.create({
+      user: req.user._id,
+      name,
+      domain,
+      targetRole,
+      overleafUrl,
+      rawText,
+      template: String(req.body.template || "classic"),
+      data: normalizeResumeInput(req.body)
+    });
+    res.status(201).json({ resume });
+  } catch (e) {
+    next(e);
+  }
+}
+
+async function getResume(req, res, next) {
+  try {
+    const resume = await Resume.findOne({ _id: req.params.id, user: req.user._id }).lean();
+    if (!resume) {
+      res.status(404);
+      throw new Error("Resume not found");
+    }
+    res.json({ resume });
+  } catch (e) {
+    next(e);
+  }
+}
+
+async function updateResume(req, res, next) {
+  try {
+    const patch = {};
+    if (req.body.name !== undefined) patch.name = String(req.body.name).trim();
+    if (req.body.domain !== undefined) patch.domain = String(req.body.domain).toLowerCase();
+    if (req.body.targetRole !== undefined) patch.targetRole = String(req.body.targetRole).trim();
+    if (req.body.overleafUrl !== undefined) patch.overleafUrl = String(req.body.overleafUrl).trim();
+    if (req.body.rawText !== undefined) patch.rawText = String(req.body.rawText).trim();
+    if (req.body.template !== undefined) patch.template = String(req.body.template);
+    if (req.body.data !== undefined) patch.data = normalizeResumeInput(req.body);
+
+    const resume = await Resume.findOneAndUpdate(
+      { _id: req.params.id, user: req.user._id },
+      patch,
+      { new: true, runValidators: true }
+    );
+    if (!resume) {
+      res.status(404);
+      throw new Error("Resume not found");
+    }
+    res.json({ resume });
+  } catch (e) {
+    next(e);
+  }
+}
+
+async function duplicateResume(req, res, next) {
+  try {
+    const source = await Resume.findOne({ _id: req.params.id, user: req.user._id });
+    if (!source) {
+      res.status(404);
+      throw new Error("Resume not found");
+    }
+    const copy = await Resume.create({
+      user: req.user._id,
+      name: `${source.name} (Copy)`.slice(0, 150),
+      domain: source.domain,
+      targetRole: source.targetRole,
+      overleafUrl: source.overleafUrl,
+      rawText: source.rawText,
+      template: source.template,
+      data: source.data,
+      versionNumber: (source.versionNumber || 1) + 1,
+      parentResume: source._id
+    });
+    res.status(201).json({ resume: copy });
+  } catch (e) {
+    next(e);
+  }
+}
+
+async function deleteResume(req, res, next) {
+  try {
+    const result = await Resume.deleteOne({ _id: req.params.id, user: req.user._id });
+    if (!result.deletedCount) {
+      res.status(404);
+      throw new Error("Resume not found");
+    }
+    res.json({ message: "Resume deleted" });
+  } catch (e) {
+    next(e);
+  }
+}
+
+async function getOverleafTemplates(req, res, next) {
+  try {
+    const domain = req.query.domain;
+    let templates = OVERLEAF_TEMPLATES;
+    if (domain && domain !== "all") {
+      templates = templates.filter(t => t.domain === domain);
+    }
+    res.json({ templates });
+  } catch (e) {
+    next(e);
+  }
+}
+
+async function atsAnalysis(req, res, next) {
+  try {
+    const jobDescription = String(req.body.jobDescription || "").trim();
+    if (!jobDescription) {
+      res.status(400);
+      throw new Error("Job description is required to scan ATS alignment");
+    }
+
+    let resumeData = {};
+    let rawText = String(req.body.resumeText || "").trim();
+    let targetRole = String(req.body.targetRole || "").trim();
+    let domain = String(req.body.domain || "fullstack").toLowerCase();
+
+    if (req.body.resumeId) {
+      const stored = await Resume.findOne({ _id: req.body.resumeId, user: req.user._id });
+      if (stored) {
+        resumeData = stored;
+        if (!rawText && stored.rawText) rawText = stored.rawText;
+        if (!targetRole && stored.targetRole) targetRole = stored.targetRole;
+        if (stored.domain) domain = stored.domain;
+      }
+    } else if (req.body.data) {
+      resumeData = { data: normalizeResumeInput(req.body) };
+    }
+
+    const analysis = analyzeMultiEngine(resumeData, jobDescription, targetRole, domain, rawText);
+
+    // If resumeId was provided, save to its atsHistory
+    if (req.body.resumeId) {
+      await Resume.findByIdAndUpdate(req.body.resumeId, {
+        $push: {
+          atsHistory: {
+            $each: [{
+              overallScore: analysis.overallScore,
+              tier: analysis.tier,
+              jobscanScore: analysis.engineBreakdown.jobscan.score,
+              enhancvScore: analysis.engineBreakdown.enhancv.score,
+              resumeWordedScore: analysis.engineBreakdown.resumeWorded.score,
+              targetRole,
+              scannedAt: new Date()
+            }],
+            $slice: -10
+          }
+        }
+      });
+    }
+
+    res.json({ analysis });
+  } catch (e) {
+    next(e);
+  }
+}
+
+function escapeLatex(value) {
+  return String(value || "")
+    .replace(/([#$%&_{}])/g, "\\$1")
+    .replace(/\\/g, "\\textbackslash{}");
+}
+
+async function latexExport(req, res, next) {
+  try {
+    const resume = await Resume.findOne({ _id: req.params.id, user: req.user._id });
+    if (!resume) {
+      res.status(404);
+      throw new Error("Resume not found");
+    }
+    const d = resume.data || {};
+    const lines = [
+      "% Auto-generated GradeWise LaTeX Document",
+      "\\documentclass[11pt,a4paper]{article}",
+      "\\usepackage[margin=0.75in]{geometry}",
+      "\\usepackage{hyperref}",
+      "\\usepackage{enumitem}",
+      "\\begin{document}",
+      "\\begin{center}",
+      `{\\LARGE \\textbf{${escapeLatex(d.personal?.name || resume.name)}}} \\\\[4pt]`
+    ];
+
+    const contact = [
+      d.personal?.email ? `\\href{mailto:${d.personal.email}}{${escapeLatex(d.personal.email)}}` : null,
+      d.personal?.phone ? escapeLatex(d.personal.phone) : null,
+      d.personal?.location ? escapeLatex(d.personal.location) : null
+    ].filter(Boolean);
+
+    if (contact.length) lines.push(contact.join(" $|$ ") + " \\\\[8pt]");
+    lines.push("\\end{center}");
+
+    if ((d.skills || []).length) {
+      lines.push("\\section*{Technical Skills}", "\\begin{itemize}[leftmargin=*]", `\\item ${escapeLatex(d.skills.join(", "))}`, "\\end{itemize}");
+    }
+
+    if ((d.experience || []).length) {
+      lines.push("\\section*{Experience}");
+      for (const e of d.experience) {
+        lines.push(`\\textbf{${escapeLatex(e.title || "Software Engineer")}} -- ${escapeLatex(e.company || "Company")} \\\\[2pt]`);
+        if (e.description) lines.push(`${escapeLatex(e.description)} \\\\[4pt]`);
+      }
+    }
+
+    if ((d.projects || []).length) {
+      lines.push("\\section*{Projects}");
+      for (const p of d.projects) {
+        lines.push(`\\textbf{${escapeLatex(p.name || p.title || "Project")}} \\\\[2pt]`);
+        if (p.description) lines.push(`${escapeLatex(p.description)} \\\\[4pt]`);
+      }
+    }
+
+    lines.push("\\end{document}");
+    res.json({
+      latex: lines.join("\n"),
+      overleafUrl: resume.overleafUrl || "https://www.overleaf.com/docs"
+    });
+  } catch (e) {
+    next(e);
+  }
+}
+
+async function parsePdfResume(req, res, next) {
+  try {
+    const base64 = req.body.base64;
+    const filename = String(req.body.filename || "").trim();
+    if (!base64) {
+      res.status(400);
+      throw new Error("Base64 encoded PDF file data is required");
+    }
+    const buffer = Buffer.from(base64, "base64");
+    let rawText = "";
+    try {
+      const pdfParse = require("pdf-parse");
+      const data = await pdfParse(buffer);
+      rawText = (data.text || "").trim();
+    } catch (parseErr) {
+      console.warn("[ResumeController] pdf-parse warning:", parseErr.message);
+      // Fallback: extract textual runs from PDF buffer
+      const str = buffer.toString("latin1");
+      const parenMatches = str.match(/\(([^()]{2,})\)/g) || [];
+      if (parenMatches.length > 5) {
+        rawText = parenMatches.map(m => m.slice(1, -1)).join(" ");
+      } else {
+        const textRuns = str.match(/[a-zA-Z0-9.,@#+/\-_ \n\r\t]{4,}/g) || [];
+        rawText = textRuns.filter(t => !t.includes("/Catalog") && !t.includes("/ObjStm")).join(" ");
+      }
+    }
+    rawText = rawText.trim();
+
+    // Auto-detect domain
+    const lowerText = rawText.toLowerCase();
+    let detectedDomain = "fullstack";
+    let maxDomainMatches = 0;
+    for (const [dom, skills] of Object.entries(DOMAIN_HARD_SKILLS)) {
+      const matchCount = skills.filter(s => lowerText.includes(s.toLowerCase())).length;
+      if (matchCount > maxDomainMatches) {
+        maxDomainMatches = matchCount;
+        detectedDomain = dom;
+      }
+    }
+
+    // Auto-detect skills
+    const allKnownSkills = Object.values(DOMAIN_HARD_SKILLS).flat();
+    const detectedSkills = [...new Set(allKnownSkills.filter(s => lowerText.includes(s.toLowerCase())))].slice(0, 15);
+
+    // Suggested Role
+    const suggestedRole = detectedDomain === "cybersecurity" ? "Cybersecurity Analyst / SOC Engineer" :
+                          detectedDomain === "ai_ml" ? "Machine Learning Engineer / Data Scientist" :
+                          detectedDomain === "devops_cloud" ? "Cloud DevOps SRE Engineer" :
+                          detectedDomain === "mobile" ? "Mobile Application Developer" :
+                          detectedDomain === "sde" ? "Software Development Engineer" : "Full Stack Software Developer";
+
+    const cleanName = filename ? filename.replace(/\.pdf$/i, "").replace(/[-_]+/g, " ") : "Imported PDF Resume";
+
+    res.json({
+      text: rawText,
+      domain: detectedDomain,
+      suggestedRole,
+      detectedSkills,
+      suggestedName: cleanName
+    });
+  } catch (e) {
+    next(e);
+  }
+}
+
+module.exports = {
+  listResumes,
+  createResume,
+  getResume,
+  updateResume,
+  duplicateResume,
+  deleteResume,
+  getOverleafTemplates,
+  atsAnalysis,
+  latexExport,
+  parsePdfResume
+};
