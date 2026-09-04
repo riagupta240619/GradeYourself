@@ -472,6 +472,70 @@ async function getMaterials(req, res, next) {
   }
 }
 
+/**
+ * POST /api/materials/upload
+ * Uploads material metadata.
+ */
+async function uploadMaterial(req, res, next) {
+  try {
+    const { title, fileName, path, subjectId, semesterId, fileType, fileSize, visibility, type, source, externalUrl, githubFullName, githubPath, youtubeId, youtubePlaylistId, tags, description, metadata } = req.body;
+
+    if (!title) {
+      res.status(400);
+      throw new Error("Title is required");
+    }
+
+    const resource = await CentralResource.create({
+      user: req.user._id,
+      title,
+      fileName: fileName || "",
+      path: path || "",
+      subjectId: subjectId || undefined,
+      semesterId: semesterId || undefined,
+      fileType: fileType || "other",
+      fileSize: fileSize || 0,
+      visibility: visibility || "private",
+      type: type || "pdf",
+      source: source || "user_upload",
+      externalUrl: externalUrl || "",
+      githubFullName: githubFullName || "",
+      githubPath: githubPath || "",
+      youtubeId: youtubeId || "",
+      youtubePlaylistId: youtubePlaylistId || "",
+      tags: tags || [],
+      description: description || "",
+      metadata: metadata || {},
+    });
+
+    res.status(201).json({
+      id: resource._id,
+      title: resource.title,
+      fileName: resource.fileName,
+      path: resource.path,
+      subjectId: resource.subjectId,
+      semesterId: resource.semesterId,
+      fileType: resource.fileType,
+      fileSize: resource.fileSize,
+      visibility: resource.visibility,
+      type: resource.type,
+      source: resource.source,
+      externalUrl: resource.externalUrl,
+      githubFullName: resource.githubFullName,
+      githubPath: resource.githubPath,
+      youtubeId: resource.youtubeId,
+      youtubePlaylistId: resource.youtubePlaylistId,
+      downloadCount: resource.downloadCount,
+      viewCount: resource.viewCount,
+      tags: resource.tags,
+      description: resource.description,
+      metadata: resource.metadata,
+      uploadedAt: resource.createdAt,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   uploadMaterial,
   getMaterials,
