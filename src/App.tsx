@@ -2,11 +2,12 @@ import { useEffect } from "react";
 import { BrowserRouter } from "react-router-dom";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/context/theme-context";
+import { useTheme } from "@/hooks/use-theme";
 import { AuthProvider } from "@/context/auth-context";
 import { AppRoutes } from "@/routes/app-routes";
 import { HealthService } from "@/services/health-service";
 
-export default function App() {
+function AppContent() {
   useEffect(() => {
     HealthService.getHealth()
       .then((data) => {
@@ -21,10 +22,13 @@ export default function App() {
     <ThemeProvider>
       <AuthProvider>
         <BrowserRouter>
-          <Toaster theme="dark" position="top-right" richColors />
-          <AppRoutes />
+          <ThemedRouter />
         </BrowserRouter>
       </AuthProvider>
     </ThemeProvider>
   );
 }
+
+function ThemedRouter() { const { theme } = useTheme(); return <><Toaster theme={theme} position="top-right" richColors /><AppRoutes /></>; }
+
+export default function App() { return <ThemeProvider><AuthProvider><AppContent /></AuthProvider></ThemeProvider>; }
