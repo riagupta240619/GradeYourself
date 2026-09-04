@@ -1,0 +1,14 @@
+const express=require("express");
+const router=express.Router();
+const {verifyToken}=require("../middleware/auth-middleware");
+const c=require("../controllers/resume-controller");
+router.use(verifyToken);
+router.get("/",c.listResumes);
+router.post("/",c.createResume);
+router.post("/ats",c.atsAnalysis);
+router.get("/:id",c.getResume);
+router.put("/:id",c.updateResume);
+router.post("/:id/duplicate",c.duplicateResume);
+router.get("/:id/latex",c.latexExport);
+router.delete("/:id",c.deleteResume);
+module.exports=router;
