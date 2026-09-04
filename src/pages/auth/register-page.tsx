@@ -27,12 +27,12 @@ export function RegisterPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen w-full bg-slate-50 text-slate-900 dark:bg-[#09090b] dark:text-slate-900 dark:text-white overflow-hidden">
+    <div className="relative flex min-h-screen w-full bg-slate-50 text-slate-900 dark:bg-[#09090b] dark:text-white overflow-hidden">
       {/* Absolute Theme Switcher for Register Page */}
       <div className="absolute top-4 right-4 z-50">
         <button
           onClick={toggleTheme}
-          className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white/80 dark:border-white/10 dark:bg-zinc-900/80 text-slate-600 dark:text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-all shadow-sm backdrop-blur-md"
+          className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white/80 dark:border-white/10 dark:bg-zinc-900/80 text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-all shadow-sm backdrop-blur-md"
           aria-label="Toggle theme"
           title="Toggle theme mode"
         >
@@ -54,7 +54,7 @@ export function RegisterPage() {
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-purple-600 to-blue-600 font-bold text-slate-900 dark:text-white shadow-lg">
             <GraduationCap size={22} />
           </div>
-          <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-900 dark:text-white">
+          <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
             GradeWise <span className="gradient-purple-text">AI</span>
           </span>
         </div>
@@ -64,7 +64,7 @@ export function RegisterPage() {
           <div className="inline-flex items-center gap-2 rounded-full border border-purple-300 bg-purple-50 dark:border-purple-500/30 dark:bg-purple-500/10 px-3.5 py-1 text-xs font-medium text-purple-700 dark:text-purple-600 dark:text-purple-300 mb-4">
             <Sparkles size={14} className="text-purple-500 dark:text-purple-400" /> Start Your Academic Journey
           </div>
-          <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl leading-tight text-slate-900 dark:text-slate-900 dark:text-white">
+          <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl leading-tight text-slate-900 dark:text-white">
             Master your academic performance <br />
             <span className="gradient-purple-text">with AI precision.</span>
           </h2>
@@ -78,7 +78,7 @@ export function RegisterPage() {
               "Syllabus & scheme upload support",
               "100% privacy and secure data processing",
             ].map((text, i) => (
-              <div key={i} className="flex items-center gap-2.5 text-xs text-slate-700 dark:text-slate-700 dark:text-zinc-300 font-medium">
+              <div key={i} className="flex items-center gap-2.5 text-xs text-slate-700 dark:text-zinc-300 font-medium">
                 <CheckCircle2 size={16} className="text-emerald-500 dark:text-emerald-400" />
                 <span>{text}</span>
               </div>
@@ -106,7 +106,7 @@ export function RegisterPage() {
             <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-purple-100 dark:bg-purple-600/20 text-purple-600 dark:text-purple-400 lg:hidden">
               <GraduationCap size={22} />
             </div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-900 dark:text-white">Create your account</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Create your account</h1>
             <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400">Get started with GradeWise AI free today</p>
           </div>
 
@@ -122,7 +122,7 @@ export function RegisterPage() {
 
           <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-slate-700 dark:text-slate-700 dark:text-zinc-300">Full Name</label>
+              <label className="mb-1.5 block text-xs font-medium text-slate-700 dark:text-zinc-300">Full Name</label>
               <div className="relative">
                 <User size={16} className="absolute left-3.5 top-3 text-slate-400 dark:text-zinc-500" />
                 <input
@@ -130,13 +130,13 @@ export function RegisterPage() {
                   placeholder="Alex Rivers"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-zinc-950/60 pl-10 pr-4 py-2.5 text-sm text-slate-900 dark:text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-400 dark:placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-zinc-950/60 pl-10 pr-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                 />
               </div>
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-slate-700 dark:text-slate-700 dark:text-zinc-300">Email Address</label>
+              <label className="mb-1.5 block text-xs font-medium text-slate-700 dark:text-zinc-300">Email Address</label>
               <div className="relative">
                 <Mail size={16} className="absolute left-3.5 top-3 text-slate-400 dark:text-zinc-500" />
                 <input
@@ -145,13 +145,13 @@ export function RegisterPage() {
                   placeholder="alex@university.edu"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-zinc-950/60 pl-10 pr-4 py-2.5 text-sm text-slate-900 dark:text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-400 dark:placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-zinc-950/60 pl-10 pr-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                 />
               </div>
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-slate-700 dark:text-slate-700 dark:text-zinc-300">Password</label>
+              <label className="mb-1.5 block text-xs font-medium text-slate-700 dark:text-zinc-300">Password</label>
               <div className="relative">
                 <Lock size={16} className="absolute left-3.5 top-3 text-slate-400 dark:text-zinc-500" />
                 <input
@@ -160,7 +160,7 @@ export function RegisterPage() {
                   placeholder="Create a strong password"
                   value={pw}
                   onChange={(e) => setPw(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-zinc-950/60 pl-10 pr-4 py-2.5 text-sm text-slate-900 dark:text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-400 dark:placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-zinc-950/60 pl-10 pr-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all"
                 />
               </div>
               <div className="mt-2 flex gap-1.5">
@@ -203,7 +203,7 @@ export function RegisterPage() {
 
           <div className="mt-6 text-center text-xs text-slate-500 dark:text-zinc-400">
             Already have an account?{" "}
-            <Link to="/login" className="font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-600 dark:text-purple-300 transition-colors">
+            <Link to="/login" className="font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 transition-colors">
               Sign in
             </Link>
           </div>
