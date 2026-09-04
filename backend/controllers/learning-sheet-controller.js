@@ -5,12 +5,7 @@ const LearningSheetProgress=require("../models/learning-sheet-progress-model");
 const CACHE_MS=10*60*1000;
 let providerCache={value:null,expires:0};
 
-const BASE_COLLECTIONS=[
-  {id:"codolio-popular",provider:"codolio",title:"Popular Sheets",category:"Popular",description:"Community coding sheets discovered through Codolio's public Explore Sheets experience.",sourceUrl:"https://codolio.com/question-tracker",items:[]},
-  {id:"codolio-mastery",provider:"codolio",title:"Mastery Sheets",category:"Topic-wise",description:"Topic-focused collections such as dynamic programming, graphs, and other reusable patterns.",sourceUrl:"https://codolio.com/question-tracker",items:[]},
-  {id:"codolio-cp",provider:"codolio",title:"Competitive Programming",category:"Competitive Programming",description:"Competitive-programming collections available from Codolio.",sourceUrl:"https://codolio.com/question-tracker",items:[]},
-  {id:"tle-cp31",provider:"tle",title:"TLE Eliminators CP-31",category:"Competitive Programming",description:"The CP-31 collection is organized by Codeforces rating from 800 to 1900.",sourceUrl:"https://www.tle-eliminators.com/cp-sheet",items:[]}
-];
+const BASE_COLLECTIONS=[];
 
 function safeUrl(value){const u=new URL(String(value||""));if(u.protocol!=="https:")throw new Error("Sheet URL must use HTTPS");return u.toString();}
 function cleanItem(item,index){
@@ -27,6 +22,7 @@ function cleanCollection(raw,provider,index){
   const sourceUrl=raw.sourceUrl||raw.url||raw.link||"";
   let safe="";try{if(sourceUrl)safe=safeUrl(sourceUrl);}catch{}
   const items=(raw.items||raw.questions||raw.problems||[]).map(cleanItem).filter(Boolean);
+  if(items.length===0)return null;
   return {id:String(raw.id||raw.slug||(provider+"-"+index+"-"+title.toLowerCase().replace(/[^a-z0-9]+/g,"-"))),provider,title,category:String(raw.category||raw.type||"General"),description:String(raw.description||"").trim(),sourceUrl:safe,items};
 }
 async function fetchProvider(url,provider){
