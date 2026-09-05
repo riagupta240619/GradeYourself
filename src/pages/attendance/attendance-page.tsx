@@ -32,6 +32,10 @@ import {
   Cell,
 } from "recharts";
 import { api } from "@/services/api";
+import {
+  SemesterService,
+  type SemesterWithTotalCredits,
+} from "@/services/semester-service";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/utils/cn";
@@ -93,6 +97,17 @@ export function AttendancePage() {
   const [calcMode, setCalcMode] = useState<"session" | "hours">("session");
   const [showSettingsModal, setShowSettingsModal] = useState(false);
 
+  // Sync from CGPA Modal
+  const [showSyncModal, setShowSyncModal] = useState(false);
+  const [semesters, setSemesters] = useState<SemesterWithTotalCredits[]>([]);
+  const [syncSemesterId, setSyncSemesterId] = useState<string>("current");
+  const [replaceExistingSync, setReplaceExistingSync] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [previewSubjects, setPreviewSubjects] = useState<
+    Array<{ _id?: string; name: string; code?: string }>
+  >([]);
+  const [loadingPreview, setLoadingPreview] = useState(false);
+
   // Subject Modal
   const [showSubjectModal, setShowSubjectModal] = useState(false);
   const [editingSubject, setEditingSubject] = useState<AttendanceSubject | null>(null);
@@ -126,10 +141,11 @@ export function AttendancePage() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [dashRes, ttRes, recRes] = await Promise.all([
+      const [dashRes, ttRes, recRes, semRes] = await Promise.all([
         api.get("/attendance/dashboard"),
         api.get("/attendance/timetable"),
         api.get("/attendance/records?limit=15"),
+        SemesterService.getSemesters().catch(() => []),
       ]);
 
       setSubjects(dashRes.data.subjects || []);
@@ -137,6 +153,7 @@ export function AttendancePage() {
       setCalcMode(dashRes.data.calculationMode || "session");
       setTimetable(ttRes.data.timetable || []);
       setRecords(recRes.data.records || []);
+      setSemesters(semRes || []);
     } catch (err) {
       console.error("Failed to load attendance data:", err);
       toast.error("Failed to load attendance records");
@@ -148,6 +165,35 @@ export function AttendancePage() {
   useEffect(() => {
     void loadData();
   }, []);
+
+  const currentSemester = useMemo(() => {
+    return semesters.find((s) => s.isCurrent) || semesters[semesters.length - 1];
+  }, [semesters]);
+
+  // Load preview of subjects for selected semester in sync modal
+  useEffect(() => {
+    if (!showSyncModal) return;
+    const fetchPreview = async () => {
+      try {
+        setLoadingPreview(true);
+        let semId = syncSemesterId;
+        if (semId === "current") {
+          semId = currentSemester?.id || currentSemester?._id || "";
+        }
+        if (!semId) {
+          setPreviewSubjects([]);
+          return;
+        }
+        const res = await api.get(`/subjects?semesterId=${semId}`);
+        setPreviewSubjects(res.data || []);
+      } catch (err) {
+        setPreviewSubjects([]);
+      } finally {
+        setLoadingPreview(false);
+      }
+    };
+    void fetchPreview();
+  }, [showSyncModal, syncSemesterId, currentSemester]);
 
   // Aggregate stats
   const stats = useMemo(() => {
@@ -186,13 +232,20 @@ export function AttendancePage() {
   };
 
   // Sync from CGPA Subjects
-  const handleSyncCgpa = async () => {
+  const handleExecuteSync = async () => {
     try {
-      const res = await api.post("/attendance/subjects/sync-from-cgpa");
+      setIsSyncing(true);
+      const res = await api.post("/attendance/subjects/sync-from-cgpa", {
+        semesterId: syncSemesterId,
+        replaceExisting: replaceExistingSync,
+      });
       toast.success(res.data.message || "Imported subjects");
+      setShowSyncModal(false);
       await loadData();
     } catch (err) {
       toast.error("Failed to import subjects");
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -314,7 +367,11 @@ export function AttendancePage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={handleSyncCgpa}
+            onClick={() => {
+              setSyncSemesterId("current");
+              setReplaceExistingSync(false);
+              setShowSyncModal(true);
+            }}
             className="border-[var(--border)] text-xs"
           >
             <Sparkles size={14} className="mr-1.5 text-purple-600" />
@@ -703,7 +760,16 @@ export function AttendancePage() {
                 Get started quickly by syncing your existing semester subjects or adding them manually.
               </p>
               <div className="mt-4 flex items-center justify-center gap-3">
-                <Button size="sm" onClick={handleSyncCgpa} variant="outline" className="text-xs">
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setSyncSemesterId("current");
+                    setReplaceExistingSync(false);
+                    setShowSyncModal(true);
+                  }}
+                  variant="outline"
+                  className="text-xs"
+                >
                   <Sparkles size={14} className="mr-1 text-purple-600" />
                   Sync from CGPA
                 </Button>
@@ -1434,6 +1500,148 @@ export function AttendancePage() {
                   </Button>
                 </div>
               </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Sync from CGPA / Academic Profile Modal */}
+      <AnimatePresence>
+        {showSyncModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="surface-card w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-4 border border-[var(--border)]"
+            >
+              <div className="flex items-center justify-between border-b border-[var(--border)] pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-600/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400">
+                    <Sparkles size={18} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-[var(--text-primary)]">
+                      Import Subjects from CGPA
+                    </h3>
+                    <p className="text-[11px] text-[var(--text-secondary)]">
+                      Sync subjects from your academic profile into Attendance
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowSyncModal(false)}
+                  className="rounded-lg p-1 text-[var(--text-tertiary)] hover:bg-[var(--bg-surface-elevated)] hover:text-[var(--text-primary)]"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="space-y-3.5 text-xs">
+                <div>
+                  <label className="font-semibold text-[var(--text-secondary)] block mb-1.5">
+                    Target Semester
+                  </label>
+                  <select
+                    value={syncSemesterId}
+                    onChange={(e) => setSyncSemesterId(e.target.value)}
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-surface-elevated)] p-2.5 text-xs text-[var(--text-primary)] font-medium"
+                  >
+                    <option value="current">
+                      {currentSemester ? `${currentSemester.name} (Active / Current Semester)` : "Active Current Semester"}
+                    </option>
+                    {semesters
+                      .filter((s) => !s.isCurrent)
+                      .map((s) => (
+                        <option key={s.id || s._id} value={s.id || s._id}>
+                          {s.name} (Past Semester)
+                        </option>
+                      ))}
+                  </select>
+                  <p className="text-[11px] text-[var(--text-tertiary)] mt-1">
+                    By default, GradeWise only syncs your active current semester so past semester subjects are excluded.
+                  </p>
+                </div>
+
+                {/* Preview of subjects to be imported */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="font-semibold text-[var(--text-secondary)]">
+                      Subjects in Selected Semester
+                    </label>
+                    <span className="text-[10px] font-bold text-purple-600 bg-purple-100 dark:bg-purple-500/20 dark:text-purple-300 px-2 py-0.5 rounded-full">
+                      {previewSubjects.length} {previewSubjects.length === 1 ? "Subject" : "Subjects"}
+                    </span>
+                  </div>
+                  {loadingPreview ? (
+                    <div className="p-3 text-center text-[var(--text-tertiary)] bg-[var(--bg-surface-elevated)] rounded-xl">
+                      Loading subjects preview...
+                    </div>
+                  ) : previewSubjects.length === 0 ? (
+                    <div className="p-3 text-center text-[var(--text-tertiary)] bg-[var(--bg-surface-elevated)] rounded-xl">
+                      No subjects found in this semester.
+                    </div>
+                  ) : (
+                    <div className="max-h-36 overflow-y-auto rounded-xl border border-[var(--border)] bg-[var(--bg-surface-elevated)] p-2 flex flex-wrap gap-1.5">
+                      {previewSubjects.map((ps) => (
+                        <span
+                          key={ps._id || ps.name}
+                          className="inline-flex items-center rounded-lg bg-[var(--bg-surface)] border border-[var(--border)] px-2 py-1 text-[11px] font-medium text-[var(--text-primary)] shadow-xs"
+                        >
+                          {ps.name}
+                          {ps.code && (
+                            <span className="ml-1 text-[10px] text-[var(--text-tertiary)] font-mono">
+                              ({ps.code})
+                            </span>
+                          )}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Option to clean up existing subjects */}
+                <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3">
+                  <label className="flex items-start gap-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={replaceExistingSync}
+                      onChange={(e) => setReplaceExistingSync(e.target.checked)}
+                      className="mt-0.5 h-4 w-4 rounded border-[var(--border)] text-purple-600 focus:ring-purple-500"
+                    />
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-[var(--text-primary)] text-xs">
+                        Clean up & replace existing attendance subjects
+                      </span>
+                      <span className="text-[11px] text-[var(--text-secondary)] mt-0.5">
+                        Removes previously synced subjects (including past semester subjects) and populates attendance with only this semester.
+                      </span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-[var(--border)]">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowSyncModal(false)}
+                  disabled={isSyncing}
+                  className="text-xs"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleExecuteSync}
+                  disabled={isSyncing}
+                  className="bg-purple-600 text-xs text-white hover:bg-purple-700"
+                >
+                  {isSyncing ? "Syncing..." : "Sync Subjects"}
+                </Button>
+              </div>
             </motion.div>
           </div>
         )}

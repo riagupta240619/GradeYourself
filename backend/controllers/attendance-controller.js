@@ -7,6 +7,7 @@ const {
   AttendanceSettings,
 } = require("../models/attendance-model");
 const Subject = require("../models/subject-model");
+const Semester = require("../models/semester-model");
 
 function computeSubjectMetrics(subj, defaultReqPct = 75, mode = "session") {
   const reqPct = subj.requiredPercentage || defaultReqPct;
@@ -271,17 +272,64 @@ async function deleteSubject(req, res, next) {
 
 /**
  * POST /api/attendance/subjects/sync-from-cgpa
- * One-click import existing academic subjects into Attendance
+ * Import academic subjects from active current semester (or specified semester) into Attendance
  */
 async function syncFromCgpa(req, res, next) {
   try {
     const userId = req.user._id;
-    const academicSubjects = await Subject.find({ user: userId }).lean();
+    const { semesterId, replaceExisting } = req.body || {};
+
+    let targetSemester = null;
+
+    if (semesterId && semesterId !== "current") {
+      targetSemester = await Semester.findOne({
+        _id: semesterId,
+        user: userId,
+      });
+    }
+
+    // Default to active current semester (isCurrent: true)
+    if (!targetSemester) {
+      targetSemester = await Semester.findOne({
+        user: userId,
+        isCurrent: true,
+      });
+    }
+
+    // Fallback: if no isCurrent: true semester is marked, use the latest created semester
+    if (!targetSemester) {
+      targetSemester = await Semester.findOne({ user: userId }).sort({
+        createdAt: -1,
+      });
+    }
+
+    if (!targetSemester) {
+      return res.json({
+        imported: 0,
+        message: "No active semester found in your academic profile.",
+      });
+    }
+
+    // If replaceExisting is true, remove existing attendance subjects for this user
+    if (replaceExisting) {
+      const oldSubjects = await AttendanceSubject.find({ user: userId }).select("_id");
+      const oldIds = oldSubjects.map((s) => s._id);
+      await AttendanceRecord.deleteMany({ user: userId, subject: { $in: oldIds } });
+      await TimetableEntry.deleteMany({ user: userId, subject: { $in: oldIds } });
+      await AttendanceSubject.deleteMany({ user: userId });
+    }
+
+    // ONLY fetch subjects belonging to the target active semester
+    const academicSubjects = await Subject.find({
+      user: userId,
+      semester: targetSemester._id,
+    }).lean();
 
     if (!academicSubjects.length) {
       return res.json({
         imported: 0,
-        message: "No existing CGPA subjects found to import.",
+        semesterName: targetSemester.name,
+        message: `No subjects found in ${targetSemester.name} to import.`,
       });
     }
 
@@ -309,7 +357,8 @@ async function syncFromCgpa(req, res, next) {
 
     res.json({
       imported: count,
-      message: `Imported ${count} subjects from your academic profile.`,
+      semesterName: targetSemester.name,
+      message: `Imported ${count} subjects from ${targetSemester.name}.`,
     });
   } catch (err) {
     next(err);

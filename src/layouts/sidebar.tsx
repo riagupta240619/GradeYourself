@@ -96,99 +96,102 @@ export function Sidebar() {
   }, [backendSemesters]);
 
   return (
-    <aside className="relative flex w-64 shrink-0 flex-col border-r border-[var(--border)] bg-[var(--bg-surface)] p-5 backdrop-blur-xl transition-all duration-300 z-20 hidden md:flex">
-      {/* Brand Header */}
-      <div className="mb-6 flex items-center justify-between px-1 pt-1">
-        <NavLink to="/app/dashboard" className="flex items-center gap-3 group">
-          <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-purple-600 text-white font-bold shadow-sm group-hover:bg-purple-700 transition-colors duration-200">
-            <GraduationCap size={22} />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-bold tracking-tight text-[var(--text-primary)] text-base leading-tight">
-              GradeWise{" "}
-              <span className="text-purple-600 dark:gradient-purple-text">
-                AI
+    <aside className="relative flex h-full max-h-screen w-64 shrink-0 flex-col border-r border-[var(--border)] bg-[var(--bg-surface)] backdrop-blur-xl transition-all duration-300 z-20 hidden md:flex">
+      {/* Brand & Semester Header */}
+      <div className="shrink-0 p-4 pb-2">
+        {/* Brand Header */}
+        <div className="mb-4 flex items-center justify-between px-1">
+          <NavLink to="/app/dashboard" className="flex items-center gap-3 group">
+            <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-purple-600 text-white font-bold shadow-sm group-hover:bg-purple-700 transition-colors duration-200">
+              <GraduationCap size={20} />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-bold tracking-tight text-[var(--text-primary)] text-sm leading-tight">
+                GradeWise{" "}
+                <span className="text-purple-600 dark:gradient-purple-text">
+                  AI
+                </span>
               </span>
-            </span>
-            <span className="text-[10px] uppercase font-semibold text-[var(--text-tertiary)] tracking-wider">
-              Academic OS v2.4
-            </span>
-          </div>
-        </NavLink>
+              <span className="text-[10px] uppercase font-semibold text-[var(--text-tertiary)] tracking-wider">
+                Academic OS v2.4
+              </span>
+            </div>
+          </NavLink>
+        </div>
+
+        {/* Semester Switcher Dropdown */}
+        <div className="relative">
+          <button
+            onClick={() =>
+              backendSemesters.length > 0 && setSemesterOpen((o) => !o)
+            }
+            className="flex w-full items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--bg-surface-elevated)] px-3 py-2 text-xs font-medium text-[var(--text-secondary)] transition-all hover:bg-[var(--bg-surface-strong)] hover:border-[var(--border-strong)] hover:text-[var(--text-primary)] shadow-xs"
+          >
+            <div className="flex items-center gap-2 truncate">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="truncate font-semibold">{current.name}</span>
+            </div>
+            {backendSemesters.length > 0 && (
+              <ChevronDown
+                size={14}
+                className={cn(
+                  "text-[var(--text-tertiary)] transition-transform duration-200",
+                  semesterOpen && "rotate-180",
+                )}
+              />
+            )}
+          </button>
+
+          <AnimatePresence>
+            {semesterOpen && backendSemesters.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.15 }}
+                className="absolute left-0 right-0 z-30 mt-1.5 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] p-1.5 shadow-lg backdrop-blur-xl"
+              >
+                {backendSemesters.map((s, idx) => (
+                  <button
+                    key={s.id || s._id || `sem-${idx}`}
+                    className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-surface-elevated)] hover:text-[var(--text-primary)]"
+                    onClick={() => setSemesterOpen(false)}
+                  >
+                    <span className="truncate font-medium">{s.name}</span>
+                    {s.finalizedSgpa !== null &&
+                      s.finalizedSgpa !== undefined && (
+                        <span className="font-mono text-[11px] font-semibold text-purple-700 dark:text-purple-400 bg-purple-100 dark:bg-purple-500/10 px-1.5 py-0.5 rounded">
+                          SGPA: {s.finalizedSgpa}
+                        </span>
+                      )}
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
-      {/* Semester Switcher Dropdown */}
-      <div className="relative mb-6">
-        <button
-          onClick={() =>
-            backendSemesters.length > 0 && setSemesterOpen((o) => !o)
-          }
-          className="flex w-full items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--bg-surface-elevated)] px-3.5 py-2.5 text-xs font-medium text-[var(--text-secondary)] transition-all hover:bg-[var(--bg-surface-strong)] hover:border-[var(--border-strong)] hover:text-[var(--text-primary)] shadow-sm"
-        >
-          <div className="flex items-center gap-2 truncate">
-            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="truncate font-semibold">{current.name}</span>
-          </div>
-          {backendSemesters.length > 0 && (
-            <ChevronDown
-              size={14}
-              className={cn(
-                "text-[var(--text-tertiary)] transition-transform duration-200",
-                semesterOpen && "rotate-180",
-              )}
-            />
-          )}
-        </button>
-
-        <AnimatePresence>
-          {semesterOpen && backendSemesters.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.15 }}
-              className="absolute left-0 right-0 z-30 mt-1.5 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] p-1.5 shadow-lg backdrop-blur-xl"
-            >
-              {backendSemesters.map((s, idx) => (
-                <button
-                  key={s.id || s._id || `sem-${idx}`}
-                  className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-surface-elevated)] hover:text-[var(--text-primary)]"
-                  onClick={() => setSemesterOpen(false)}
-                >
-                  <span className="truncate font-medium">{s.name}</span>
-                  {s.finalizedSgpa !== null &&
-                    s.finalizedSgpa !== undefined && (
-                      <span className="font-mono text-[11px] font-semibold text-purple-700 dark:text-purple-400 bg-purple-100 dark:bg-purple-500/10 px-1.5 py-0.5 rounded">
-                        SGPA: {s.finalizedSgpa}
-                      </span>
-                    )}
-                </button>
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* Main Nav Section */}
-      <div className="space-y-6 flex flex-1 flex-col">
+      {/* Main Nav Section (Scrollable) */}
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 py-2 space-y-4 overscroll-contain">
         <div>
           <div className="mb-2 px-1 text-[11px] font-bold uppercase tracking-wider text-[var(--text-tertiary)]">
             Navigation
           </div>
 
-          <nav className="flex flex-col gap-1">
+          <nav className="flex flex-col gap-1 pb-2">
             <button
               type="button"
               onClick={() => setCgpaOpen((open) => !open)}
               className={cn(
-                "flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-all duration-150",
+                "flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-xs font-semibold transition-all duration-150",
                 cgpaItems.some((item) => item.to === location.pathname)
                   ? "bg-purple-50 text-purple-700 dark:bg-purple-500/10 dark:text-purple-300"
                   : "text-[var(--text-secondary)] hover:bg-purple-50 hover:text-purple-700 dark:hover:bg-[var(--bg-surface-strong)] dark:hover:text-[var(--text-primary)]",
               )}
               aria-expanded={cgpaOpen}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2.5">
                 <GraduationCap size={18} className="text-[var(--accent-purple)]" />
                 <span>CGPA</span>
               </div>
@@ -210,7 +213,7 @@ export function Sidebar() {
                   transition={{ duration: 0.18 }}
                   className="overflow-hidden"
                 >
-                  <div className="ml-5 flex flex-col gap-1 border-l border-[var(--border)] pl-2">
+                  <div className="ml-3 flex flex-col gap-1 border-l border-[var(--border)] pl-2.5 my-1">
                     {cgpaItems.map((item) => {
                       const isActive = location.pathname === item.to;
                       return (
@@ -219,16 +222,16 @@ export function Sidebar() {
                           to={item.to}
                           className={({ isActive }) =>
                             cn(
-                              "relative flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold transition-all duration-150 group",
+                              "relative flex items-center justify-between rounded-lg px-2.5 py-2 text-xs font-semibold transition-all duration-150 group",
                               isActive
                                 ? "bg-purple-600 text-white shadow-sm"
                                 : "text-[var(--text-secondary)] hover:bg-[var(--bg-surface-elevated)] hover:text-purple-700 dark:hover:text-[var(--text-primary)]",
                             )
                           }
                         >
-                          <div className="flex min-w-0 items-center gap-2.5">
+                          <div className="flex min-w-0 items-center gap-2">
                             <item.icon
-                              size={16}
+                              size={15}
                               className={cn(
                                 "shrink-0",
                                 isActive
@@ -266,7 +269,7 @@ export function Sidebar() {
                   to={item.to}
                   className={({ isActive }) =>
                     cn(
-                      "relative flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-all duration-150 group",
+                      "relative flex items-center justify-between rounded-xl px-3 py-2.5 text-xs font-semibold transition-all duration-150 group",
                       isActive
                         ? "bg-purple-600 text-white shadow-sm dark:bg-gradient-to-r dark:from-purple-900/50 dark:to-purple-800/30 dark:text-white dark:border dark:border-purple-500/30"
                         : "text-[var(--text-secondary)] hover:bg-purple-50 hover:text-purple-700 dark:text-[var(--text-secondary)] dark:hover:bg-[var(--bg-surface-strong)] dark:hover:text-[var(--text-primary)]",
@@ -300,12 +303,12 @@ export function Sidebar() {
       </div>
 
       {/* Footer Navigation & Settings */}
-      <div className="mt-auto pt-4 border-t border-[var(--border)]">
+      <div className="shrink-0 p-4 border-t border-[var(--border)] mt-auto bg-[var(--bg-surface)]">
         <NavLink
           to="/app/settings"
           className={({ isActive }) =>
             cn(
-              "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-all duration-150",
+              "flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold transition-all duration-150",
               isActive
                 ? "bg-[var(--accent-purple)] text-white shadow-sm"
                 : "text-[var(--text-secondary)] hover:bg-[var(--bg-surface-elevated)] hover:text-[var(--text-primary)]",
