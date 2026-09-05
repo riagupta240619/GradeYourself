@@ -180,6 +180,15 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Custom Scrollbar */
 * {
   scrollbar-width: thin;

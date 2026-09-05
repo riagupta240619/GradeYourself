@@ -107,10 +107,10 @@ export function Navbar() {
 
           {/* Mobile Brand Mark (shown on small screens only) */}
           <div className="flex items-center gap-2 md:hidden">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-600 text-white font-bold shadow-xs">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-purple-600 text-white font-bold shadow-xs">
               <GraduationCap size={16} />
             </div>
-            <span className="font-bold tracking-tight text-[var(--text-primary)] text-sm">
+            <span className="font-bold tracking-tight text-[var(--text-primary)] text-sm hidden min-[360px]:inline">
               GradeWise <span className="text-purple-600 dark:gradient-purple-text">AI</span>
             </span>
           </div>

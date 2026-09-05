@@ -91,6 +91,7 @@ export function AttendancePage() {
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
   const [timetable, setTimetable] = useState<TimetableEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedDayFilter, setSelectedDayFilter] = useState<string>("All");
 
   // Settings
   const [defaultRequired, setDefaultRequired] = useState(75);
@@ -334,34 +335,35 @@ export function AttendancePage() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 pb-12">
+    <div className="mx-auto max-w-7xl space-y-5 sm:space-y-6 pb-12">
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-600/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400">
+          <div className="flex items-start sm:items-center gap-2.5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-600/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400 mt-0.5 sm:mt-0">
               <CalendarCheck size={22} />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-[var(--text-primary)]">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--text-primary)]">
                 Smart Attendance Management
               </h1>
-              <p className="text-xs text-[var(--text-secondary)]">
+              <p className="text-xs text-[var(--text-secondary)] mt-0.5">
                 Real-time bunk mathematics, required criteria monitoring & interactive timetable integration.
               </p>
             </div>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
           <Button
             variant="outline"
             size="sm"
             onClick={() => setShowSettingsModal(true)}
-            className="border-[var(--border)] text-xs"
+            className="border-[var(--border)] text-xs flex-1 sm:flex-initial justify-center"
           >
-            <Sliders size={14} className="mr-1.5" />
-            Criteria Settings ({defaultRequired}%)
+            <Sliders size={14} className="mr-1.5 shrink-0" />
+            <span className="hidden sm:inline">Criteria Settings</span>
+            <span className="sm:hidden">Criteria</span> ({defaultRequired}%)
           </Button>
 
           <Button
@@ -372,10 +374,11 @@ export function AttendancePage() {
               setReplaceExistingSync(false);
               setShowSyncModal(true);
             }}
-            className="border-[var(--border)] text-xs"
+            className="border-[var(--border)] text-xs flex-1 sm:flex-initial justify-center"
           >
-            <Sparkles size={14} className="mr-1.5 text-purple-600" />
-            Import from CGPA
+            <Sparkles size={14} className="mr-1.5 text-purple-600 shrink-0" />
+            <span className="hidden sm:inline">Import from CGPA</span>
+            <span className="sm:hidden">Import CGPA</span>
           </Button>
 
           <Button
@@ -397,16 +400,16 @@ export function AttendancePage() {
               });
               setShowSubjectModal(true);
             }}
-            className="bg-purple-600 text-xs font-semibold text-white hover:bg-purple-700"
+            className="bg-purple-600 text-xs font-semibold text-white hover:bg-purple-700 w-full sm:w-auto justify-center"
           >
-            <Plus size={15} className="mr-1" />
+            <Plus size={15} className="mr-1 shrink-0" />
             Add Subject
           </Button>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex border-b border-[var(--border)]">
+      {/* Responsive Tabs Strip with Horizontal Smooth Scrolling */}
+      <div className="flex border-b border-[var(--border)] overflow-x-auto no-scrollbar scroll-smooth gap-1">
         {[
           { id: "dashboard", label: "Attendance Dashboard", icon: BarChart3 },
           { id: "subjects", label: "Subject Breakdown", icon: BookOpen },
@@ -416,7 +419,7 @@ export function AttendancePage() {
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
             className={cn(
-              "flex items-center gap-2 border-b-2 px-5 py-3 text-xs font-semibold transition-colors duration-150",
+              "flex shrink-0 items-center gap-2 border-b-2 px-3.5 sm:px-5 py-2.5 sm:py-3 text-xs font-semibold whitespace-nowrap transition-colors duration-150",
               activeTab === tab.id
                 ? "border-purple-600 text-purple-600 dark:border-purple-400 dark:text-purple-400"
                 : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
@@ -432,16 +435,16 @@ export function AttendancePage() {
       {activeTab === "dashboard" && (
         <div className="space-y-6">
           {/* Top KPI Cards */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
             {/* Overall Attendance */}
-            <div className="surface-card rounded-2xl p-5 relative overflow-hidden">
+            <div className="col-span-2 sm:col-span-1 lg:col-span-1 surface-card rounded-2xl p-4 sm:p-5 relative overflow-hidden">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">
+                <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">
                   Overall Attendance
                 </span>
                 <span
                   className={cn(
-                    "flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold",
+                    "flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold shrink-0",
                     stats.overallPct >= defaultRequired
                       ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                       : "bg-red-500/10 text-red-600 dark:text-red-400"
@@ -450,15 +453,15 @@ export function AttendancePage() {
                   {stats.overallPct >= defaultRequired ? "On Track" : "Low"}
                 </span>
               </div>
-              <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-3xl font-extrabold text-[var(--text-primary)]">
+              <div className="mt-2.5 sm:mt-3 flex items-baseline gap-2">
+                <span className="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)]">
                   {stats.overallPct}%
                 </span>
-                <span className="text-xs text-[var(--text-secondary)]">
+                <span className="text-[11px] sm:text-xs text-[var(--text-secondary)]">
                   ({stats.attended}/{stats.delivered} {calcMode === "hours" ? "hrs" : "classes"})
                 </span>
               </div>
-              <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-[var(--bg-surface-elevated)]">
+              <div className="mt-2.5 sm:mt-3 h-2 w-full overflow-hidden rounded-full bg-[var(--bg-surface-elevated)]">
                 <div
                   className={cn(
                     "h-full rounded-full transition-all duration-700",
@@ -470,67 +473,67 @@ export function AttendancePage() {
             </div>
 
             {/* Required Attendance */}
-            <div className="surface-card rounded-2xl p-5">
-              <span className="text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">
+            <div className="surface-card rounded-2xl p-4 sm:p-5">
+              <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)] block">
                 Required Attendance
               </span>
-              <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-3xl font-extrabold text-[var(--text-primary)]">
+              <div className="mt-2.5 sm:mt-3 flex items-baseline gap-2">
+                <span className="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)]">
                   {defaultRequired}%
                 </span>
-                <span className="text-xs text-purple-600 dark:text-purple-400">Min. Target</span>
+                <span className="text-[11px] sm:text-xs text-purple-600 dark:text-purple-400">Min. Target</span>
               </div>
-              <p className="mt-2 text-xs text-[var(--text-secondary)]">
+              <p className="mt-2 text-[11px] sm:text-xs text-[var(--text-secondary)]">
                 Mode: <span className="font-semibold capitalize">{calcMode} based</span>
               </p>
             </div>
 
             {/* Total Subjects */}
-            <div className="surface-card rounded-2xl p-5">
-              <span className="text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">
+            <div className="surface-card rounded-2xl p-4 sm:p-5">
+              <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)] block">
                 Enrolled Subjects
               </span>
-              <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-3xl font-extrabold text-[var(--text-primary)]">
+              <div className="mt-2.5 sm:mt-3 flex items-baseline gap-2">
+                <span className="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)]">
                   {subjects.length}
                 </span>
-                <span className="text-xs text-[var(--text-secondary)]">Active courses</span>
+                <span className="text-[11px] sm:text-xs text-[var(--text-secondary)]">Active courses</span>
               </div>
-              <p className="mt-2 text-xs text-[var(--text-secondary)]">
+              <p className="mt-2 text-[11px] sm:text-xs text-[var(--text-secondary)]">
                 All tracked in real time
               </p>
             </div>
 
             {/* Safe Bunks Available */}
-            <div className="surface-card rounded-2xl p-5 border-emerald-500/20">
+            <div className="surface-card rounded-2xl p-4 sm:p-5 border-emerald-500/20">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-                  Safe Bunks Available
+                <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                  Safe Bunks
                 </span>
-                <CheckCircle2 size={16} className="text-emerald-500" />
+                <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
               </div>
-              <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">
+              <div className="mt-2.5 sm:mt-3 flex items-baseline gap-2">
+                <span className="text-2xl sm:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">
                   {stats.safeBunks}
                 </span>
-                <span className="text-xs text-[var(--text-secondary)]">classes</span>
+                <span className="text-[11px] sm:text-xs text-[var(--text-secondary)]">classes</span>
               </div>
-              <p className="mt-2 text-xs text-[var(--text-secondary)]">
-                Can miss without falling below target
+              <p className="mt-2 text-[11px] sm:text-xs text-[var(--text-secondary)]">
+                Can miss safely
               </p>
             </div>
 
             {/* Subjects At Risk */}
             <div
               className={cn(
-                "surface-card rounded-2xl p-5",
+                "col-span-2 sm:col-span-1 lg:col-span-1 surface-card rounded-2xl p-4 sm:p-5",
                 stats.atRiskCount > 0 && "border-red-500/30 bg-red-500/5"
               )}
             >
               <div className="flex items-center justify-between">
                 <span
                   className={cn(
-                    "text-xs font-semibold uppercase tracking-wider",
+                    "text-[11px] sm:text-xs font-semibold uppercase tracking-wider",
                     stats.atRiskCount > 0 ? "text-red-600 dark:text-red-400" : "text-[var(--text-tertiary)]"
                   )}
                 >
@@ -538,40 +541,40 @@ export function AttendancePage() {
                 </span>
                 <AlertTriangle
                   size={16}
-                  className={stats.atRiskCount > 0 ? "text-red-500" : "text-[var(--text-tertiary)]"}
+                  className={cn("shrink-0", stats.atRiskCount > 0 ? "text-red-500" : "text-[var(--text-tertiary)]")}
                 />
               </div>
-              <div className="mt-3 flex items-baseline gap-2">
+              <div className="mt-2.5 sm:mt-3 flex items-baseline gap-2">
                 <span
                   className={cn(
-                    "text-3xl font-extrabold",
+                    "text-2xl sm:text-3xl font-extrabold",
                     stats.atRiskCount > 0 ? "text-red-600 dark:text-red-400" : "text-[var(--text-primary)]"
                   )}
                 >
                   {stats.atRiskCount}
                 </span>
-                <span className="text-xs text-[var(--text-secondary)]">subjects</span>
+                <span className="text-[11px] sm:text-xs text-[var(--text-secondary)]">subjects</span>
               </div>
-              <p className="mt-2 text-xs text-[var(--text-secondary)]">
-                {stats.atRiskCount > 0 ? "Needs recovery attendance" : "All subjects safe!"}
+              <p className="mt-2 text-[11px] sm:text-xs text-[var(--text-secondary)]">
+                {stats.atRiskCount > 0 ? "Needs recovery attendance" : "All safe!"}
               </p>
             </div>
           </div>
 
           {/* Visualization Graph & Safe Bunk Overview */}
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3">
             {/* Attendance Graph */}
-            <div className="surface-card rounded-2xl p-6 lg:col-span-2">
-              <div className="flex items-center justify-between mb-4">
+            <div className="surface-card rounded-2xl p-4 sm:p-6 lg:col-span-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-4">
                 <div>
-                  <h3 className="font-semibold text-base text-[var(--text-primary)]">
+                  <h3 className="font-semibold text-sm sm:text-base text-[var(--text-primary)]">
                     Attendance Percentage by Subject
                   </h3>
                   <p className="text-xs text-[var(--text-secondary)]">
                     Dashed line indicates minimum required criteria ({defaultRequired}%)
                   </p>
                 </div>
-                <div className="flex items-center gap-3 text-xs">
+                <div className="flex items-center gap-3 text-xs shrink-0">
                   <div className="flex items-center gap-1.5">
                     <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
                     <span>Safe</span>
@@ -584,7 +587,7 @@ export function AttendancePage() {
               </div>
 
               {subjects.length === 0 ? (
-                <div className="flex h-64 flex-col items-center justify-center text-center">
+                <div className="flex h-56 sm:h-64 flex-col items-center justify-center text-center p-4">
                   <BookOpen className="h-10 w-10 text-[var(--text-tertiary)] mb-2" />
                   <p className="text-sm font-medium text-[var(--text-primary)]">No subjects found</p>
                   <p className="text-xs text-[var(--text-secondary)] mt-1">
@@ -592,22 +595,24 @@ export function AttendancePage() {
                   </p>
                 </div>
               ) : (
-                <div className="h-72 w-full">
+                <div className="h-60 sm:h-72 w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={subjects}
-                      margin={{ top: 10, right: 10, left: -20, bottom: 20 }}
+                      margin={{ top: 10, right: 10, left: -25, bottom: 25 }}
                     >
                       <XAxis
                         dataKey="subjectName"
-                        tick={{ fill: "var(--text-tertiary)", fontSize: 11 }}
+                        tick={{ fill: "var(--text-tertiary)", fontSize: 10 }}
                         interval={0}
-                        angle={-15}
+                        angle={-20}
                         textAnchor="end"
+                        height={40}
+                        tickFormatter={(val: string) => (val && val.length > 14 ? `${val.slice(0, 12)}…` : val)}
                       />
                       <YAxis
                         domain={[0, 100]}
-                        tick={{ fill: "var(--text-tertiary)", fontSize: 11 }}
+                        tick={{ fill: "var(--text-tertiary)", fontSize: 10 }}
                         unit="%"
                       />
                       <Tooltip
@@ -615,7 +620,7 @@ export function AttendancePage() {
                           if (active && payload && payload.length) {
                             const data = payload[0].payload as AttendanceSubject;
                             return (
-                              <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] p-3 shadow-lg">
+                              <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] p-3 shadow-lg max-w-xs">
                                 <p className="font-semibold text-xs text-[var(--text-primary)]">
                                   {data.subjectName}
                                 </p>
@@ -674,7 +679,7 @@ export function AttendancePage() {
 
             {/* Quick Actions & Recent Attendance Activity */}
             <div className="space-y-4">
-              <div className="surface-card rounded-2xl p-5">
+              <div className="surface-card rounded-2xl p-4 sm:p-5">
                 <h3 className="font-semibold text-sm text-[var(--text-primary)] mb-3">
                   Quick Attendance Action
                 </h3>
@@ -682,9 +687,9 @@ export function AttendancePage() {
                   {subjects.slice(0, 4).map((s) => (
                     <div
                       key={s._id}
-                      className="flex items-center justify-between rounded-xl border border-[var(--border)] p-2.5 bg-[var(--bg-surface-elevated)]"
+                      className="flex items-center justify-between rounded-xl border border-[var(--border)] p-2.5 bg-[var(--bg-surface-elevated)] gap-2"
                     >
-                      <div className="min-w-0 flex-1 pr-2">
+                      <div className="min-w-0 flex-1">
                         <p className="truncate text-xs font-semibold text-[var(--text-primary)]">
                           {s.subjectName}
                         </p>
@@ -692,17 +697,17 @@ export function AttendancePage() {
                           {s.attendedClasses}/{s.deliveredClasses} • {s.attendancePercentage}%
                         </p>
                       </div>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1 shrink-0">
                         <button
                           onClick={() => handleMark(s._id, "present")}
-                          className="rounded-lg bg-emerald-500/10 px-2 py-1 text-[11px] font-bold text-emerald-600 hover:bg-emerald-500 hover:text-white transition-colors"
+                          className="rounded-lg bg-emerald-500/10 px-2.5 py-1 text-[11px] font-bold text-emerald-600 hover:bg-emerald-500 hover:text-white transition-colors"
                           title="Mark Present"
                         >
                           +P
                         </button>
                         <button
                           onClick={() => handleMark(s._id, "absent")}
-                          className="rounded-lg bg-red-500/10 px-2 py-1 text-[11px] font-bold text-red-600 hover:bg-red-500 hover:text-white transition-colors"
+                          className="rounded-lg bg-red-500/10 px-2.5 py-1 text-[11px] font-bold text-red-600 hover:bg-red-500 hover:text-white transition-colors"
                           title="Mark Absent"
                         >
                           +A
@@ -721,7 +726,7 @@ export function AttendancePage() {
               </div>
 
               {/* Safe Bunk Insights Card */}
-              <div className="surface-card rounded-2xl p-5 bg-gradient-to-br from-purple-500/5 to-purple-600/10 border-purple-500/20">
+              <div className="surface-card rounded-2xl p-4 sm:p-5 bg-gradient-to-br from-purple-500/5 to-purple-600/10 border-purple-500/20">
                 <div className="flex items-center gap-2 text-purple-700 dark:text-purple-300 font-semibold text-xs mb-2">
                   <Info size={15} />
                   <span>Safe Bunk Calculator Logic</span>
@@ -738,20 +743,59 @@ export function AttendancePage() {
 
       {/* 1.2 SUBJECT BREAKDOWN & TABLE VIEW (Matches Existing College ERP standard) */}
       {(activeTab === "subjects" || activeTab === "dashboard") && (
-        <section className="surface-card rounded-2xl p-6">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
+        <section className="surface-card rounded-2xl p-4 sm:p-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6">
             <div>
-              <h2 className="text-base font-bold text-[var(--text-primary)]">
+              <h2 className="text-sm sm:text-base font-bold text-[var(--text-primary)]">
                 Enrolled Subjects & Attendance Register
               </h2>
-              <p className="text-xs text-[var(--text-secondary)]">
-                Full ledger displaying Subject Code, Teacher Name, Delivered, Attended, DL, ML, Percentage and Actionable Bunk status.
+              <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+                Full ledger displaying Delivered, Attended, DL, ML, Percentage and Actionable Bunk status.
               </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSyncSemesterId("current");
+                  setReplaceExistingSync(false);
+                  setShowSyncModal(true);
+                }}
+                className="border-[var(--border)] text-xs flex-1 sm:flex-initial justify-center"
+              >
+                <Sparkles size={14} className="mr-1 text-purple-600" />
+                Sync from CGPA
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => {
+                  setEditingSubject(null);
+                  setSubjectForm({
+                    subjectCode: "",
+                    subjectName: "",
+                    teacherName: "",
+                    deliveredClasses: 0,
+                    attendedClasses: 0,
+                    dutyLeaves: 0,
+                    medicalLeaves: 0,
+                    requiredPercentage: defaultRequired,
+                    lectureDurationHours: 1,
+                    lecturesPerWeek: 3,
+                    colorTag: "#8b5cf6",
+                  });
+                  setShowSubjectModal(true);
+                }}
+                className="bg-purple-600 text-xs font-semibold text-white hover:bg-purple-700 flex-1 sm:flex-initial justify-center"
+              >
+                <Plus size={14} className="mr-1" />
+                Add Subject
+              </Button>
             </div>
           </div>
 
           {subjects.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-[var(--border)] p-12 text-center">
+            <div className="rounded-xl border border-dashed border-[var(--border)] p-6 sm:p-12 text-center">
               <Layers className="mx-auto h-10 w-10 text-[var(--text-tertiary)]" />
               <h3 className="mt-3 text-sm font-semibold text-[var(--text-primary)]">
                 No Attendance Subjects Added Yet
@@ -759,7 +803,7 @@ export function AttendancePage() {
               <p className="mt-1 text-xs text-[var(--text-secondary)] max-w-sm mx-auto">
                 Get started quickly by syncing your existing semester subjects or adding them manually.
               </p>
-              <div className="mt-4 flex items-center justify-center gap-3">
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5">
                 <Button
                   size="sm"
                   onClick={() => {
@@ -768,7 +812,7 @@ export function AttendancePage() {
                     setShowSyncModal(true);
                   }}
                   variant="outline"
-                  className="text-xs"
+                  className="text-xs flex-1 sm:flex-initial"
                 >
                   <Sparkles size={14} className="mr-1 text-purple-600" />
                   Sync from CGPA
@@ -776,7 +820,7 @@ export function AttendancePage() {
                 <Button
                   size="sm"
                   onClick={() => setShowSubjectModal(true)}
-                  className="bg-purple-600 text-xs text-white"
+                  className="bg-purple-600 text-xs text-white flex-1 sm:flex-initial"
                 >
                   <Plus size={14} className="mr-1" />
                   Add Subject
@@ -784,168 +828,334 @@ export function AttendancePage() {
               </div>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="border-b border-[var(--border)] bg-[var(--bg-surface-elevated)] text-[var(--text-secondary)]">
-                  <tr>
-                    <th className="py-3 px-3 font-semibold">Subject Code</th>
-                    <th className="py-3 px-3 font-semibold">Subject Name</th>
-                    <th className="py-3 px-3 font-semibold">Teacher Name</th>
-                    <th className="py-3 px-3 font-semibold text-center">Duration</th>
-                    <th className="py-3 px-3 font-semibold text-center">Delivered</th>
-                    <th className="py-3 px-3 font-semibold text-center">Attended</th>
-                    <th className="py-3 px-3 font-semibold text-center" title="Duty Leave">DL</th>
-                    <th className="py-3 px-3 font-semibold text-center" title="Medical Leave">ML</th>
-                    <th className="py-3 px-3 font-semibold text-center">Percentage</th>
-                    <th className="py-3 px-3 font-semibold">Safe Bunks / Recovery</th>
-                    <th className="py-3 px-3 font-semibold text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[var(--border)]">
-                  {subjects.map((s) => (
-                    <tr
-                      key={s._id}
-                      className="hover:bg-[var(--bg-surface-elevated)] transition-colors group"
-                    >
-                      {/* Code */}
-                      <td className="py-3 px-3 font-mono font-medium text-[var(--text-primary)]">
-                        {s.subjectCode || "—"}
-                      </td>
-
-                      {/* Name */}
-                      <td className="py-3 px-3">
-                        <div className="flex items-center gap-2">
-                          <span
-                            className="h-2.5 w-2.5 rounded-full shrink-0"
-                            style={{ backgroundColor: s.colorTag || "#8b5cf6" }}
-                          />
-                          <span className="font-semibold text-[var(--text-primary)]">
-                            {s.subjectName}
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* Teacher */}
-                      <td className="py-3 px-3 text-[var(--text-secondary)]">
-                        {s.teacherName || "Faculty"}
-                      </td>
-
-                      {/* Duration */}
-                      <td className="py-3 px-3 text-center text-[var(--text-tertiary)]">
-                        {s.lectureDurationHours || 1} hr
-                      </td>
-
-                      {/* Delivered */}
-                      <td className="py-3 px-3 text-center font-semibold text-[var(--text-primary)]">
-                        {s.deliveredClasses}
-                      </td>
-
-                      {/* Attended */}
-                      <td className="py-3 px-3 text-center font-semibold text-emerald-600">
-                        {s.attendedClasses}
-                      </td>
-
-                      {/* DL */}
-                      <td className="py-3 px-3 text-center font-medium text-blue-600">
-                        {s.dutyLeaves}
-                      </td>
-
-                      {/* ML */}
-                      <td className="py-3 px-3 text-center font-medium text-amber-600">
-                        {s.medicalLeaves}
-                      </td>
-
-                      {/* Percentage */}
-                      <td className="py-3 px-3 text-center">
-                        <span
-                          className={cn(
-                            "inline-flex items-center rounded-md px-2 py-0.5 font-bold font-mono text-xs",
-                            s.attendancePercentage >= (s.requiredPercentage || defaultRequired)
-                              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                              : "bg-red-500/10 text-red-600 dark:text-red-400"
-                          )}
-                        >
-                          {s.attendancePercentage}%
-                        </span>
-                      </td>
-
-                      {/* Safe Bunks Status (1.4 Requirement) */}
-                      <td className="py-3 px-3">
-                        {s.attendancePercentage >= (s.requiredPercentage || defaultRequired) ? (
-                          <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
-                            <CheckCircle2 size={14} className="shrink-0" />
-                            <span>
-                              You can safely miss{" "}
-                              <strong>{s.safeBunks}</strong> more{" "}
-                              {s.safeBunks === 1 ? "class" : "classes"}.
-                            </span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-1.5 text-red-600 dark:text-red-400 font-medium">
-                            <AlertTriangle size={14} className="shrink-0" />
-                            <span>
-                              Cannot miss any classes. Attend next{" "}
-                              <strong>{s.classesToRecover}</strong> continuously to reach{" "}
-                              {s.requiredPercentage || defaultRequired}%.
-                            </span>
-                          </div>
-                        )}
-                      </td>
-
-                      {/* Actions */}
-                      <td className="py-3 px-3 text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <button
-                            onClick={() => handleMark(s._id, "present")}
-                            className="rounded p-1.5 text-emerald-600 hover:bg-emerald-500/10"
-                            title="Present"
-                          >
-                            <UserCheck size={15} />
-                          </button>
-                          <button
-                            onClick={() => handleMark(s._id, "absent")}
-                            className="rounded p-1.5 text-red-600 hover:bg-red-500/10"
-                            title="Absent"
-                          >
-                            <UserX size={15} />
-                          </button>
-                          <button
-                            onClick={() => {
-                              setEditingSubject(s);
-                              setSubjectForm({
-                                subjectCode: s.subjectCode || "",
-                                subjectName: s.subjectName,
-                                teacherName: s.teacherName || "",
-                                deliveredClasses: s.deliveredClasses,
-                                attendedClasses: s.attendedClasses,
-                                dutyLeaves: s.dutyLeaves,
-                                medicalLeaves: s.medicalLeaves,
-                                requiredPercentage: s.requiredPercentage || defaultRequired,
-                                lectureDurationHours: s.lectureDurationHours || 1,
-                                lecturesPerWeek: s.lecturesPerWeek || 3,
-                                colorTag: s.colorTag || "#8b5cf6",
-                              });
-                              setShowSubjectModal(true);
-                            }}
-                            className="rounded p-1.5 text-[var(--text-secondary)] hover:bg-[var(--bg-surface-strong)] hover:text-[var(--text-primary)]"
-                            title="Edit Subject"
-                          >
-                            <Edit3 size={15} />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteSubject(s._id, s.subjectName)}
-                            className="rounded p-1.5 text-[var(--text-secondary)] hover:bg-red-500/10 hover:text-red-600"
-                            title="Delete Subject"
-                          >
-                            <Trash2 size={15} />
-                          </button>
-                        </div>
-                      </td>
+            <>
+              {/* Desktop & Tablet Table View */}
+              <div className="hidden md:block overflow-x-auto rounded-xl border border-[var(--border)]">
+                <table className="w-full text-left text-xs">
+                  <thead className="border-b border-[var(--border)] bg-[var(--bg-surface-elevated)] text-[var(--text-secondary)]">
+                    <tr>
+                      <th className="py-3 px-3 font-semibold">Subject Code</th>
+                      <th className="py-3 px-3 font-semibold">Subject Name</th>
+                      <th className="py-3 px-3 font-semibold">Teacher Name</th>
+                      <th className="py-3 px-3 font-semibold text-center">Duration</th>
+                      <th className="py-3 px-3 font-semibold text-center">Delivered</th>
+                      <th className="py-3 px-3 font-semibold text-center">Attended</th>
+                      <th className="py-3 px-3 font-semibold text-center" title="Duty Leave">DL</th>
+                      <th className="py-3 px-3 font-semibold text-center" title="Medical Leave">ML</th>
+                      <th className="py-3 px-3 font-semibold text-center">Percentage</th>
+                      <th className="py-3 px-3 font-semibold">Safe Bunks / Recovery</th>
+                      <th className="py-3 px-3 font-semibold text-right">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--border)]">
+                    {subjects.map((s) => (
+                      <tr
+                        key={s._id}
+                        className="hover:bg-[var(--bg-surface-elevated)] transition-colors group"
+                      >
+                        {/* Code */}
+                        <td className="py-3 px-3 font-mono font-medium text-[var(--text-primary)]">
+                          {s.subjectCode || "—"}
+                        </td>
+
+                        {/* Name */}
+                        <td className="py-3 px-3">
+                          <div className="flex items-center gap-2">
+                            <span
+                              className="h-2.5 w-2.5 rounded-full shrink-0"
+                              style={{ backgroundColor: s.colorTag || "#8b5cf6" }}
+                            />
+                            <span className="font-semibold text-[var(--text-primary)]">
+                              {s.subjectName}
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Teacher */}
+                        <td className="py-3 px-3 text-[var(--text-secondary)]">
+                          {s.teacherName || "Faculty"}
+                        </td>
+
+                        {/* Duration */}
+                        <td className="py-3 px-3 text-center text-[var(--text-tertiary)]">
+                          {s.lectureDurationHours || 1} hr
+                        </td>
+
+                        {/* Delivered */}
+                        <td className="py-3 px-3 text-center font-semibold text-[var(--text-primary)]">
+                          {s.deliveredClasses}
+                        </td>
+
+                        {/* Attended */}
+                        <td className="py-3 px-3 text-center font-semibold text-emerald-600">
+                          {s.attendedClasses}
+                        </td>
+
+                        {/* DL */}
+                        <td className="py-3 px-3 text-center font-medium text-blue-600">
+                          {s.dutyLeaves}
+                        </td>
+
+                        {/* ML */}
+                        <td className="py-3 px-3 text-center font-medium text-amber-600">
+                          {s.medicalLeaves}
+                        </td>
+
+                        {/* Percentage */}
+                        <td className="py-3 px-3 text-center">
+                          <span
+                            className={cn(
+                              "inline-flex items-center rounded-md px-2 py-0.5 font-bold font-mono text-xs",
+                              s.attendancePercentage >= (s.requiredPercentage || defaultRequired)
+                                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                                : "bg-red-500/10 text-red-600 dark:text-red-400"
+                            )}
+                          >
+                            {s.attendancePercentage}%
+                          </span>
+                        </td>
+
+                        {/* Safe Bunks Status */}
+                        <td className="py-3 px-3">
+                          {s.attendancePercentage >= (s.requiredPercentage || defaultRequired) ? (
+                            <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
+                              <CheckCircle2 size={14} className="shrink-0" />
+                              <span>
+                                Can safely miss{" "}
+                                <strong>{s.safeBunks}</strong> more{" "}
+                                {s.safeBunks === 1 ? "class" : "classes"}.
+                              </span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1.5 text-red-600 dark:text-red-400 font-medium">
+                              <AlertTriangle size={14} className="shrink-0" />
+                              <span>
+                                Attend next{" "}
+                                <strong>{s.classesToRecover}</strong> continuously to reach{" "}
+                                {s.requiredPercentage || defaultRequired}%.
+                              </span>
+                            </div>
+                          )}
+                        </td>
+
+                        {/* Actions */}
+                        <td className="py-3 px-3 text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              onClick={() => handleMark(s._id, "present")}
+                              className="rounded p-1.5 text-emerald-600 hover:bg-emerald-500/10"
+                              title="Present"
+                            >
+                              <UserCheck size={15} />
+                            </button>
+                            <button
+                              onClick={() => handleMark(s._id, "absent")}
+                              className="rounded p-1.5 text-red-600 hover:bg-red-500/10"
+                              title="Absent"
+                            >
+                              <UserX size={15} />
+                            </button>
+                            <button
+                              onClick={() => {
+                                setEditingSubject(s);
+                                setSubjectForm({
+                                  subjectCode: s.subjectCode || "",
+                                  subjectName: s.subjectName,
+                                  teacherName: s.teacherName || "",
+                                  deliveredClasses: s.deliveredClasses,
+                                  attendedClasses: s.attendedClasses,
+                                  dutyLeaves: s.dutyLeaves,
+                                  medicalLeaves: s.medicalLeaves,
+                                  requiredPercentage: s.requiredPercentage || defaultRequired,
+                                  lectureDurationHours: s.lectureDurationHours || 1,
+                                  lecturesPerWeek: s.lecturesPerWeek || 3,
+                                  colorTag: s.colorTag || "#8b5cf6",
+                                });
+                                setShowSubjectModal(true);
+                              }}
+                              className="rounded p-1.5 text-[var(--text-secondary)] hover:bg-[var(--bg-surface-strong)] hover:text-[var(--text-primary)]"
+                              title="Edit Subject"
+                            >
+                              <Edit3 size={15} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteSubject(s._id, s.subjectName)}
+                              className="rounded p-1.5 text-[var(--text-secondary)] hover:bg-red-500/10 hover:text-red-600"
+                              title="Delete Subject"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Subject Cards View */}
+              <div className="md:hidden space-y-3">
+                {subjects.map((s) => (
+                  <div
+                    key={s._id}
+                    className="rounded-2xl border border-[var(--border)] bg-[var(--bg-surface-elevated)] p-4 shadow-xs space-y-3"
+                  >
+                    {/* Header: Color + Subject Name + Subject Code + Pct */}
+                    <div className="flex items-start justify-between gap-2.5">
+                      <div className="flex items-start gap-2.5 min-w-0">
+                        <span
+                          className="h-3 w-3 rounded-full shrink-0 mt-0.5"
+                          style={{ backgroundColor: s.colorTag || "#8b5cf6" }}
+                        />
+                        <div className="min-w-0">
+                          <h4 className="font-bold text-sm text-[var(--text-primary)] leading-snug break-words">
+                            {s.subjectName}
+                          </h4>
+                          <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px] text-[var(--text-secondary)]">
+                            {s.subjectCode && (
+                              <span className="font-mono bg-[var(--bg-surface)] px-1.5 py-0.5 rounded border border-[var(--border)] font-semibold text-[10px]">
+                                {s.subjectCode}
+                              </span>
+                            )}
+                            <span>•</span>
+                            <span>{s.teacherName || "Faculty"}</span>
+                            <span>•</span>
+                            <span>{s.lectureDurationHours || 1} hr</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Percentage Badge */}
+                      <span
+                        className={cn(
+                          "inline-flex items-center rounded-lg px-2.5 py-1 font-bold font-mono text-xs shrink-0 shadow-xs",
+                          s.attendancePercentage >= (s.requiredPercentage || defaultRequired)
+                            ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                            : "bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/20"
+                        )}
+                      >
+                        {s.attendancePercentage}%
+                      </span>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-[10px] text-[var(--text-tertiary)] font-medium">
+                        <span>Target: {s.requiredPercentage || defaultRequired}%</span>
+                        <span>{s.attendedClasses} of {s.deliveredClasses} classes</span>
+                      </div>
+                      <div className="relative h-2 w-full overflow-hidden rounded-full bg-[var(--bg-surface)] border border-[var(--border)]">
+                        <div
+                          className={cn(
+                            "h-full rounded-full transition-all duration-500",
+                            s.attendancePercentage >= (s.requiredPercentage || defaultRequired)
+                              ? "bg-emerald-500"
+                              : "bg-red-500"
+                          )}
+                          style={{ width: `${Math.min(100, s.attendancePercentage)}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* 4 Mini Stat Blocks */}
+                    <div className="grid grid-cols-4 gap-1.5 text-center">
+                      <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] p-2">
+                        <span className="text-[10px] uppercase font-semibold text-[var(--text-tertiary)] block">Delivered</span>
+                        <span className="text-xs font-bold text-[var(--text-primary)]">{s.deliveredClasses}</span>
+                      </div>
+                      <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] p-2">
+                        <span className="text-[10px] uppercase font-semibold text-emerald-600 dark:text-emerald-400 block">Attended</span>
+                        <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{s.attendedClasses}</span>
+                      </div>
+                      <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] p-2">
+                        <span className="text-[10px] uppercase font-semibold text-blue-600 dark:text-blue-400 block" title="Duty Leaves">DL</span>
+                        <span className="text-xs font-bold text-blue-600 dark:text-blue-400">{s.dutyLeaves}</span>
+                      </div>
+                      <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] p-2">
+                        <span className="text-[10px] uppercase font-semibold text-amber-600 dark:text-amber-400 block" title="Medical Leaves">ML</span>
+                        <span className="text-xs font-bold text-amber-600 dark:text-amber-400">{s.medicalLeaves}</span>
+                      </div>
+                    </div>
+
+                    {/* Safe Bunk Status Banner */}
+                    <div
+                      className={cn(
+                        "flex items-center gap-2 rounded-xl p-2.5 text-xs font-medium border",
+                        s.attendancePercentage >= (s.requiredPercentage || defaultRequired)
+                          ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20"
+                          : "bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/20"
+                      )}
+                    >
+                      {s.attendancePercentage >= (s.requiredPercentage || defaultRequired) ? (
+                        <>
+                          <CheckCircle2 size={15} className="text-emerald-500 shrink-0" />
+                          <span>
+                            Can safely miss <strong>{s.safeBunks}</strong> more {s.safeBunks === 1 ? "class" : "classes"}.
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <AlertTriangle size={15} className="text-red-500 shrink-0" />
+                          <span>
+                            Attend next <strong>{s.classesToRecover}</strong> classes to recover to {s.requiredPercentage || defaultRequired}%.
+                          </span>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Mobile Quick Actions Row */}
+                    <div className="flex items-center gap-2 pt-1">
+                      <button
+                        onClick={() => handleMark(s._id, "present")}
+                        className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white py-2 px-3 text-xs font-bold shadow-xs transition"
+                      >
+                        <UserCheck size={14} />
+                        <span>+ Present</span>
+                      </button>
+                      <button
+                        onClick={() => handleMark(s._id, "absent")}
+                        className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-red-600 hover:bg-red-700 active:scale-98 text-white py-2 px-3 text-xs font-bold shadow-xs transition"
+                      >
+                        <UserX size={14} />
+                        <span>+ Absent</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditingSubject(s);
+                          setSubjectForm({
+                            subjectCode: s.subjectCode || "",
+                            subjectName: s.subjectName,
+                            teacherName: s.teacherName || "",
+                            deliveredClasses: s.deliveredClasses,
+                            attendedClasses: s.attendedClasses,
+                            dutyLeaves: s.dutyLeaves,
+                            medicalLeaves: s.medicalLeaves,
+                            requiredPercentage: s.requiredPercentage || defaultRequired,
+                            lectureDurationHours: s.lectureDurationHours || 1,
+                            lecturesPerWeek: s.lecturesPerWeek || 3,
+                            colorTag: s.colorTag || "#8b5cf6",
+                          });
+                          setShowSubjectModal(true);
+                        }}
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-elevated)] transition"
+                        title="Edit Subject"
+                        aria-label="Edit Subject"
+                      >
+                        <Edit3 size={15} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteSubject(s._id, s.subjectName)}
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-red-500/20 bg-red-500/5 text-red-500 hover:bg-red-500 hover:text-white transition"
+                        title="Delete Subject"
+                        aria-label="Delete Subject"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </section>
       )}
@@ -953,29 +1163,60 @@ export function AttendancePage() {
       {/* 1.6 TIMETABLE INTEGRATION */}
       {activeTab === "timetable" && (
         <section className="space-y-6">
-          <div className="surface-card rounded-2xl p-6">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
+          <div className="surface-card rounded-2xl p-4 sm:p-6">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6">
               <div>
-                <h2 className="text-base font-bold text-[var(--text-primary)]">
+                <h2 className="text-sm sm:text-base font-bold text-[var(--text-primary)]">
                   Weekly Timetable & Schedule
                 </h2>
-                <p className="text-xs text-[var(--text-secondary)]">
-                  Schedule lectures by day and time. Lecture durations (e.g. 2 hours) directly inform attendance accounting.
+                <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+                  Schedule lectures by day and time. Lecture durations directly inform attendance accounting.
                 </p>
               </div>
               <Button
                 size="sm"
                 onClick={() => setShowTimetableModal(true)}
-                className="bg-purple-600 text-xs font-semibold text-white"
+                className="bg-purple-600 text-xs font-semibold text-white w-full sm:w-auto justify-center"
               >
                 <Plus size={14} className="mr-1" />
                 Add Lecture Slot
               </Button>
             </div>
 
+            {/* Mobile Day Selector Tabs */}
+            <div className="md:hidden flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-2.5 mb-4 scroll-smooth">
+              {["All", ...DAYS].map((day) => {
+                const count = day === "All" ? timetable.length : timetable.filter((t) => t.dayOfWeek === day).length;
+                return (
+                  <button
+                    key={day}
+                    onClick={() => setSelectedDayFilter(day)}
+                    className={cn(
+                      "flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all shadow-xs",
+                      selectedDayFilter === day
+                        ? "bg-purple-600 text-white"
+                        : "border border-[var(--border)] bg-[var(--bg-surface-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                    )}
+                  >
+                    <span>{day === "All" ? "All Days" : day.slice(0, 3)}</span>
+                    <span
+                      className={cn(
+                        "rounded-full px-1.5 py-0.2 text-[10px] font-bold",
+                        selectedDayFilter === day
+                          ? "bg-white/20 text-white"
+                          : "bg-[var(--bg-surface)] text-[var(--text-tertiary)]"
+                      )}
+                    >
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
             {/* Days Grid */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {DAYS.map((day) => {
+              {DAYS.filter((d) => selectedDayFilter === "All" || d === selectedDayFilter).map((day) => {
                 const daySlots = timetable.filter((t) => t.dayOfWeek === day);
                 return (
                   <div
@@ -1003,25 +1244,25 @@ export function AttendancePage() {
                             className="rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] p-3 shadow-xs transition hover:border-purple-500/40"
                           >
                             <div className="flex items-start justify-between gap-2">
-                              <div>
-                                <p className="font-semibold text-xs text-[var(--text-primary)]">
+                              <div className="min-w-0">
+                                <p className="font-semibold text-xs text-[var(--text-primary)] truncate">
                                   {slot.subjectName}
                                 </p>
                                 <div className="mt-1 flex items-center gap-2 text-[11px] text-[var(--text-secondary)]">
-                                  <Clock size={12} className="text-purple-600" />
+                                  <Clock size={12} className="text-purple-600 shrink-0" />
                                   <span>
                                     {slot.startTime} – {slot.endTime} ({slot.lectureDurationHours} hr)
                                   </span>
                                 </div>
                                 {slot.room && (
-                                  <p className="mt-1 text-[10px] text-[var(--text-tertiary)]">
+                                  <p className="mt-1 text-[10px] text-[var(--text-tertiary)] truncate">
                                     Room: {slot.room} {slot.teacherName ? `• ${slot.teacherName}` : ""}
                                   </p>
                                 )}
                               </div>
                               <button
                                 onClick={() => handleDeleteTimetable(slot._id)}
-                                className="text-[var(--text-tertiary)] hover:text-red-500 p-1 rounded"
+                                className="text-[var(--text-tertiary)] hover:text-red-500 p-1 rounded shrink-0"
                                 title="Remove slot"
                               >
                                 <Trash2 size={13} />
@@ -1042,15 +1283,15 @@ export function AttendancePage() {
       {/* MODAL: Edit / Add Subject */}
       <AnimatePresence>
         {showSubjectModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-lg rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-6 shadow-2xl"
+              className="my-auto w-full max-w-lg max-h-[90vh] flex flex-col rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-4 sm:p-6 shadow-2xl overflow-hidden"
             >
-              <div className="flex items-center justify-between border-b border-[var(--border)] pb-3 mb-4">
-                <h3 className="font-bold text-base text-[var(--text-primary)]">
+              <div className="flex items-center justify-between border-b border-[var(--border)] pb-3 mb-4 shrink-0">
+                <h3 className="font-bold text-sm sm:text-base text-[var(--text-primary)]">
                   {editingSubject ? "Edit Subject Attendance" : "Add Attendance Subject"}
                 </h3>
                 <button
@@ -1061,8 +1302,8 @@ export function AttendancePage() {
                 </button>
               </div>
 
-              <form onSubmit={handleSaveSubject} className="space-y-4 text-xs">
-                <div className="grid grid-cols-2 gap-3">
+              <form onSubmit={handleSaveSubject} className="space-y-4 text-xs overflow-y-auto pr-1 flex-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="font-semibold text-[var(--text-secondary)] block mb-1">
                       Subject Name *
@@ -1090,7 +1331,7 @@ export function AttendancePage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="font-semibold text-[var(--text-secondary)] block mb-1">
                       Teacher Name
@@ -1121,7 +1362,7 @@ export function AttendancePage() {
                 </div>
 
                 {/* Lecture Duration & Classes */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="font-semibold text-[var(--text-secondary)] block mb-1">
                       Lecture Duration (Hours)
@@ -1161,7 +1402,7 @@ export function AttendancePage() {
                   <span className="font-bold text-[11px] uppercase tracking-wider text-[var(--text-tertiary)] block">
                     Initial Ledger Counts
                   </span>
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     <div>
                       <label className="text-[10px] text-[var(--text-secondary)] block">Delivered</label>
                       <input
@@ -1213,16 +1454,16 @@ export function AttendancePage() {
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-2 pt-2">
+                <div className="flex justify-end gap-2 pt-3 border-t border-[var(--border)]">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => setShowSubjectModal(false)}
-                    className="text-xs"
+                    className="text-xs flex-1 sm:flex-initial"
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" className="bg-purple-600 text-xs text-white">
+                  <Button type="submit" className="bg-purple-600 text-xs text-white flex-1 sm:flex-initial">
                     {editingSubject ? "Save Changes" : "Create Subject"}
                   </Button>
                 </div>
@@ -1235,15 +1476,15 @@ export function AttendancePage() {
       {/* MODAL: Attendance Settings (1.2 Requirement) */}
       <AnimatePresence>
         {showSettingsModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-6 shadow-2xl"
+              className="my-auto w-full max-w-md max-h-[90vh] flex flex-col rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-4 sm:p-6 shadow-2xl overflow-hidden"
             >
-              <div className="flex items-center justify-between border-b border-[var(--border)] pb-3 mb-4">
-                <h3 className="font-bold text-base text-[var(--text-primary)]">
+              <div className="flex items-center justify-between border-b border-[var(--border)] pb-3 mb-4 shrink-0">
+                <h3 className="font-bold text-sm sm:text-base text-[var(--text-primary)]">
                   Required Attendance Criteria
                 </h3>
                 <button
@@ -1254,7 +1495,7 @@ export function AttendancePage() {
                 </button>
               </div>
 
-              <div className="space-y-4 text-xs">
+              <div className="space-y-4 text-xs overflow-y-auto pr-1 flex-1">
                 <div>
                   <label className="font-semibold text-[var(--text-secondary)] block mb-1">
                     Default Required Attendance Percentage
@@ -1282,7 +1523,7 @@ export function AttendancePage() {
                   <label className="font-semibold text-[var(--text-secondary)] block mb-1">
                     Attendance Calculation Mode
                   </label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <button
                       type="button"
                       onClick={() => setCalcMode("session")}
@@ -1313,17 +1554,17 @@ export function AttendancePage() {
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-2 pt-3">
+                <div className="flex justify-end gap-2 pt-3 border-t border-[var(--border)]">
                   <Button
                     variant="outline"
                     onClick={() => setShowSettingsModal(false)}
-                    className="text-xs"
+                    className="text-xs flex-1 sm:flex-initial"
                   >
                     Cancel
                   </Button>
                   <Button
                     onClick={handleSaveSettings}
-                    className="bg-purple-600 text-xs text-white"
+                    className="bg-purple-600 text-xs text-white flex-1 sm:flex-initial"
                   >
                     Save Settings
                   </Button>
@@ -1337,15 +1578,15 @@ export function AttendancePage() {
       {/* MODAL: Timetable Slot Entry */}
       <AnimatePresence>
         {showTimetableModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-6 shadow-2xl"
+              className="my-auto w-full max-w-md max-h-[90vh] flex flex-col rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-4 sm:p-6 shadow-2xl overflow-hidden"
             >
-              <div className="flex items-center justify-between border-b border-[var(--border)] pb-3 mb-4">
-                <h3 className="font-bold text-base text-[var(--text-primary)]">
+              <div className="flex items-center justify-between border-b border-[var(--border)] pb-3 mb-4 shrink-0">
+                <h3 className="font-bold text-sm sm:text-base text-[var(--text-primary)]">
                   Add Timetable Slot
                 </h3>
                 <button
@@ -1356,7 +1597,7 @@ export function AttendancePage() {
                 </button>
               </div>
 
-              <form onSubmit={handleSaveTimetable} className="space-y-4 text-xs">
+              <form onSubmit={handleSaveTimetable} className="space-y-4 text-xs overflow-y-auto pr-1 flex-1">
                 <div>
                   <label className="font-semibold text-[var(--text-secondary)] block mb-1">
                     Day of Week
@@ -1419,7 +1660,7 @@ export function AttendancePage() {
                   </div>
                 )}
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="font-semibold text-[var(--text-secondary)] block mb-1">
                       Start Time
@@ -1450,7 +1691,7 @@ export function AttendancePage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="font-semibold text-[var(--text-secondary)] block mb-1">
                       Room / Hall
@@ -1486,16 +1727,16 @@ export function AttendancePage() {
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-2 pt-3">
+                <div className="flex justify-end gap-2 pt-3 border-t border-[var(--border)]">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => setShowTimetableModal(false)}
-                    className="text-xs"
+                    className="text-xs flex-1 sm:flex-initial"
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" className="bg-purple-600 text-xs text-white">
+                  <Button type="submit" className="bg-purple-600 text-xs text-white flex-1 sm:flex-initial">
                     Add Slot
                   </Button>
                 </div>
@@ -1508,36 +1749,36 @@ export function AttendancePage() {
       {/* Sync from CGPA / Academic Profile Modal */}
       <AnimatePresence>
         {showSyncModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="surface-card w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-4 border border-[var(--border)]"
+              className="my-auto surface-card w-full max-w-md max-h-[90vh] flex flex-col rounded-2xl p-4 sm:p-6 shadow-2xl space-y-4 border border-[var(--border)] overflow-hidden"
             >
-              <div className="flex items-center justify-between border-b border-[var(--border)] pb-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-600/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400">
+              <div className="flex items-center justify-between border-b border-[var(--border)] pb-3 shrink-0">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-600/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400 shrink-0">
                     <Sparkles size={18} />
                   </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-[var(--text-primary)]">
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-bold text-[var(--text-primary)] truncate">
                       Import Subjects from CGPA
                     </h3>
-                    <p className="text-[11px] text-[var(--text-secondary)]">
+                    <p className="text-[11px] text-[var(--text-secondary)] truncate">
                       Sync subjects from your academic profile into Attendance
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={() => setShowSyncModal(false)}
-                  className="rounded-lg p-1 text-[var(--text-tertiary)] hover:bg-[var(--bg-surface-elevated)] hover:text-[var(--text-primary)]"
+                  className="rounded-lg p-1 text-[var(--text-tertiary)] hover:bg-[var(--bg-surface-elevated)] hover:text-[var(--text-primary)] shrink-0"
                 >
                   <X size={16} />
                 </button>
               </div>
 
-              <div className="space-y-3.5 text-xs">
+              <div className="space-y-3.5 text-xs overflow-y-auto pr-1 flex-1">
                 <div>
                   <label className="font-semibold text-[var(--text-secondary)] block mb-1.5">
                     Target Semester
@@ -1628,7 +1869,7 @@ export function AttendancePage() {
                   size="sm"
                   onClick={() => setShowSyncModal(false)}
                   disabled={isSyncing}
-                  className="text-xs"
+                  className="text-xs flex-1 sm:flex-initial"
                 >
                   Cancel
                 </Button>
@@ -1637,7 +1878,7 @@ export function AttendancePage() {
                   size="sm"
                   onClick={handleExecuteSync}
                   disabled={isSyncing}
-                  className="bg-purple-600 text-xs text-white hover:bg-purple-700"
+                  className="bg-purple-600 text-xs text-white hover:bg-purple-700 flex-1 sm:flex-initial"
                 >
                   {isSyncing ? "Syncing..." : "Sync Subjects"}
                 </Button>
