@@ -889,7 +889,7 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess, manualMode = fa
                       </div>
 
                       {/* SGPA & CGPA Inputs */}
-                      <div className="flex items-center gap-6">
+                      <div className="flex flex-wrap items-center gap-3 sm:gap-6">
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-medium text-slate-500 dark:text-slate-400">SGPA:</span>
                           <input
@@ -934,7 +934,7 @@ export function UploadResultsModal({ isOpen, onClose, onSuccess, manualMode = fa
 
                     {/* Subject Table */}
                     <div className="overflow-x-auto">
-                      <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300">
+                      <table className="w-full min-w-[540px] text-left text-xs text-slate-700 dark:text-slate-300">
                         <thead className="bg-slate-100 text-slate-600 uppercase tracking-wider font-mono border-b border-slate-200 dark:bg-slate-900/80 dark:text-slate-400 dark:border-slate-800">
                           <tr>
                             <th className="py-2.5 px-3">Subject Code</th>

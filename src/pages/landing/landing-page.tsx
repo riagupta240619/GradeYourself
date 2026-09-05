@@ -17,45 +17,45 @@ export function LandingPage() {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-slate-50 text-slate-900 dark:bg-[#09090b] dark:text-slate-900 dark:text-white selection:bg-purple-500/30 selection:text-slate-900 dark:text-white">
+    <div className="relative min-h-screen w-full overflow-hidden bg-slate-50 text-slate-900 dark:bg-[#09090b] dark:text-white selection:bg-purple-500/30 selection:text-white">
       {/* Background Ambient Glow Effects */}
       <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-[500px] w-[800px] rounded-full bg-gradient-to-tr from-purple-200/50 via-purple-100/30 to-blue-100/20 dark:from-purple-900/30 dark:via-purple-600/20 dark:to-blue-600/10 blur-[120px] opacity-70" />
       <div className="pointer-events-none absolute top-1/3 -right-40 h-[400px] w-[400px] rounded-full bg-blue-200/30 dark:bg-blue-900/20 blur-[100px] opacity-50" />
 
       {/* Glass Header Navigation */}
-      <header className="sticky top-0 z-50 flex h-16 items-center justify-between border-b border-slate-200 bg-white/80 dark:border-white/10 dark:bg-zinc-950/80 px-6 sm:px-12 backdrop-blur-2xl">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-purple-600 via-purple-500 to-blue-500 text-slate-900 dark:text-white font-bold shadow-[0_0_15px_rgba(124,58,237,0.4)]">
-            <GraduationCap size={20} />
+      <header className="sticky top-0 z-50 flex h-16 items-center justify-between border-b border-slate-200 bg-white/80 dark:border-white/10 dark:bg-zinc-950/80 px-3.5 sm:px-8 md:px-12 backdrop-blur-2xl">
+        <div className="flex items-center gap-2.5 sm:gap-3">
+          <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-purple-600 via-purple-500 to-blue-500 text-white font-bold shadow-[0_0_15px_rgba(124,58,237,0.4)]">
+            <GraduationCap size={18} />
           </div>
-          <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-900 dark:text-white">
+          <span className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-white">
             GradeWise <span className="gradient-purple-text">AI</span>
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3">
           <button
             onClick={toggleTheme}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white/80 dark:border-white/10 dark:bg-zinc-900 text-slate-600 dark:text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors shadow-sm"
+            className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl border border-slate-200 bg-white/80 dark:border-white/10 dark:bg-zinc-900 text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors shadow-xs"
             aria-label="Toggle Theme"
           >
-            {theme === "dark" ? <Sun size={16} className="text-amber-400" /> : <Moon size={16} className="text-purple-600" />}
+            {theme === "dark" ? <Sun size={15} className="text-amber-400" /> : <Moon size={15} className="text-purple-600" />}
           </button>
           <Link to="/login">
-            <Button variant="ghost" size="sm" className="text-slate-700 dark:text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-slate-900 dark:text-white">
+            <Button variant="ghost" size="sm" className="text-xs sm:text-sm text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white px-2.5 sm:px-3">
               Sign in
             </Button>
           </Link>
           <Link to="/register">
-            <Button variant="primary" size="sm">
-              Get Started <ArrowRight size={14} />
+            <Button variant="primary" size="sm" className="text-xs sm:text-sm px-3 sm:px-4">
+              Get Started <ArrowRight size={13} />
             </Button>
           </Link>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="relative mx-auto flex max-w-5xl flex-col items-center gap-8 px-6 pt-20 pb-16 text-center">
+      <section className="relative mx-auto flex max-w-5xl flex-col items-center gap-6 sm:gap-8 px-4 sm:px-6 pt-12 sm:pt-20 pb-12 sm:pb-16 text-center">
         {/* Release Pill */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -73,7 +73,7 @@ export function LandingPage() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="text-4xl font-extrabold tracking-tight sm:text-6xl lg:text-7xl leading-tight text-slate-900 dark:text-slate-900 dark:text-white"
+          className="text-3xl font-extrabold tracking-tight sm:text-5xl lg:text-7xl leading-tight text-slate-900 dark:text-white"
         >
           Your CGPA, Decoded — <br />
           <span className="gradient-purple-text">For Any University.</span>
@@ -84,7 +84,7 @@ export function LandingPage() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="max-w-2xl text-base sm:text-lg text-slate-600 dark:text-zinc-400 font-normal leading-relaxed"
+          className="max-w-2xl text-sm sm:text-lg text-slate-600 dark:text-zinc-400 font-normal leading-relaxed"
         >
           Upload your syllabus or scheme. We automate the complex mathematics — target planning, what-if predictions, and semester analytics included.
         </motion.p>
@@ -94,15 +94,15 @@ export function LandingPage() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="flex flex-wrap justify-center gap-4 pt-2"
+          className="flex flex-col sm:flex-row justify-center gap-3 w-full sm:w-auto pt-2"
         >
-          <Link to="/register">
-            <Button size="lg" variant="primary" className="gap-2 shadow-[0_0_30px_rgba(124,58,237,0.4)]">
-              Get Started Free <ArrowRight size={18} />
+          <Link to="/register" className="w-full sm:w-auto">
+            <Button size="lg" variant="primary" className="w-full sm:w-auto gap-2 shadow-[0_0_30px_rgba(124,58,237,0.4)]">
+              Get Started Free <ArrowRight size={16} />
             </Button>
           </Link>
-          <Link to="/login">
-            <Button size="lg" variant="outline" className="gap-2">
+          <Link to="/login" className="w-full sm:w-auto">
+            <Button size="lg" variant="outline" className="w-full sm:w-auto gap-2">
               Explore Demo Dashboard
             </Button>
           </Link>
@@ -113,7 +113,7 @@ export function LandingPage() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.4 }}
-          className="relative mt-8 w-full max-w-4xl rounded-2xl border border-slate-200 bg-white/90 dark:border-white/10 dark:bg-zinc-900/90 p-4 sm:p-6 shadow-2xl backdrop-blur-2xl glow-purple"
+          className="relative mt-6 sm:mt-8 w-full max-w-4xl rounded-2xl border border-slate-200 bg-white/90 dark:border-white/10 dark:bg-zinc-900/90 p-3.5 sm:p-6 shadow-2xl backdrop-blur-2xl glow-purple"
         >
           {/* Top Bar Mockup */}
           <div className="mb-4 flex items-center justify-between border-b border-slate-200 dark:border-white/10 pb-3 text-xs text-slate-500 dark:text-zinc-400">
@@ -131,11 +131,11 @@ export function LandingPage() {
           </div>
 
           {/* Mockup Dashboard Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-left">
             <div className="rounded-xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-zinc-950/60 p-4">
               <span className="text-xs uppercase text-slate-500 dark:text-zinc-500 font-semibold">Current CGPA</span>
               <div className="mt-1 flex items-baseline gap-2">
-                <span className="text-3xl font-bold font-tabular text-slate-900 dark:text-slate-900 dark:text-white">9.42</span>
+                <span className="text-3xl font-bold font-tabular text-slate-900 dark:text-white">9.42</span>
                 <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-0.5">
                   <TrendingUp size={12} /> +0.28
                 </span>
@@ -159,17 +159,17 @@ export function LandingPage() {
       </section>
 
       {/* Feature Grid Section */}
-      <section className="mx-auto max-w-6xl px-6 py-20">
-        <div className="mb-12 text-center">
-          <h2 className="text-2xl font-bold tracking-tight sm:text-4xl text-slate-900 dark:text-slate-900 dark:text-white">
+      <section className="mx-auto max-w-6xl px-4 sm:px-6 py-12 sm:py-20">
+        <div className="mb-8 sm:mb-12 text-center">
+          <h2 className="text-2xl font-bold tracking-tight sm:text-4xl text-slate-900 dark:text-white">
             Everything you need for academic excellence
           </h2>
-          <p className="mt-2 text-sm sm:text-base text-slate-600 dark:text-zinc-400">
+          <p className="mt-2 text-xs sm:text-base text-slate-600 dark:text-zinc-400">
             Engineered with precision for university students, advisors, and high achievers.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((f, i) => (
             <motion.div
               key={f.title}
@@ -178,12 +178,12 @@ export function LandingPage() {
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.08 }}
               whileHover={{ y: -4 }}
-              className="group relative rounded-2xl border border-slate-200 bg-white/90 dark:border-white/10 dark:bg-zinc-900/60 p-6 backdrop-blur-xl transition-all duration-300 hover:border-purple-300 dark:hover:border-purple-500/40 hover:shadow-lg dark:hover:shadow-[0_0_25px_rgba(124,58,237,0.15)]"
+              className="group relative rounded-2xl border border-slate-200 bg-white/90 dark:border-white/10 dark:bg-zinc-900/60 p-5 sm:p-6 backdrop-blur-xl transition-all duration-300 hover:border-purple-300 dark:hover:border-purple-500/40 hover:shadow-lg dark:hover:shadow-[0_0_25px_rgba(124,58,237,0.15)]"
             >
-              <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-purple-100 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-500/20 group-hover:bg-purple-600 group-hover:text-slate-900 dark:text-white transition-colors duration-300">
-                <f.icon size={22} />
+              <div className="mb-4 inline-flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-purple-100 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-500/20 group-hover:bg-purple-600 group-hover:text-white transition-colors duration-300">
+                <f.icon size={20} />
               </div>
-              <h3 className="mb-1 text-base font-semibold text-slate-900 dark:text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-600 dark:text-purple-300 transition-colors">
+              <h3 className="mb-1 text-sm sm:text-base font-semibold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors">
                 {f.title}
               </h3>
               <p className="text-xs sm:text-sm leading-relaxed text-slate-600 dark:text-zinc-400">{f.desc}</p>
@@ -193,11 +193,11 @@ export function LandingPage() {
       </section>
 
       {/* Modern SaaS Footer */}
-      <footer className="border-t border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-8 py-8 text-center text-xs text-slate-500 dark:text-zinc-500">
+      <footer className="border-t border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-950 px-4 sm:px-8 py-6 sm:py-8 text-center text-xs text-slate-500 dark:text-zinc-500">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 max-w-6xl mx-auto">
           <div className="flex items-center gap-2">
             <GraduationCap size={18} className="text-purple-600 dark:text-purple-400" />
-            <span className="font-semibold text-slate-700 dark:text-slate-700 dark:text-zinc-300">GradeWise AI</span>
+            <span className="font-semibold text-slate-700 dark:text-zinc-300">GradeWise AI</span>
             <span>— Precision Academic OS</span>
           </div>
           <p>© {new Date().getFullYear()} GradeWise AI. All rights reserved.</p>

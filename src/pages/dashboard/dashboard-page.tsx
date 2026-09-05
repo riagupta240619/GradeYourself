@@ -274,17 +274,17 @@ export function DashboardPage() {
       {/* ────────────────────────────────────────────────────────────────────────── */}
       {/* 1. UNIVERSITY HERO INFORMATION CARD (Enhanced Padding & Distinct Chips) */}
       {/* ────────────────────────────────────────────────────────────────────────── */}
-      <Card className="border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-900/90 p-7 shadow-sm">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-purple-100 text-purple-700 dark:bg-purple-600/30 dark:text-purple-300 border border-purple-200 dark:border-purple-500/30 shadow-sm">
-              <GraduationCap size={24} />
+      <Card className="border border-slate-200 bg-white dark:border-white/10 dark:bg-zinc-900/90 p-4 sm:p-7 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 sm:gap-6">
+          <div className="flex items-center gap-3.5 sm:gap-4">
+            <div className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl bg-purple-100 text-purple-700 dark:bg-purple-600/30 dark:text-purple-300 border border-purple-200 dark:border-purple-500/30 shadow-sm">
+              <GraduationCap size={22} className="sm:w-6 sm:h-6" />
             </div>
             <div>
-              <div className="flex items-center gap-3">
-                <h3 className="font-extrabold text-slate-900 dark:text-white text-lg tracking-tight">{user?.college || "University"}</h3>
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-base sm:text-lg tracking-tight">{user?.college || "University"}</h3>
                 {user?.academicStatus && (
-                  <Badge tone={user.academicStatus.includes("First") ? "warning" : "success"} className="text-[11px]">
+                  <Badge tone={user.academicStatus.includes("First") ? "warning" : "success"} className="text-[10px] sm:text-[11px]">
                     {user.academicStatus}
                   </Badge>
                 )}
@@ -298,25 +298,25 @@ export function DashboardPage() {
           </div>
 
           {/* Distinct Visual Chips with Color Hierarchies */}
-          <div className="flex flex-wrap items-center gap-2.5 text-xs pt-3 md:pt-0 border-t md:border-t-0 border-slate-200 dark:border-white/10">
-            <div className="flex items-center gap-1.5 rounded-xl border border-purple-200 bg-purple-50 dark:border-purple-500/30 dark:bg-purple-500/10 px-3 py-1.5 text-purple-700 dark:text-purple-300 font-semibold">
-              <Layers size={14} className="text-purple-600 dark:text-purple-400" />
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 text-xs pt-3 md:pt-0 border-t md:border-t-0 border-slate-200 dark:border-white/10">
+            <div className="flex items-center gap-1.5 rounded-xl border border-purple-200 bg-purple-50 dark:border-purple-500/30 dark:bg-purple-500/10 px-2.5 sm:px-3 py-1.5 text-purple-700 dark:text-purple-300 font-semibold text-[11px] sm:text-xs">
+              <Layers size={13} className="text-purple-600 dark:text-purple-400 shrink-0" />
               <span>Active: <strong>{user?.currentSemester || user?.semesterSystem || "Semester 1"}</strong></span>
             </div>
 
-            <div className="flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 dark:border-blue-500/30 dark:bg-blue-500/10 px-3 py-1.5 text-blue-700 dark:text-blue-300 font-semibold">
-              <Calendar size={14} className="text-blue-600 dark:text-blue-400" />
+            <div className="flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 dark:border-blue-500/30 dark:bg-blue-500/10 px-2.5 sm:px-3 py-1.5 text-blue-700 dark:text-blue-300 font-semibold text-[11px] sm:text-xs">
+              <Calendar size={13} className="text-blue-600 dark:text-blue-400 shrink-0" />
               <span>Batch: <strong>{user?.academicSession || "N/A"}</strong></span>
             </div>
 
-            <div className="flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 dark:border-emerald-500/30 dark:bg-emerald-500/10 px-3 py-1.5 text-emerald-700 dark:text-emerald-300 font-semibold">
-              <CheckCircle2 size={14} className="text-emerald-600 dark:text-emerald-400" />
+            <div className="flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 dark:border-emerald-500/30 dark:bg-emerald-500/10 px-2.5 sm:px-3 py-1.5 text-emerald-700 dark:text-emerald-300 font-semibold text-[11px] sm:text-xs">
+              <CheckCircle2 size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
               <span>Credits: <strong className="font-mono">{summaryData?.completedCredits ?? 0} Cr</strong></span>
             </div>
 
             {typeof user?.currentCgpa === "number" && (
-              <div className="flex items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 dark:border-amber-500/30 dark:bg-amber-500/10 px-3 py-1.5 text-amber-700 dark:text-amber-300 font-semibold">
-                <Award size={14} className="text-amber-600 dark:text-amber-400" />
+              <div className="flex items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 dark:border-amber-500/30 dark:bg-amber-500/10 px-2.5 sm:px-3 py-1.5 text-amber-700 dark:text-amber-300 font-semibold text-[11px] sm:text-xs">
+                <Award size={13} className="text-amber-600 dark:text-amber-400 shrink-0" />
                 <span>Baseline: <strong className="font-mono">{user.currentCgpa.toFixed(2)}</strong></span>
               </div>
             )}
@@ -327,10 +327,10 @@ export function DashboardPage() {
       {/* ────────────────────────────────────────────────────────────────────────── */}
       {/* 2. METRIC CARDS (High Typographic Hierarchy) */}
       {/* ────────────────────────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-3">
         {/* Card A: Current CGPA */}
         <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
-          <Card className="border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-zinc-900/90">
+          <Card className="border border-slate-200 bg-white p-4 sm:p-6 shadow-sm dark:border-white/10 dark:bg-zinc-900/90">
             <div className="flex flex-row items-center justify-between pb-3">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-500">
                 {view === "cgpa" ? "Current Overall CGPA" : `${current?.name || "Current Semester"} SGPA`}
@@ -341,8 +341,8 @@ export function DashboardPage() {
             </div>
             <div>
               {headline !== null ? (
-                <div className="flex items-baseline gap-3 mt-1">
-                  <span className="text-4xl sm:text-5xl font-extrabold font-tabular text-slate-900 dark:text-white tracking-tight">
+                <div className="flex flex-wrap items-baseline gap-2 sm:gap-3 mt-1">
+                  <span className="text-3xl sm:text-4xl lg:text-5xl font-extrabold font-tabular text-slate-900 dark:text-white tracking-tight">
                     <CountUp value={headline} decimals={2} />
                   </span>
                   <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20 px-2.5 py-0.5 text-xs font-bold text-emerald-700 dark:text-emerald-400">
@@ -361,7 +361,7 @@ export function DashboardPage() {
 
         {/* Card B: Target CGPA Goal */}
         <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
-          <Card className="border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-zinc-900/90">
+          <Card className="border border-slate-200 bg-white p-4 sm:p-6 shadow-sm dark:border-white/10 dark:bg-zinc-900/90">
             <div className="flex flex-row items-center justify-between pb-3">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-500">Target CGPA Goal</span>
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-50 text-purple-600 border border-purple-200 dark:bg-blue-500/20 dark:text-blue-400 dark:border-blue-500/30">
@@ -369,7 +369,7 @@ export function DashboardPage() {
               </div>
             </div>
             <div>
-              <div className="text-4xl sm:text-5xl font-extrabold font-tabular text-purple-600 dark:text-purple-400 mt-1 tracking-tight">
+              <div className="text-3xl sm:text-4xl lg:text-5xl font-extrabold font-tabular text-purple-600 dark:text-purple-400 mt-1 tracking-tight">
                 {typeof targetCgpa === "number" ? targetCgpa.toFixed(2) : "9.00"}
               </div>
               <p className="mt-2 text-xs text-slate-600 dark:text-zinc-400 font-medium">Graduation Target Benchmark</p>
@@ -379,7 +379,7 @@ export function DashboardPage() {
 
         {/* Card C: Goal Completion Progress */}
         <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
-          <Card className="border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-zinc-900/90">
+          <Card className="border border-slate-200 bg-white p-4 sm:p-6 shadow-sm dark:border-white/10 dark:bg-zinc-900/90">
             <div className="flex flex-row items-center justify-between pb-3">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-500">Goal Completion</span>
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/30">
@@ -387,7 +387,7 @@ export function DashboardPage() {
               </div>
             </div>
             <div>
-              <div className="mb-2 text-3xl font-extrabold font-tabular text-slate-900 dark:text-white tracking-tight">{targetProgress}%</div>
+              <div className="mb-2 text-2xl sm:text-3xl font-extrabold font-tabular text-slate-900 dark:text-white tracking-tight">{targetProgress}%</div>
               <ProgressBar value={targetProgress} tone="accent" />
               <p className="mt-2 text-xs text-slate-600 dark:text-zinc-400 font-medium">Progress toward target CGPA</p>
             </div>
@@ -398,18 +398,18 @@ export function DashboardPage() {
       {/* ────────────────────────────────────────────────────────────────────────── */}
       {/* 3. CGPA PROGRESSION GRAPH (Taller Graph & Axis Contrast) */}
       {/* ────────────────────────────────────────────────────────────────────────── */}
-      <Card className="border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-zinc-900/90">
+      <Card className="border border-slate-200 bg-white p-4 sm:p-6 shadow-sm dark:border-white/10 dark:bg-zinc-900/90">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-white/10 mb-4">
           <div className="flex items-center gap-2.5">
             <TrendingUp size={20} className="text-purple-600 dark:text-purple-400" />
             <h3 className="font-bold text-slate-900 dark:text-white text-base">CGPA Progression Trend</h3>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="flex rounded-xl border border-slate-200 bg-slate-100 dark:border-white/10 dark:bg-zinc-950 p-1 text-xs font-semibold">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            <div className="flex flex-wrap rounded-xl border border-slate-200 bg-slate-100 dark:border-white/10 dark:bg-zinc-950 p-1 text-xs font-semibold">
               <button
                 onClick={() => setGraphMode("official")}
-                className={`rounded-lg px-3 py-1 transition-all ${
+                className={`rounded-lg px-2.5 sm:px-3 py-1 transition-all ${
                   graphMode === "official"
                     ? "bg-white text-slate-900 font-bold shadow-sm border border-slate-200 dark:bg-purple-600 dark:text-white"
                     : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
@@ -419,7 +419,7 @@ export function DashboardPage() {
               </button>
               <button
                 onClick={() => setGraphMode("predicted")}
-                className={`rounded-lg px-3 py-1 transition-all flex items-center gap-1.5 ${
+                className={`rounded-lg px-2.5 sm:px-3 py-1 transition-all flex items-center gap-1.5 ${
                   graphMode === "predicted"
                     ? "bg-white text-slate-900 font-bold shadow-sm border border-slate-200 dark:bg-purple-600 dark:text-white"
                     : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
@@ -545,7 +545,7 @@ export function DashboardPage() {
               return (
                 <Link key={idKey} to={`/app/subjects`}>
                   <motion.div whileHover={{ y: -3 }} transition={{ duration: 0.15 }}>
-                    <Card className="group cursor-pointer border border-slate-200 bg-white p-6 shadow-sm hover:border-purple-300 hover:shadow-md dark:border-white/10 dark:bg-zinc-900/90 dark:hover:border-purple-500/40 transition-all">
+                    <Card className="group cursor-pointer border border-slate-200 bg-white p-4 sm:p-6 shadow-sm hover:border-purple-300 hover:shadow-md dark:border-white/10 dark:bg-zinc-900/90 dark:hover:border-purple-500/40 transition-all">
                       <div className="mb-4 flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <span

@@ -598,10 +598,10 @@ export function AnalyticsPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-1 rounded-xl bg-white/90 dark:bg-zinc-900/80 p-1.5 border border-slate-200 dark:border-white/10 shadow-lg">
+        <div className="flex flex-col sm:flex-row w-full sm:w-auto items-stretch sm:items-center gap-1 rounded-xl bg-white/90 dark:bg-zinc-900/80 p-1.5 border border-slate-200 dark:border-white/10 shadow-lg">
           <button
             onClick={() => setTab("overview")}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+            className={`flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all w-full sm:w-auto ${
               tab === "overview"
                 ? "bg-purple-600 text-white shadow-md shadow-purple-600/30"
                 : "text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
@@ -611,7 +611,7 @@ export function AnalyticsPage() {
           </button>
           <button
             onClick={() => setTab("history")}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+            className={`flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all w-full sm:w-auto ${
               tab === "history"
                 ? "bg-purple-600 text-white shadow-md shadow-purple-600/30"
                 : "text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
@@ -842,7 +842,7 @@ export function AnalyticsPage() {
                         Complete at least one semester with academic grades to view rankings.
                       </div>
                     ) : (
-                      <table className="w-full min-w-full border-separate border-spacing-0 text-xs text-left">
+                      <table className="w-full min-w-[500px] border-separate border-spacing-0 text-xs text-left">
                         <thead className="bg-slate-100 dark:bg-zinc-950 text-slate-600 dark:text-zinc-400 font-bold uppercase tracking-wider text-[10px] sticky top-0 border-b border-slate-200 dark:border-white/10 z-10">
                           <tr>
                             <th className="px-4 py-3.5 w-16">Rank</th>
@@ -1127,7 +1127,7 @@ export function AnalyticsPage() {
                           {/* Semester Subjects Breakdown Table */}
                           <CardContent className="p-0">
                             <div className="overflow-x-auto">
-                              <table className="w-full text-left text-xs border-collapse">
+                              <table className="w-full min-w-[600px] text-left text-xs border-collapse">
                                 <thead className="bg-slate-50 dark:bg-zinc-950/60 text-zinc-400 border-b border-slate-200 dark:border-white/10 font-semibold uppercase text-[10px] tracking-wider">
                                   <tr>
                                     {visibleColumns.map((col, cIdx) => (

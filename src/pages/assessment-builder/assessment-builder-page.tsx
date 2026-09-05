@@ -334,8 +334,8 @@ export function AssessmentBuilderPage() {
 
           return (
             <Card key={comp.id} className="border border-slate-200 dark:border-white/10 bg-white dark:bg-zinc-950/90 shadow-sm overflow-hidden">
-              <CardHeader className="bg-slate-50 dark:bg-zinc-900/80 p-4 border-b border-slate-200 dark:border-white/10 flex flex-row items-center justify-between">
-                <div className="flex items-center gap-3 flex-1">
+              <CardHeader className="bg-slate-50 dark:bg-zinc-900/80 p-4 border-b border-slate-200 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2 sm:gap-3 flex-1 w-full sm:w-auto">
                   <GripVertical size={18} className="text-slate-400 dark:text-zinc-500 cursor-grab hover:text-slate-600 shrink-0" />
                   <span className="text-slate-400 dark:text-zinc-500 font-mono text-xs font-bold">#{compIdx + 1}</span>
                   <input
@@ -346,7 +346,7 @@ export function AssessmentBuilderPage() {
                   />
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
                   <div className="flex items-center gap-1.5 font-mono text-xs text-purple-700 dark:text-purple-300 font-semibold">
                     <span>Weight:</span>
                     <input
@@ -429,7 +429,7 @@ export function AssessmentBuilderPage() {
                     </span>
 
                     {comp.assessments.map((ast, astIdx) => (
-                      <div key={ast.id} className="flex items-center justify-between gap-3 p-3 rounded-xl bg-white/90 dark:bg-zinc-900/80 border border-slate-200 dark:border-white/10 text-xs">
+                      <div key={ast.id} className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2.5 sm:gap-3 p-3 rounded-xl bg-white/90 dark:bg-zinc-900/80 border border-slate-200 dark:border-white/10 text-xs">
                         <input
                           className="bg-transparent text-slate-900 dark:text-white font-semibold outline-none focus:border-b focus:border-purple-500 flex-1"
                           value={ast.name}

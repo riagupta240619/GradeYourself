@@ -75,7 +75,7 @@ export function NotificationsPage() {
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2 mb-1">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2 mb-1">
                       <h4 className="font-bold text-slate-900 dark:text-white text-sm">{n.title}</h4>
                       <div className="flex items-center gap-2 shrink-0">
                         <span className="text-[11px] font-medium text-slate-400 dark:text-zinc-500 flex items-center gap-1 font-mono">

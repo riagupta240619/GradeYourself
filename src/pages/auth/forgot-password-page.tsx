@@ -11,7 +11,7 @@ export function ForgotPasswordPage() {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <div className="relative flex min-h-screen w-full items-center justify-center bg-slate-50 text-slate-900 dark:bg-[#09090b] dark:text-white px-4 overflow-hidden">
+    <div className="relative flex min-h-screen w-full items-center justify-center bg-slate-50 text-slate-900 dark:bg-[#09090b] dark:text-white p-4 sm:p-6 overflow-hidden">
       {/* Absolute Theme Switcher */}
       <div className="absolute top-4 right-4 z-50">
         <button
@@ -34,7 +34,7 @@ export function ForgotPasswordPage() {
         initial={{ opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3 }}
-        className="w-full max-w-md rounded-2xl border border-slate-200 bg-white/90 dark:border-white/10 dark:bg-zinc-900/80 p-8 shadow-2xl backdrop-blur-2xl text-center"
+        className="w-full max-w-md rounded-2xl border border-slate-200 bg-white/90 dark:border-white/10 dark:bg-zinc-900/80 p-5 sm:p-8 shadow-2xl backdrop-blur-2xl text-center"
       >
         <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-purple-100 dark:bg-purple-600/20 text-purple-600 dark:text-purple-400">
           <GraduationCap size={22} />

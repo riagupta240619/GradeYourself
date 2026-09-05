@@ -7,54 +7,142 @@ const axios = require("axios");
 const { QuizDocument, QuizAttempt } = require("../models/quiz-model");
 const StorageFile = require("../models/storage-file-model");
 
+// Common non-topic keywords to avoid treating as concepts
+const QUIZ_STOPWORDS = new Set([
+  "Answer",
+  "Question",
+  "Questions",
+  "Section",
+  "Chapter",
+  "Unit",
+  "Part",
+  "True",
+  "False",
+  "Page",
+  "Http",
+  "Https",
+  "Figure",
+  "Table",
+  "Total",
+  "Marks",
+  "Date",
+  "Name",
+  "Score",
+  "Test",
+  "Exam",
+  "Option",
+  "Choice",
+]);
+
+/**
+ * Extracts pre-formatted multiple choice questions directly from text if present
+ * (e.g., question banks, practice exercises, sample exams)
+ */
+function parseExistingMCQsFromText(text) {
+  const mcqRegex = /(?:^|\n)\s*(\d+[\.\)]\s*[^\n]+)\s*\n+\s*([a-dA-D][\.\)]\s*[^\n]+)\s*\n+\s*([a-dA-D][\.\)]\s*[^\n]+)\s*\n+\s*([a-dA-D][\.\)]\s*[^\n]+)\s*\n+\s*([a-dA-D][\.\)]\s*[^\n]+)(?:\s*\n+\s*Answer:?\s*([a-dA-D])[\)\.]?)?/gi;
+
+  const results = [];
+  let match;
+  while ((match = mcqRegex.exec(text)) !== null) {
+    const rawQuestion = match[1].replace(/^\d+[\.\)]\s*/, "").trim();
+    const rawOpts = [match[2], match[3], match[4], match[5]].map((o) =>
+      o.replace(/^[a-dA-D][\.\)]\s*/, "").trim()
+    );
+    const ansLetter = (match[6] || "a").toLowerCase();
+    const letterIdx = { a: 0, b: 1, c: 2, d: 3 }[ansLetter] ?? 0;
+    const correctAnswer = rawOpts[letterIdx] || rawOpts[0];
+
+    // Infer a section or topic if preceding headers exist
+    results.push({
+      question: rawQuestion,
+      type: "mcq",
+      options: rawOpts,
+      correctAnswer,
+      explanation: `Extracted directly from study document (Answer indicated as ${ansLetter.toUpperCase()}).`,
+      topic: "Study Assessment",
+      difficulty: "medium",
+    });
+  }
+  return results;
+}
+
 // Heuristic NLP Quiz Generator when Gemini API is unconfigured or offline
 function generateFallbackQuiz(text, numQuestions = 5, questionTypes = ["mcq", "true_false", "short_answer"], difficulty = "medium") {
+  // Check if the document already contains pre-formatted questions
+  const preExisting = parseExistingMCQsFromText(text);
+  if (preExisting.length >= numQuestions) {
+    const questions = preExisting.slice(0, numQuestions);
+    const topics = Array.from(new Set(questions.map((q) => q.topic)));
+    return { topics, questions };
+  }
+
   // Normalize and clean sentences
   const sentences = text
     .split(/(?<=[.?!])\s+/)
     .map((s) => s.replace(/\s+/g, " ").trim())
-    .filter((s) => s.length > 30 && s.length < 200 && !s.includes("http") && !s.includes("Page"));
+    .filter(
+      (s) =>
+        s.length > 25 &&
+        s.length < 220 &&
+        !s.includes("http") &&
+        !s.includes("Page") &&
+        !/^\s*(Answer|Question|Section)\s*:/i.test(s)
+    );
 
-  const topics = [];
-  // Extract potential topic keywords
+  // Extract potential topic keywords excluding stopwords
   const words = text.match(/\b[A-Z][a-z]{3,}\b/g) || [];
   const freq = {};
   words.forEach((w) => {
-    freq[w] = (freq[w] || 0) + 1;
+    if (!QUIZ_STOPWORDS.has(w)) {
+      freq[w] = (freq[w] || 0) + 1;
+    }
   });
+
   const sortedTopics = Object.keys(freq)
     .sort((a, b) => freq[b] - freq[a])
     .slice(0, 5);
-  topics.push(...(sortedTopics.length ? sortedTopics : ["Core Concepts", "Analysis", "Implementation"]));
+  const topics = sortedTopics.length ? sortedTopics : ["Core Concepts", "Analysis", "Implementation"];
 
-  const questions = [];
+  const questions = [...preExisting];
+  const needed = numQuestions - questions.length;
   const definitionRegex = /([A-Z][a-zA-Z\s]{2,25})\s+(?:is|are|refers to|means|defines)\s+([^.]+)/i;
 
   let sentenceIdx = 0;
-  for (let i = 0; i < numQuestions; i++) {
+  for (let i = 0; i < needed; i++) {
     const type = questionTypes[i % questionTypes.length] || "mcq";
     const currentTopic = topics[i % topics.length] || "Concepts";
-    const sentence = sentences[sentenceIdx % sentences.length] || `Understanding ${currentTopic} is essential for system reliability and optimal performance.`;
+    const sentence =
+      sentences[sentenceIdx % (sentences.length || 1)] ||
+      `Understanding ${currentTopic} is essential for reliable operation and architecture.`;
     sentenceIdx++;
 
     const match = sentence.match(definitionRegex);
-    const concept = match ? match[1].trim() : currentTopic;
+    const rawConcept = match ? match[1].trim() : currentTopic;
+    const concept = QUIZ_STOPWORDS.has(rawConcept) ? currentTopic : rawConcept;
 
     if (type === "mcq") {
       const isDefinition = Boolean(match);
       const questionText = isDefinition
-        ? `What is the primary definition or role of ${concept}?`
-        : `According to the document, which of the following is true regarding ${concept}?`;
+        ? `What is the primary role or definition of ${concept}?`
+        : `According to the document, which statement correctly applies to ${concept}?`;
 
       const correctAnswer = isDefinition
-        ? match[2].trim().slice(0, 90)
-        : sentence.slice(0, 90);
+        ? match[2].trim().slice(0, 100)
+        : sentence.slice(0, 100);
 
-      const wrongOptions = [
-        `It acts as an external cache bypassing data validation.`,
-        `It completely replaces sequential indexing with random hashing.`,
-        `It limits concurrency strictly to single-threaded executions.`,
-      ];
+      // Select dynamic distractors from other sentences in the text
+      const candidateDistractors = sentences
+        .filter((s) => s !== sentence && s.length > 20)
+        .slice(0, 8);
+
+      const wrongOptions = [];
+      for (let d = 0; d < 3; d++) {
+        if (candidateDistractors[d]) {
+          wrongOptions.push(candidateDistractors[d].slice(0, 90));
+        } else {
+          wrongOptions.push(`It operates inversely without referencing ${concept}.`);
+        }
+      }
 
       const options = [correctAnswer, ...wrongOptions].sort(() => Math.random() - 0.5);
 
@@ -63,7 +151,7 @@ function generateFallbackQuiz(text, numQuestions = 5, questionTypes = ["mcq", "t
         type: "mcq",
         options,
         correctAnswer,
-        explanation: `As detailed in the document: "${sentence}"`,
+        explanation: `Document context: "${sentence}"`,
         topic: currentTopic,
         difficulty,
       });
@@ -83,12 +171,11 @@ function generateFallbackQuiz(text, numQuestions = 5, questionTypes = ["mcq", "t
         difficulty,
       });
     } else {
-      // Short Answer
       questions.push({
-        question: `Briefly explain the role and importance of ${concept} based on the text.`,
+        question: `Explain the key function of ${concept} as outlined in the text.`,
         type: "short_answer",
         options: [],
-        correctAnswer: sentence.slice(0, 120),
+        correctAnswer: sentence.slice(0, 140),
         explanation: `Key reference from text: "${sentence}"`,
         topic: currentTopic,
         difficulty,
@@ -101,25 +188,33 @@ function generateFallbackQuiz(text, numQuestions = 5, questionTypes = ["mcq", "t
 
 /**
  * Generates quiz with Gemini API if GEMINI_API_KEY is available
+ * Tries rolling Gemini models so deprecated version aliases don't break generation.
  */
 async function generateQuizWithGemini(extractedText, numQuestions, questionTypes, difficulty) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey || apiKey.includes("your_gemini")) return null;
 
   const prompt = `
-You are an expert educational examiner. Based ONLY on the following text extracted from a study PDF, generate a structured quiz.
-Do NOT hallucinate information outside this content.
+You are an expert educational examiner. Based on the following study material or exam document, generate a structured quiz.
+
+CRITICAL EXTRACTION & ACCURACY RULES:
+1. If the source text contains pre-existing questions, practice tests, or question banks (e.g., question text followed by options like a, b, c, d and an Answer indicator), you MUST EXTRACT AND PRESERVE THOSE EXACT QUESTIONS, OPTIONS, AND DESIGNATED ANSWERS FIRST!
+2. When extracting existing options, clean off any leading markers like "a)", "b)", "A.", "B." so each option string in the options array is clean and clear.
+3. If the text says "Answer: b)", determine the exact text of option b and set that as "correctAnswer".
+4. If there are no pre-existing questions in the text, or if more questions are requested than exist, generate clear, factual questions directly from the contents of the text.
+5. Do NOT hallucinate distractors if real choices are already in the source.
+6. Do NOT confuse labels like "Answer", "Question", or "Section" as conceptual topics.
 
 Text snippet:
 """
-${extractedText.slice(0, 12000)}
+${extractedText.slice(0, 15000)}
 """
 
 REQUIREMENTS:
-- Number of questions: ${numQuestions}
+- Number of questions to return: ${numQuestions}
 - Difficulty: ${difficulty}
 - Allowed question types: ${questionTypes.join(", ")}
-- Identify 2 to 4 major topics present in the document.
+- Identify 2 to 4 major educational topics present in the document.
 
 Return strictly valid JSON with this schema:
 {
@@ -128,7 +223,7 @@ Return strictly valid JSON with this schema:
     {
       "question": "Clear question text",
       "type": "mcq" | "true_false" | "short_answer",
-      "options": ["Option A", "Option B", "Option C", "Option D"], // Only for mcq or ["True", "False"] for true_false
+      "options": ["Option A", "Option B", "Option C", "Option D"],
       "correctAnswer": "Exact correct option string",
       "explanation": "Brief explanation referencing the text",
       "topic": "Specific topic",
@@ -138,27 +233,46 @@ Return strictly valid JSON with this schema:
 }
 `;
 
-  try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-    const response = await axios.post(
-      url,
-      {
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          responseMimeType: "application/json",
-          temperature: 0.2,
-        },
-      },
-      { timeout: 25000 }
-    );
+  // Candidate models supported on Google Gemini API
+  const candidateModels = [
+    "gemini-flash-latest",
+    "gemini-3.6-flash",
+    "gemini-flash-lite-latest",
+    "gemini-3.5-flash",
+  ];
 
-    const candidate = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!candidate) return null;
-    return JSON.parse(candidate);
-  } catch (err) {
-    console.warn("Gemini quiz generation failed, falling back to heuristic generator:", err.message);
-    return null;
+  let lastError = null;
+  for (const modelName of candidateModels) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+      const response = await axios.post(
+        url,
+        {
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            responseMimeType: "application/json",
+            temperature: 0.1,
+          },
+        },
+        { timeout: 25000 }
+      );
+
+      const candidate = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!candidate) continue;
+
+      const cleanJson = candidate.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim();
+      const parsed = JSON.parse(cleanJson);
+      if (parsed && Array.isArray(parsed.questions) && parsed.questions.length > 0) {
+        return parsed;
+      }
+    } catch (err) {
+      lastError = err;
+      console.warn(`Gemini model ${modelName} call notice:`, err.response?.data?.error?.message || err.message);
+    }
   }
+
+  console.warn("All Gemini candidate models failed, falling back to heuristic generator:", lastError?.message);
+  return null;
 }
 
 /**

@@ -92,14 +92,14 @@ export function RegisterPage() {
       </div>
 
       {/* Right Panel: Glass Registration Card */}
-      <div className="flex w-full lg:w-1/2 items-center justify-center p-6 sm:p-12 relative">
+      <div className="flex w-full lg:w-1/2 items-center justify-center p-4 sm:p-12 relative">
         <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-80 w-80 rounded-full bg-blue-200/30 dark:bg-blue-900/20 blur-3xl" />
 
         <motion.div
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3 }}
-          className="w-full max-w-md rounded-2xl border border-slate-200 bg-white/90 dark:border-white/10 dark:bg-zinc-900/80 p-8 shadow-2xl backdrop-blur-2xl"
+          className="w-full max-w-md rounded-2xl border border-slate-200 bg-white/90 dark:border-white/10 dark:bg-zinc-900/80 p-5 sm:p-8 shadow-2xl backdrop-blur-2xl"
         >
           {/* Header */}
           <div className="mb-6 text-center">

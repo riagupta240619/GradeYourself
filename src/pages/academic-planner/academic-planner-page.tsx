@@ -953,7 +953,7 @@ function AcademicPlannerContent() {
                           {/* Subject Header */}
                           <div
                             onClick={() => toggleSubjectExpand(subjId)}
-                            className="p-5 bg-white/90 dark:bg-zinc-900/90 border-b border-slate-200 dark:border-white/10 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50 dark:hover:bg-zinc-800/80 dark:bg-zinc-800/80 transition-colors"
+                            className="p-4 sm:p-5 bg-white/90 dark:bg-zinc-900/90 border-b border-slate-200 dark:border-white/10 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 hover:bg-slate-50 dark:hover:bg-zinc-800/80 transition-colors"
                           >
                             <div className="flex items-center gap-3">
                               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-500/20 text-purple-600 dark:text-purple-300 font-bold border border-purple-500/30">
@@ -1056,7 +1056,7 @@ function AcademicPlannerContent() {
                                         </div>
 
                                         {/* Mark Entry Input or Required Score Indicator */}
-                                        <div className="flex items-center justify-between gap-3 pt-1">
+                                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 sm:gap-3 pt-1">
                                           <div className="flex items-center gap-2">
                                             <span className="text-xs text-slate-500 dark:text-zinc-400">
                                               Mark:
@@ -1086,7 +1086,7 @@ function AcademicPlannerContent() {
                                           </div>
 
                                           {!ast.isGraded && (
-                                            <div className="text-right font-mono">
+                                            <div className="text-left sm:text-right font-mono">
                                               <span className="text-[10px] text-zinc-400 block font-sans">
                                                 Required Score:
                                               </span>

@@ -576,15 +576,15 @@ export function StoragePage() {
               )}
             </div>
 
-            <div className="flex items-center gap-2 ml-auto">
-              <div className="relative">
+            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:ml-auto">
+              <div className="relative flex-1 sm:flex-initial min-w-[140px]">
                 <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]" />
                 <input
                   type="text"
                   placeholder="Search files..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface-elevated)] pl-8 pr-3 py-1.5 text-xs text-[var(--text-primary)] outline-hidden focus:border-purple-600 w-44 sm:w-56"
+                  className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface-elevated)] pl-8 pr-3 py-1.5 text-xs text-[var(--text-primary)] outline-hidden focus:border-purple-600 w-full sm:w-56"
                 />
               </div>
 
@@ -923,8 +923,8 @@ export function StoragePage() {
                 </div>
               ) : (
                 /* LIST VIEW */
-                <div className="surface-card rounded-2xl overflow-hidden">
-                  <table className="w-full text-left text-xs">
+                <div className="surface-card rounded-2xl overflow-x-auto">
+                  <table className="w-full min-w-[500px] text-left text-xs">
                     <thead className="border-b border-[var(--border)] bg-[var(--bg-surface-elevated)] text-[var(--text-secondary)]">
                       <tr>
                         <th className="py-2.5 px-4">Name</th>

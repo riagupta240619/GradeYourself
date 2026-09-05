@@ -11,9 +11,9 @@ export function AppLayout() {
 
       {/* Main Layout Container */}
       <Sidebar />
-      <div className="relative flex flex-1 flex-col overflow-hidden">
+      <div className="relative flex flex-1 flex-col min-w-0 overflow-hidden">
         <Navbar />
-        <main className="flex-1 overflow-y-auto p-6 sm:p-8 lg:p-10 space-y-8">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-3.5 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 min-w-0">
           <Outlet />
         </main>
       </div>
