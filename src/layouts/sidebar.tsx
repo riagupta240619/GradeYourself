@@ -44,6 +44,12 @@ const cgpaItems = [
     icon: Target,
     badge: "Planner",
   },
+  {
+    to: "/app/simulator",
+    label: "Grade Simulator",
+    icon: Wand2,
+    badge: "What-If",
+  },
   { to: "/app/subjects", label: "Subjects", icon: BookOpen },
   { to: "/app/assessment-builder", label: "Assessment Builder", icon: Puzzle },
 ];

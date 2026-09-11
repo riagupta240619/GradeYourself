@@ -29,6 +29,7 @@ import {
   RotateCcw,
   Edit2,
   FolderSymlink,
+  AlertTriangle,
 } from "lucide-react";
 import { api } from "@/services/api";
 import { Button } from "@/components/ui/button";
@@ -54,6 +55,7 @@ interface StorageFolderItem {
   _id: string;
   name: string;
   parentFolder?: string | null;
+  fileCount?: number;
 }
 
 interface SavedLinkItem {
@@ -81,6 +83,7 @@ export function StoragePage() {
   // Navigation State
   const [activeSection, setActiveSection] = useState<"files" | "favorites" | "links" | "trash">("files");
   const [currentFolder, setCurrentFolder] = useState<StorageFolderItem | null>(null);
+  const [folderScope, setFolderScope] = useState<"current" | "all">("current");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -98,6 +101,9 @@ export function StoragePage() {
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [showMoveModal, setShowMoveModal] = useState<StorageFileItem | null>(null);
   const [previewFile, setPreviewFile] = useState<StorageFileItem | null>(null);
+  const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
 
   // Form States
   const [newFolderName, setNewFolderName] = useState("");
@@ -114,11 +120,15 @@ export function StoragePage() {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
+      const folderParam = activeSection === "files"
+        ? (folderScope === "all" ? "all" : currentFolder ? currentFolder._id : "root")
+        : undefined;
+
       const [filesRes, foldersRes, statsRes, linksRes, favsRes] = await Promise.all([
         api.get(`/storage/files`, {
           params: {
             view: activeSection,
-            folder: activeSection === "files" ? (currentFolder ? currentFolder._id : "root") : undefined,
+            folder: folderParam,
             search: searchQuery || undefined,
           },
         }),
@@ -139,7 +149,7 @@ export function StoragePage() {
     } finally {
       setLoading(false);
     }
-  }, [activeSection, currentFolder, searchQuery]);
+  }, [activeSection, currentFolder, folderScope, searchQuery]);
 
   useEffect(() => {
     void fetchData();
@@ -314,6 +324,67 @@ export function StoragePage() {
     }
   };
 
+  // Download file safely via Blob
+  const handleDownload = async (file: StorageFileItem) => {
+    try {
+      toast.info(`Preparing ${file.name}...`);
+      const res = await api.get(`/storage/files/${file._id}/content?download=true`, {
+        responseType: "blob",
+      });
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: file.mimeType || "application/octet-stream" }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = file.name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => window.URL.revokeObjectURL(url), 2000);
+      toast.success(`Downloaded ${file.name}`);
+    } catch (err: any) {
+      console.error("Download error:", err);
+      toast.error(err?.response?.data?.message || "Failed to download file. Binary may not be on disk.");
+    }
+  };
+
+  // Preview Loader Effect
+  useEffect(() => {
+    if (!previewFile) {
+      if (previewBlobUrl) {
+        window.URL.revokeObjectURL(previewBlobUrl);
+        setPreviewBlobUrl(null);
+      }
+      setPreviewError(null);
+      return;
+    }
+
+    let isMounted = true;
+    setPreviewLoading(true);
+    setPreviewError(null);
+
+    api
+      .get(`/storage/files/${previewFile._id}/content`, { responseType: "blob" })
+      .then((res) => {
+        if (!isMounted) return;
+        const url = window.URL.createObjectURL(new Blob([res.data], { type: previewFile.mimeType || "application/pdf" }));
+        setPreviewBlobUrl(url);
+      })
+      .catch((err) => {
+        if (!isMounted) return;
+        console.error("Preview fetch error:", err);
+        setPreviewError("File binary could not be found on the server. The file may have been uploaded in another environment.");
+      })
+      .finally(() => {
+        if (isMounted) setPreviewLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+      if (previewBlobUrl) {
+        window.URL.revokeObjectURL(previewBlobUrl);
+      }
+    };
+  }, [previewFile]);
+
   // Delete Saved Link
   const handleDeleteLink = async (id: string) => {
     try {
@@ -412,17 +483,38 @@ export function StoragePage() {
               onClick={() => {
                 setActiveSection("files");
                 setCurrentFolder(null);
+                setFolderScope("current");
               }}
               className={cn(
                 "flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition-all",
-                activeSection === "files" && !currentFolder
+                activeSection === "files" && !currentFolder && folderScope === "current"
                   ? "bg-purple-600 text-white shadow-xs"
                   : "text-[var(--text-secondary)] hover:bg-[var(--bg-surface-elevated)] hover:text-[var(--text-primary)]"
               )}
             >
               <div className="flex items-center gap-2.5">
                 <Folder size={16} />
-                <span>All Files (Root)</span>
+                <span>Root Files</span>
+              </div>
+              <span className="text-[10px] opacity-80">{stats.fileCount}</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveSection("files");
+                setCurrentFolder(null);
+                setFolderScope("all");
+              }}
+              className={cn(
+                "flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition-all",
+                activeSection === "files" && folderScope === "all"
+                  ? "bg-purple-600 text-white shadow-xs"
+                  : "text-[var(--text-secondary)] hover:bg-[var(--bg-surface-elevated)] hover:text-[var(--text-primary)]"
+              )}
+            >
+              <div className="flex items-center gap-2.5">
+                <HardDrive size={16} className={activeSection === "files" && folderScope === "all" ? "text-white" : "text-purple-500"} />
+                <span>All Files (All Folders)</span>
               </div>
               <span className="text-[10px] opacity-80">{stats.fileCount}</span>
             </button>
@@ -438,23 +530,31 @@ export function StoragePage() {
                     onClick={() => {
                       setActiveSection("files");
                       setCurrentFolder(f);
+                      setFolderScope("current");
                     }}
                     className={cn(
-                      "flex items-center gap-2 truncate flex-1 px-2.5 py-1.5 text-xs text-left transition",
+                      "flex items-center justify-between gap-2 truncate flex-1 px-2.5 py-1.5 text-xs text-left transition",
                       currentFolder?._id === f._id && activeSection === "files"
                         ? "bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 font-bold rounded-lg"
                         : "text-[var(--text-secondary)]"
                     )}
                   >
-                    <Folder size={14} className="text-purple-500 shrink-0" />
-                    <span className="truncate">{f.name}</span>
+                    <div className="flex items-center gap-2 truncate min-w-0">
+                      <Folder size={14} className="text-purple-500 shrink-0" />
+                      <span className="truncate">{f.name}</span>
+                    </div>
+                    {f.fileCount !== undefined && (
+                      <span className="text-[10px] font-mono opacity-75 shrink-0 px-1 py-0.2 rounded bg-purple-500/10 text-purple-600 dark:text-purple-400">
+                        {f.fileCount}
+                      </span>
+                    )}
                   </button>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       handleDeleteFolder(f._id, f.name);
                     }}
-                    className="opacity-0 group-hover/item:opacity-100 p-1 text-[var(--text-tertiary)] hover:text-red-500 rounded transition"
+                    className="opacity-0 group-hover/item:opacity-100 p-1 text-[var(--text-tertiary)] hover:text-red-500 rounded transition shrink-0"
                     title="Delete folder"
                   >
                     <Trash2 size={12} />
@@ -819,13 +919,24 @@ export function StoragePage() {
                                 </button>
                               </div>
                             ) : (
-                              <h4 className="font-semibold text-xs text-[var(--text-primary)] truncate" title={file.name}>
+                              <h4
+                                className="font-semibold text-xs text-[var(--text-primary)] truncate cursor-pointer hover:text-purple-600 transition-colors"
+                                title={file.name}
+                                onClick={() => setPreviewFile(file)}
+                              >
                                 {file.name}
                               </h4>
                             )}
-                            <p className="text-[10px] text-[var(--text-tertiary)]">
-                              {formatBytes(file.size)} • {new Date(file.updatedAt).toLocaleDateString()}
-                            </p>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-[10px] text-[var(--text-tertiary)]">
+                                {formatBytes(file.size)} • {new Date(file.updatedAt).toLocaleDateString()}
+                              </span>
+                              {folderScope === "all" && file.folder && (
+                                <span className="inline-flex items-center gap-1 text-[9px] font-bold text-purple-600 dark:text-purple-400 bg-purple-500/10 px-1.5 py-0.5 rounded">
+                                  <Folder size={9} /> {folders.find((f) => f._id === file.folder)?.name || "Folder"}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
 
@@ -877,19 +988,18 @@ export function StoragePage() {
                             <div className="flex items-center gap-1">
                               <button
                                 onClick={() => setPreviewFile(file)}
-                                className="rounded p-1.5 text-[var(--text-secondary)] hover:bg-[var(--bg-surface-elevated)]"
+                                className="rounded p-1.5 text-[var(--text-secondary)] hover:bg-[var(--bg-surface-elevated)] hover:text-purple-600"
                                 title="Preview"
                               >
                                 <Eye size={14} />
                               </button>
-                              <a
-                                href={`/api/storage/files/${file._id}/content?download=true`}
-                                download
-                                className="rounded p-1.5 text-[var(--text-secondary)] hover:bg-[var(--bg-surface-elevated)]"
+                              <button
+                                onClick={() => handleDownload(file)}
+                                className="rounded p-1.5 text-[var(--text-secondary)] hover:bg-[var(--bg-surface-elevated)] hover:text-purple-600"
                                 title="Download"
                               >
                                 <Download size={14} />
-                              </a>
+                              </button>
                               <button
                                 onClick={() => {
                                   setEditingFileId(file._id);
@@ -937,9 +1047,21 @@ export function StoragePage() {
                       {files.map((file) => (
                         <tr key={file._id} className="hover:bg-[var(--bg-surface-elevated)] transition-colors">
                           <td className="py-2.5 px-4">
-                            <div className="flex items-center gap-2.5">
+                            <div
+                              className="flex items-center gap-2.5 cursor-pointer group"
+                              onClick={() => setPreviewFile(file)}
+                            >
                               {getFileIcon(file.mimeType, file.name)}
-                              <span className="font-semibold text-[var(--text-primary)]">{file.name}</span>
+                              <div>
+                                <span className="font-semibold text-[var(--text-primary)] group-hover:text-purple-600 transition-colors">
+                                  {file.name}
+                                </span>
+                                {folderScope === "all" && file.folder && (
+                                  <span className="ml-2 inline-flex items-center gap-1 text-[9px] font-bold text-purple-600 dark:text-purple-400 bg-purple-500/10 px-1.5 py-0.2 rounded">
+                                    <Folder size={9} /> {folders.find((f) => f._id === file.folder)?.name || "Folder"}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </td>
                           <td className="py-2.5 px-4 text-[var(--text-secondary)]">{formatBytes(file.size)}</td>
@@ -968,14 +1090,13 @@ export function StoragePage() {
                                   >
                                     <Eye size={15} />
                                   </button>
-                                  <a
-                                    href={`/api/storage/files/${file._id}/content?download=true`}
-                                    download
+                                  <button
+                                    onClick={() => handleDownload(file)}
                                     className="p-1 text-[var(--text-secondary)] hover:text-purple-600"
                                     title="Download"
                                   >
                                     <Download size={15} />
-                                  </a>
+                                  </button>
                                   <button
                                     onClick={() => handleTrashFile(file._id)}
                                     className="p-1 text-[var(--text-secondary)] hover:text-red-500"
@@ -1294,13 +1415,14 @@ export function StoragePage() {
                       Generate Quiz
                     </Button>
                   )}
-                  <a
-                    href={`/api/storage/files/${previewFile._id}/content?download=true`}
-                    download
-                    className="inline-flex items-center gap-1 rounded-lg border border-[var(--border)] px-2.5 py-1.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--bg-surface-strong)]"
+                  <button
+                    onClick={() => handleDownload(previewFile)}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-1.5 text-xs font-semibold text-[var(--text-secondary)] hover:bg-[var(--bg-surface-elevated)] hover:text-purple-600 transition"
+                    title="Download file"
                   >
                     <Download size={13} />
-                  </a>
+                    <span>Download</span>
+                  </button>
                   <button
                     onClick={() => setPreviewFile(null)}
                     className="rounded-lg p-1.5 text-[var(--text-tertiary)] hover:bg-[var(--bg-surface-strong)]"
@@ -1312,32 +1434,67 @@ export function StoragePage() {
 
               {/* Preview Body */}
               <div className="flex-1 bg-black/5 dark:bg-black/40 overflow-auto flex items-center justify-center p-4">
-                {previewFile.mimeType.includes("pdf") || previewFile.name.endsWith(".pdf") ? (
-                  <iframe
-                    src={`/api/storage/files/${previewFile._id}/content`}
-                    className="h-full w-full rounded-xl border border-[var(--border)] bg-white"
-                    title={previewFile.name}
-                  />
-                ) : previewFile.mimeType.includes("image") ? (
-                  <img
-                    src={`/api/storage/files/${previewFile._id}/content`}
-                    alt={previewFile.name}
-                    className="max-h-full max-w-full rounded-xl object-contain shadow-lg"
-                  />
-                ) : (
-                  <div className="text-center p-8 text-xs text-[var(--text-secondary)]">
-                    <FileText className="mx-auto h-12 w-12 text-[var(--text-tertiary)] mb-3" />
-                    <p className="font-semibold text-sm text-[var(--text-primary)]">Preview not available directly in browser</p>
-                    <p className="mt-1">You can download this file to view it with your system reader.</p>
-                    <a
-                      href={`/api/storage/files/${previewFile._id}/content?download=true`}
-                      download
-                      className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-purple-600 px-4 py-2 text-xs font-semibold text-white"
-                    >
-                      <Download size={14} /> Download {previewFile.name}
-                    </a>
+                {previewLoading ? (
+                  <div className="text-center p-8 text-xs text-[var(--text-secondary)] space-y-2">
+                    <RefreshCw className="mx-auto h-8 w-8 text-purple-600 animate-spin" />
+                    <p className="font-semibold text-sm text-[var(--text-primary)]">Loading document preview...</p>
+                    <p className="text-[11px] text-[var(--text-tertiary)]">Fetching document stream from secure storage</p>
                   </div>
-                )}
+                ) : previewError ? (
+                  <div className="text-center p-8 text-xs text-[var(--text-secondary)] max-w-md space-y-3">
+                    <AlertTriangle className="mx-auto h-10 w-10 text-amber-500" />
+                    <p className="font-bold text-sm text-[var(--text-primary)]">Unable to load document preview</p>
+                    <p className="text-[11px] text-[var(--text-tertiary)] leading-relaxed">
+                      {previewError}
+                    </p>
+                    <div className="pt-2 flex items-center justify-center gap-2">
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          setPreviewFile(null);
+                          setShowUploadModal(true);
+                        }}
+                        className="bg-purple-600 text-xs text-white"
+                      >
+                        <Upload size={13} className="mr-1" /> Re-upload File
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPreviewFile(null)}
+                        className="text-xs"
+                      >
+                        Close
+                      </Button>
+                    </div>
+                  </div>
+                ) : previewBlobUrl ? (
+                  previewFile.mimeType.includes("pdf") || previewFile.name.endsWith(".pdf") ? (
+                    <iframe
+                      src={previewBlobUrl}
+                      className="h-full w-full rounded-xl border border-[var(--border)] bg-white"
+                      title={previewFile.name}
+                    />
+                  ) : previewFile.mimeType.includes("image") ? (
+                    <img
+                      src={previewBlobUrl}
+                      alt={previewFile.name}
+                      className="max-h-full max-w-full rounded-xl object-contain shadow-lg"
+                    />
+                  ) : (
+                    <div className="text-center p-8 text-xs text-[var(--text-secondary)]">
+                      <FileText className="mx-auto h-12 w-12 text-[var(--text-tertiary)] mb-3" />
+                      <p className="font-semibold text-sm text-[var(--text-primary)]">Preview not available directly in browser</p>
+                      <p className="mt-1">You can download this file to view it with your system reader.</p>
+                      <button
+                        onClick={() => handleDownload(previewFile)}
+                        className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-purple-600 px-4 py-2 text-xs font-semibold text-white hover:bg-purple-700"
+                      >
+                        <Download size={14} /> Download {previewFile.name}
+                      </button>
+                    </div>
+                  )
+                ) : null}
               </div>
             </motion.div>
           </div>

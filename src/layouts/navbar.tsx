@@ -25,6 +25,7 @@ import {
   Settings,
   ChevronRight,
   Sparkles,
+  Wand2,
 } from "lucide-react";
 import { useTheme } from "@/hooks/use-theme";
 import { useAuth } from "@/hooks/use-auth";
@@ -37,6 +38,7 @@ const cgpaItems = [
   { to: "/app/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/app/attendance", label: "Smart Attendance", icon: CalendarCheck, badge: "Live" },
   { to: "/app/academic-planner", label: "Academic Planner", icon: Target, badge: "Planner" },
+  { to: "/app/simulator", label: "Grade Simulator", icon: Wand2, badge: "What-If" },
   { to: "/app/subjects", label: "Subjects", icon: BookOpen },
   { to: "/app/assessment-builder", label: "Assessment Builder", icon: Puzzle },
 ];

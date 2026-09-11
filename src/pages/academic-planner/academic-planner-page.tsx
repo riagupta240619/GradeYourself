@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import {
   Target,
   Sparkles,
@@ -17,6 +18,7 @@ import {
   ChevronDown,
   ChevronUp,
   Save,
+  Wand2,
 } from "lucide-react";
 import { SubjectService } from "@/services/subject-service";
 import {
@@ -215,6 +217,13 @@ function AcademicPlannerContent() {
     currentCgpa,
   ]);
 
+  // Custom subject-level target percentages (e.g. 80% for O grade in AOC)
+  const [subjectCustomTargets, setSubjectCustomTargets] = useState<Record<string, number>>({});
+
+  const handleSetSubjectTarget = (subjId: string, pct: number) => {
+    setSubjectCustomTargets((prev) => ({ ...prev, [subjId]: pct }));
+  };
+
   // Convert Required SGPA to Target Subject Percentage
   const targetSubjectPct = useMemo(() => {
     if (scale === "4.0")
@@ -226,16 +235,22 @@ function AcademicPlannerContent() {
   const subjectPlanningData = useMemo(() => {
     const validSubs = Array.isArray(subjects) ? subjects : [];
     return validSubs.map((subj) => {
-      const plan = calculateHierarchicalRequiredMarks(subj, targetSubjectPct);
+      const subjId = subj.id || subj._id || "";
+      const effectiveTargetPct =
+        subjectCustomTargets[subjId] !== undefined
+          ? subjectCustomTargets[subjId]
+          : targetSubjectPct;
+      const plan = calculateHierarchicalRequiredMarks(subj, effectiveTargetPct);
       const currentPct = subjectCurrentPct(subj);
       return {
         subject: subj,
         plan,
+        effectiveTargetPct,
         currentPct:
           typeof currentPct === "number" && !isNaN(currentPct) ? currentPct : 0,
       };
     });
-  }, [subjects, targetSubjectPct]);
+  }, [subjects, targetSubjectPct, subjectCustomTargets]);
 
   // Max Achievable SGPA and CGPA
   const maxPossibleMetrics = useMemo(() => {
@@ -940,7 +955,7 @@ function AcademicPlannerContent() {
                       </p>
                     </Card>
                   ) : (
-                    subjectPlanningData.map(({ subject, plan, currentPct }) => {
+                    subjectPlanningData.map(({ subject, plan, effectiveTargetPct, currentPct }) => {
                       if (!subject) return null;
                       const subjId = subject.id || subject._id || "";
                       const isExpanded = expandedSubjectIds.has(subjId);
@@ -968,6 +983,10 @@ function AcademicPlannerContent() {
                                   Credits • Current Score:{" "}
                                   <strong className="text-purple-600 dark:text-purple-300 font-mono">
                                     {currentPct.toFixed(1)}%
+                                  </strong>
+                                  {" "}• Target:{" "}
+                                  <strong className="text-purple-600 dark:text-purple-300 font-mono">
+                                    {effectiveTargetPct}%
                                   </strong>
                                 </p>
                               </div>
@@ -1010,6 +1029,73 @@ function AcademicPlannerContent() {
                           {/* Hierarchical Components & Assessments List */}
                           {isExpanded && (
                             <CardContent className="p-5 space-y-6 bg-slate-50 dark:bg-zinc-950/60">
+                              {/* Per-Subject Target Toolbar & Simulator Link */}
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-white dark:bg-zinc-900/80 border border-slate-200 dark:border-white/10">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className="text-xs font-bold text-slate-700 dark:text-zinc-300 flex items-center gap-1.5">
+                                    <Target size={14} className="text-purple-500" /> Target for {subject.name}:
+                                  </span>
+                                  <span className="text-xs font-mono font-extrabold text-purple-600 dark:text-purple-300 bg-purple-500/10 border border-purple-500/20 px-2.5 py-0.5 rounded-full">
+                                    {effectiveTargetPct}%
+                                  </span>
+                                  <div className="flex flex-wrap items-center gap-1">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleSetSubjectTarget(subjId, 80)}
+                                      className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
+                                        effectiveTargetPct === 80
+                                          ? "bg-purple-600 text-white shadow-sm"
+                                          : "bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 hover:border-purple-400 border border-slate-200 dark:border-white/10"
+                                      }`}
+                                    >
+                                      O Grade (80%)
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleSetSubjectTarget(subjId, 90)}
+                                      className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
+                                        effectiveTargetPct === 90
+                                          ? "bg-purple-600 text-white shadow-sm"
+                                          : "bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 hover:border-purple-400 border border-slate-200 dark:border-white/10"
+                                      }`}
+                                    >
+                                      O (90%)
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleSetSubjectTarget(subjId, 75)}
+                                      className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
+                                        effectiveTargetPct === 75
+                                          ? "bg-purple-600 text-white shadow-sm"
+                                          : "bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 hover:border-purple-400 border border-slate-200 dark:border-white/10"
+                                      }`}
+                                    >
+                                      A+ (75%)
+                                    </button>
+                                    {effectiveTargetPct !== targetSubjectPct && (
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setSubjectCustomTargets((prev) => {
+                                            const next = { ...prev };
+                                            delete next[subjId];
+                                            return next;
+                                          });
+                                        }}
+                                        className="text-[11px] text-zinc-500 hover:underline px-1.5"
+                                      >
+                                        Reset ({targetSubjectPct}%)
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+
+                                <Link to={`/app/simulator?subjectId=${subjId}`}>
+                                  <Button size="sm" variant="outline" className="gap-1.5 text-xs border-purple-500/30 text-purple-600 dark:text-purple-300 hover:bg-purple-500/10">
+                                    <Wand2 size={13} /> Open in Simulator
+                                  </Button>
+                                </Link>
+                              </div>
                               {(plan?.components || []).map((comp) => (
                                 <div
                                   key={comp.id}

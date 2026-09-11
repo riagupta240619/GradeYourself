@@ -114,9 +114,30 @@ async function download(req, res, next) {
       throw new Error("File not found");
     }
 
-    const filePath =
-      file.providerUrl ||
-      path.join(UPLOAD_ROOT, String(req.user._id), file.storageKey);
+    let filePath = path.join(UPLOAD_ROOT, String(req.user._id), file.storageKey);
+
+    if (!fs.existsSync(filePath)) {
+      if (file.providerUrl && fs.existsSync(file.providerUrl)) {
+        filePath = file.providerUrl;
+      } else if (file.providerUrl) {
+        // Handle cross-platform path migration (e.g. Render Linux -> Local Windows)
+        const parts = file.providerUrl.replace(/\\/g, "/").split("uploads/storage/");
+        if (parts.length > 1) {
+          const relativePart = parts[1];
+          const remappedPath = path.join(UPLOAD_ROOT, ...relativePart.split("/"));
+          if (fs.existsSync(remappedPath)) {
+            filePath = remappedPath;
+          }
+        }
+      }
+    }
+
+    if (!fs.existsSync(filePath)) {
+      const fallbackRoot = path.join(UPLOAD_ROOT, file.storageKey);
+      if (fs.existsSync(fallbackRoot)) {
+        filePath = fallbackRoot;
+      }
+    }
 
     if (!fs.existsSync(filePath)) {
       res.status(404);
@@ -155,7 +176,11 @@ async function list(req, res, next) {
     }
 
     if (view === "files" && req.query.folder !== undefined) {
-      query.folder = req.query.folder === "root" || !req.query.folder ? null : req.query.folder;
+      if (req.query.folder === "all") {
+        // do not filter by folder; show all files across all folders
+      } else {
+        query.folder = req.query.folder === "root" || !req.query.folder ? null : req.query.folder;
+      }
     }
 
     if (req.query.search) {
@@ -187,7 +212,20 @@ async function folders(req, res, next) {
     }
 
     const folderList = await StorageFolder.find(query).sort({ name: 1 }).lean();
-    res.json({ folders: folderList });
+    const folderIds = folderList.map((f) => f._id);
+    const counts = await StorageFile.aggregate([
+      { $match: { user: req.user._id, folder: { $in: folderIds }, isDeleted: false } },
+      { $group: { _id: "$folder", count: { $sum: 1 } } },
+    ]);
+    const countMap = {};
+    counts.forEach((c) => {
+      countMap[String(c._id)] = c.count;
+    });
+    const enriched = folderList.map((f) => ({
+      ...f,
+      fileCount: countMap[String(f._id)] || 0,
+    }));
+    res.json({ folders: enriched });
   } catch (e) {
     next(e);
   }

@@ -200,16 +200,15 @@ export function pctToScale(pct: number, scale: GradeScale): number {
   }
 }
 
-export function pctToLetter(pct: number): string {
-  if (pct >= 90) return "A+";
-  if (pct >= 85) return "A";
-  if (pct >= 80) return "A-";
-  if (pct >= 75) return "B+";
-  if (pct >= 70) return "B";
-  if (pct >= 65) return "B-";
-  if (pct >= 60) return "C+";
-  if (pct >= 50) return "C";
-  return "D";
+export function pctToLetter(pct: number, oThreshold: number = 90): string {
+  if (pct >= oThreshold) return "O";
+  if (pct >= 80) return "A+";
+  if (pct >= 70) return "A";
+  if (pct >= 60) return "B+";
+  if (pct >= 50) return "B";
+  if (pct >= 45) return "C";
+  if (pct >= 40) return "P";
+  return "F";
 }
 
 /** Credit-weighted SGPA for a single semester, on the given scale. */
@@ -253,6 +252,8 @@ export function calculateCgpa(semesters: Semester[], scale: GradeScale): number 
 export function findAtRiskSubjects(subjects: Subject[], threshold: number = 70): RiskFlag[] {
   const flags: RiskFlag[] = [];
   for (const subject of subjects) {
+    // Only subjects with entered evaluation marks can be at risk
+    if (!hasSubjectMarks(subject)) continue;
     const prediction = predictSubject(subject);
     if (prediction.high < threshold) {
       flags.push({

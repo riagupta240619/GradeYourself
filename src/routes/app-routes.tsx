@@ -22,6 +22,7 @@ import { CodingHubPage, ResourcesHubPage, ResumeHubPage, GitHubHubPage } from "@
 import { AttendancePage } from "@/pages/attendance/attendance-page";
 import { InterviewHubPage } from "@/pages/interview/interview-hub-page";
 import { QuizPage } from "@/pages/quiz/quiz-page";
+import { SimulatorPage } from "@/pages/simulator/simulator-page";
 
 export function AppRoutes() {
   return (
@@ -44,7 +45,7 @@ export function AppRoutes() {
           <Route path="academic_planner" element={<Navigate to="/app/academic-planner" replace />} />
           {/* Legacy Redirects */}
           <Route path="target-planner" element={<Navigate to="/app/academic-planner" replace />} />
-          <Route path="simulator" element={<Navigate to="/app/academic-planner" replace />} />
+          <Route path="simulator" element={<SimulatorPage />} />
           <Route path="advisor" element={<Navigate to="/app/academic-planner" replace />} />
           <Route path="assessment-builder" element={<AssessmentBuilderPage />} />
           <Route path="templates" element={<Navigate to="/app/assessment-builder" replace />} />

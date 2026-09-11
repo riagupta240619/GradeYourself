@@ -10,6 +10,7 @@ import {
   Award,
   Sparkles,
   Layers,
+  Target,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ import {
   hasSubjectMarks,
   normalizeScheme,
   evaluateComponentScore,
+  calculateHierarchicalRequiredMarks,
 } from "@/utils/grading-engine";
 import { SubjectService } from "@/services/subject-service";
 import type { Subject } from "@/types";
@@ -278,6 +280,12 @@ export function SubjectDetailsPage() {
   const pct = subject.calculatedPct ?? subjectCurrentPct(subject);
   const prediction = predictSubject(subject);
 
+  // End-term O grade (>80%) requirement planning
+  const oGradePlan = useMemo(() => {
+    if (!subject) return null;
+    return calculateHierarchicalRequiredMarks(subject, 80);
+  }, [subject]);
+
   // Normalized Hierarchical Scheme
   const normScheme = normalizeScheme(subject.scheme);
 
@@ -404,7 +412,7 @@ export function SubjectDetailsPage() {
               >
                 <Layers size={15} /> Edit Scheme
               </Button>
-              <Link to="/app/simulator">
+              <Link to={`/app/simulator?subjectId=${subject.id || subject._id}`}>
                 <Button variant="primary" size="sm" className="gap-1.5">
                   <Wand2 size={15} /> Open Simulator
                 </Button>
@@ -421,6 +429,49 @@ export function SubjectDetailsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* End Term Target O Grade Simulation Highlight */}
+      {oGradePlan && (
+        <div className="rounded-2xl border border-purple-500/30 bg-purple-500/10 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-purple-500/20 text-purple-600 dark:text-purple-300">
+              <Target size={22} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
+                  O Grade Target Simulation (&gt;80%)
+                </h3>
+                {oGradePlan.isAchieved ? (
+                  <Badge tone="accent" className="bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">
+                    Target Met
+                  </Badge>
+                ) : !oGradePlan.possible ? (
+                  <Badge tone="warning" className="bg-rose-500/20 text-rose-300 text-[10px] font-bold">
+                    Max Achievable: {oGradePlan.maxPossiblePct}%
+                  </Badge>
+                ) : (
+                  <Badge tone="accent" className="bg-purple-500/20 text-purple-600 dark:text-purple-300 text-[10px] font-bold">
+                    {oGradePlan.requiredAvgPct}% Needed on Remaining
+                  </Badge>
+                )}
+              </div>
+              <p className="text-xs text-slate-600 dark:text-zinc-400 mt-0.5">
+                Earned contribution: <strong className="text-emerald-600 dark:text-emerald-400 font-mono">{oGradePlan.earnedContribution}%</strong> •{" "}
+                {oGradePlan.isAchieved
+                  ? "You have already secured enough marks to achieve this target grade!"
+                  : `To score an O Grade (>80%), you need ${oGradePlan.requiredAvgPct}% on remaining assessments.`}
+              </p>
+            </div>
+          </div>
+
+          <Link to={`/app/simulator?subjectId=${subject.id || subject._id}`}>
+            <Button size="sm" variant="primary" className="gap-1.5 shrink-0 bg-purple-600 text-white hover:bg-purple-700 shadow-md">
+              <Wand2 size={14} /> Run Live Simulation
+            </Button>
+          </Link>
+        </div>
+      )}
 
       {/* Hierarchical Component & Assessment Breakdown */}
       <div className="flex flex-col gap-6">

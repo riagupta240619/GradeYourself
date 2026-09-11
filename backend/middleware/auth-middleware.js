@@ -28,6 +28,11 @@ const verifyToken = async (req, res, next) => {
     token = req.headers.authorization.split(" ")[1];
   }
 
+  // ── 3. Fallback: Read token from query parameter (for direct file downloads/streams) ──
+  if (!token && req.query && typeof req.query.token === "string" && req.query.token.trim()) {
+    token = req.query.token.trim();
+  }
+
   if (!token || typeof token !== "string" || token.trim() === "") {
     res.status(401);
     return next(new Error("Unauthorized: No authentication token provided"));

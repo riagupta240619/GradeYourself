@@ -338,7 +338,8 @@ function findAtRiskSubjects(subjects = [], scale = "10.0") {
 
   for (const subj of subjects) {
     const score = calculateSubjectScore(subj, scale);
-    if (score.pct < 65) {
+    // Only subjects with actual entered evaluation marks can be at risk
+    if (score.pct !== null && score.pct !== undefined && score.pct < 65) {
       atRisk.push({
         subjectId: subj._id || subj.id || `subj-${subj.name}`,
         subjectName: subj.name,

@@ -182,11 +182,21 @@ export function DashboardPage() {
     return currentSemesterSubjects
       .filter(Boolean)
       .map((s: any) => {
-        const pct = typeof s.calculatedPct === "number" && !isNaN(s.calculatedPct) ? s.calculatedPct : (typeof s.currentScore === "number" ? s.currentScore : null);
-        const isInProgress = s.isInProgress || pct === null || s.letterGrade === "In Progress" || s.status === "In Progress";
+        const marksMap = s.marks && typeof s.marks === "object" ? s.marks : {};
+        const hasEnteredAnyMarks = Object.values(marksMap).some(
+          (val) => val !== null && val !== undefined && val !== "" && !isNaN(Number(val))
+        );
+
+        const pct = typeof s.calculatedPct === "number" && !isNaN(s.calculatedPct)
+          ? s.calculatedPct
+          : (typeof s.currentScore === "number" ? s.currentScore : null);
+
+        // If no evaluations or examinations have occurred yet, the course is NOT at risk
+        if (!hasEnteredAnyMarks && pct === null) {
+          return null;
+        }
 
         const types = Array.isArray(s.scheme?.assessmentTypes) ? s.scheme.assessmentTypes : [];
-        const marksMap = s.marks && typeof s.marks === "object" ? s.marks : {};
         const missingAssessments: string[] = [];
 
         types.forEach((t: any) => {
@@ -197,9 +207,10 @@ export function DashboardPage() {
           }
         });
 
-        const isBelowTarget = pct !== null && pct < 75;
+        // Only at risk if evaluated assessments fall below acceptable thresholds
         const isCritical = pct !== null && pct < 60;
-        const isAtRisk = isBelowTarget || (isInProgress && missingAssessments.length > 1);
+        const isBelowTarget = pct !== null && pct < 70;
+        const isAtRisk = hasEnteredAnyMarks && (isCritical || isBelowTarget);
 
         const riskLevel: "Critical" | "Moderate" | "Low" = isCritical ? "Critical" : pct !== null && pct < 70 ? "Moderate" : "Low";
         const requiredScore = pct !== null ? Math.min(100, Math.round(pct + 12)) : 80;
